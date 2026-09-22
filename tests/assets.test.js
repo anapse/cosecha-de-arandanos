@@ -9,9 +9,9 @@
  * olvidarse de generar el PNG (o al revés). Sin esta prueba el motor
  * caería silenciosamente al placeholder y nadie se enteraría.
  *
- * ESTRUCTURA: las rutas del catálogo son absolutas desde la raíz web
- * ('/assets/player/idle/player_idle.png'). Para llegar al archivo hay
- * que quitarlas el prefijo '/assets/' y unirlas a public/assets/.
+ * ESTRUCTURA: las rutas del catálogo son RELATIVAS al documento
+ * ('assets/player/idle/player_idle.png'). Para llegar al archivo se
+ * unen directamente a public/.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -47,12 +47,11 @@ const PUBLIC = join(__dirname, '..', 'public');
 
 /**
  * Ruta en disco de un asset del manifiesto.
- * '/assets/player/idle/player_idle.png'
+ * 'assets/player/idle/player_idle.png'
  *   → public/assets/player/idle/player_idle.png
  */
 function diskPath(assetPath) {
-  const rel = assetPath.replace(/^\/assets\//, '');
-  return join(PUBLIC, 'assets', rel);
+  return join(PUBLIC, assetPath);
 }
 
 /** Lee el ancho/alto/color de la cabecera IHDR de un PNG. */
@@ -74,7 +73,14 @@ describe('Catálogo de assets', () => {
     Object.entries(ASSET_MANIFEST).forEach(([key, entry]) => {
       expect(entry.path, `${key} sin path`).toBeTruthy();
       expect(typeof entry.path).toBe('string');
-      expect(entry.path.startsWith('/assets/'), `${key} debe ser ruta web`).toBe(true);
+      // Rutas RELATIVAS: no deben empezar por '/' ni incluir protocolo.
+      // Así el juego carga sus sprites igual desde localhost, desde la
+      // IP de la LAN o servido en una subcarpeta.
+      expect(
+        entry.path.startsWith('/'),
+        `${key} no debe ser ruta absoluta: ${entry.path}`
+      ).toBe(false);
+      expect(entry.path.startsWith('assets/'), `${key} debe empezar por assets/`).toBe(true);
       expect(entry.frames, `${key} sin frames`).toBeGreaterThan(0);
       expect(entry.frameSize, `${key} sin frameSize`).toBeGreaterThan(0);
       expect(Object.values(ASSET_STATUS)).toContain(entry.status);
@@ -82,13 +88,13 @@ describe('Catálogo de assets', () => {
   });
 
   it('assetUrl construye la ruta pública con la nueva estructura', () => {
-    // Estructura con subcarpetas (§5-§13)
+    // Estructura con subcarpetas (§5-§13) y rutas RELATIVAS.
     expect(assetUrl('player.walkDown')).toBe(
-      '/assets/player/walk/player_walk_down.png'
+      'assets/player/walk/player_walk_down.png'
     );
-    expect(assetUrl('player.idle')).toBe('/assets/player/idle/player_idle.png');
-    expect(assetUrl('fruit.ripe')).toBe('/assets/fruits/fruit_ripe.png');
-    expect(assetUrl('ui.iconsHeartFull')).toBe('/assets/ui/icons/heart_full.png');
+    expect(assetUrl('player.idle')).toBe('assets/player/idle/player_idle.png');
+    expect(assetUrl('fruit.ripe')).toBe('assets/fruits/fruit_ripe.png');
+    expect(assetUrl('ui.iconsHeartFull')).toBe('assets/ui/icons/heart_full.png');
     expect(assetUrl('no.existe')).toBeNull();
   });
 
@@ -191,7 +197,7 @@ describe('Catálogo de assets', () => {
     ];
 
     tiles.forEach((name) => {
-      const info = readPngInfo(diskPath(`/assets/terrain/${name}.png`));
+      const info = readPngInfo(diskPath(`assets/terrain/${name}.png`));
       expect(info.width, `${name} ancho`).toBe(32);
       expect(info.height, `${name} alto`).toBe(32);
     });
@@ -352,6 +358,6 @@ describe('Catálogo de assets', () => {
     expect(text).toContain(String(countUniqueSprites()));
 
     // Y contener rutas reales del catálogo
-    expect(text).toContain('/assets/player/walk/player_walk_down.png');
+    expect(text).toContain('assets/player/walk/player_walk_down.png');
   });
 });

@@ -38,9 +38,9 @@ function installImageStub() {
     set src(value) {
       this._src = value;
 
-      // '/assets/player/player_idle.png' -> public/assets/player/player_idle.png
-      const relative = value.replace(/^\/assets\//, '');
-      const disk = join(PUBLIC, 'assets', relative);
+      // Ruta relativa: 'assets/player/idle/player_idle.png'
+      //   -> public/assets/player/idle/player_idle.png
+      const disk = join(PUBLIC, value);
 
       // Asíncrono, como un navegador real.
       setTimeout(() => {

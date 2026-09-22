@@ -886,6 +886,8 @@ export class GameEngine {
     this.levelSystem.reset();
 
     /* ---------- Cámara (§38) ---------- */
+    // Se asegura la reserva del HUD aunque no se haya llamado a resize().
+    this.#applyHudInsets();
     this.camera.setWorldSize(this.map.width, this.map.height);
     this.camera.snapTo(this.player.x, this.player.y);
 
@@ -1041,6 +1043,13 @@ export class GameEngine {
    * resolución lógica interna (§11).
    */
   resize() {
+    // La reserva de sitio para el HUD NO depende del tamaño del canvas:
+    // se aplica siempre, antes de cualquier salida temprana. Si se
+    // dejara dentro del cálculo de tamaño, un canvas sin contenedor
+    // (o el motor usado sin DOM, como en las pruebas) se quedaría sin
+    // franja útil y el campo se dibujaría debajo de los paneles.
+    this.#applyHudInsets();
+
     const canvas = this.canvas;
     const parent = canvas.parentElement;
     if (!parent) return;
@@ -1066,14 +1075,6 @@ export class GameEngine {
 
     this.ctx.imageSmoothingEnabled = false;
     this.renderer.resize(this.logicalWidth, this.logicalHeight);
-    this.hud.resize(this.logicalWidth, this.logicalHeight, {
-      hudHeight: GAME_CONFIG.hudHeight,
-      bottomHeight: GAME_CONFIG.hudBottomHeight,
-    });
-
-    // La cámara respeta el espacio de la interfaz: el campo se ve
-    // entre el HUD superior y el inferior (§2, §7).
-    this.camera.setInsets(GAME_CONFIG.hudHeight, GAME_CONFIG.hudBottomHeight);
 
     // Recalcula límites de cámara por si cambió el tamaño.
     if (this.map.data) {
@@ -1321,6 +1322,22 @@ export class GameEngine {
           break;
       }
     }
+  }
+
+  /**
+   * Reserva en la cámara el alto de los dos HUD (§2, §7).
+   *
+   * El campo se dibuja SOLO en la franja entre el HUD superior y el
+   * inferior; esta reserva es la que hace que la cámara no muestre el
+   * mundo por debajo de los paneles y que el scroll vertical sea el
+   * correcto.
+   */
+  #applyHudInsets() {
+    this.camera.setInsets(GAME_CONFIG.hudHeight, GAME_CONFIG.hudBottomHeight);
+    this.hud.resize(this.logicalWidth, this.logicalHeight, {
+      hudHeight: GAME_CONFIG.hudHeight,
+      bottomHeight: GAME_CONFIG.hudBottomHeight,
+    });
   }
 
   /**

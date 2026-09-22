@@ -27,7 +27,7 @@ const PUBLIC = join(__dirname, '..', 'public');
 /** Lee ancho/alto de un PNG. */
 function pngSize(assetPath) {
   const buffer = readFileSync(
-    join(PUBLIC, 'assets', assetPath.replace('/assets/', ''))
+    join(PUBLIC, assetPath)
   );
   return {
     width: buffer.readUInt32BE(16),

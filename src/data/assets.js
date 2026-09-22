@@ -24,7 +24,25 @@
 /* ============================================================
    0. RAÍZ PÚBLICA
    ============================================================ */
-const ROOT = '/assets';
+
+/**
+ * Raíz de los assets, RELATIVA al documento.
+ *
+ * ¿Por qué relativa ('assets/...' y no '/assets/...')?
+ * Una ruta absoluta se resuelve contra la raíz del dominio. Eso
+ * funciona si el juego se abre en http://IP:5173/, pero falla si se
+ * sirve desde una subcarpeta (por ejemplo http://IP/mi-juego/).
+ *
+ * Con ruta relativa el navegador la resuelve contra la URL actual, así
+ * el juego carga sus sprites igual desde:
+ *   - http://localhost:5173/
+ *   - http://192.168.X.X:5173/        (otra PC o teléfono en la LAN)
+ *   - http://192.168.X.X/mi-juego/    (servido en subcarpeta)
+ *
+ * Vite sirve public/ en la raíz, así que 'assets/x.png' apunta a
+ * public/assets/x.png.
+ */
+const ROOT = 'assets';
 
 /** Une la raíz con una ruta relativa. */
 const p = (rel) => `${ROOT}/${rel}`;

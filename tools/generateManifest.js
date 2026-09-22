@@ -19,7 +19,7 @@ const PUBLIC = join(__dirname, '..', 'public');
 
 /** ¿Existe el archivo en disco? */
 function fileInfo(assetPath) {
-  const disk = join(PUBLIC, assetPath.replace('/assets/', 'assets/'));
+  const disk = join(PUBLIC, assetPath);
   if (!existsSync(disk)) return { exists: false, bytes: 0 };
   return { exists: true, bytes: statSync(disk).size };
 }
