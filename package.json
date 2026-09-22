@@ -13,7 +13,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "sprites": "node tools/generateSprites.js",
+    "sprites:sheet": "node tools/generateSprites.js && node tools/makeContactSheet.js",
+    "sprites:preview": "node tools/previewSheet.js"
   },
   "dependencies": {
     "react": "^18.3.1",

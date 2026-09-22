@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Sprites — Cosecha de Arándanos</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0; padding: 24px;
+    background: #16281a; color: #e8f0e8;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+  h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: .02em; }
+  .sub { color: #8fa394; font-size: 13px; margin-bottom: 20px; }
+  h2 {
+    font-size: 14px; letter-spacing: .08em; text-transform: uppercase;
+    color: #7ec8ff; border-bottom: 2px solid #2b4a5a;
+    padding-bottom: 6px; margin: 26px 0 12px;
+  }
+  .count {
+    background: #2a4a5a; color: #cfe0d2; font-size: 11px;
+    padding: 2px 7px; border-radius: 9px; margin-left: 6px;
+  }
+  .grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .item {
+    margin: 0; padding: 8px; border-radius: 8px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    /* Mitad claro / mitad oscuro: comprueba que el alfa funciona */
+    background:
+      linear-gradient(135deg, #d8e4d0 0 50%, #24301f 50% 100%);
+    border: 1px solid #3a5540;
+    min-width: 76px;
+  }
+  img { image-rendering: pixelated; display: block; }
+  figcaption {
+    font-size: 9px; color: #cfe0d2; text-align: center;
+    max-width: 92px; word-break: break-all; line-height: 1.3;
+    text-shadow: 0 1px 2px rgba(0,0,0,.9);
+  }
+  .tiles .item { background: #1d2a18; }
+</style>
+</head>
+<body>
+  <h1>🫐 Sprites — Cosecha de Arándanos</h1>
+  <p class="sub">
+    Fondo dividido claro/oscuro para comprobar la transparencia.
+    Escala 4x, sin suavizado (pixel art nativo).
+  </p>
+  
+  <section>
+    <h2>PLAYER <span class="count">13</span></h2>
+    <div class="grid">
+      <figure class="item">
+        <img src="../public/assets/player/player_defeat.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="player_defeat.png">
+        <figcaption>player_defeat</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/player/player_error.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="player_error.png">
+        <figcaption>player_error</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/player/player_full.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="player_full.png">
+        <figcaption>player_full</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/player/player_harvest_left.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="player_harvest_left.png">
+        <figcaption>player_harvest_left</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/player/player_harvest_right.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="player_harvest_right.png">
+        <figcaption>player_harvest_right</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/player/player_idle.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="player_idle.png">
+        <figcaption>player_idle</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/player/player_tired.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="player_tired.png">
+        <figcaption>player_tired</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/player/player_victory.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="player_victory.png">
+        <figcaption>player_victory</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/player/player_wait.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="player_wait.png">
+        <figcaption>player_wait</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/player/player_walk_down.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="player_walk_down.png">
+        <figcaption>player_walk_down</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/player/player_walk_left.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="player_walk_left.png">
+        <figcaption>player_walk_left</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/player/player_walk_right.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="player_walk_right.png">
+        <figcaption>player_walk_right</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/player/player_walk_up.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="player_walk_up.png">
+        <figcaption>player_walk_up</figcaption>
+      </figure></div>
+  </section>
+  <section>
+    <h2>SUPERVISOR <span class="count">10</span></h2>
+    <div class="grid">
+      <figure class="item">
+        <img src="../public/assets/supervisor/supervisor_approve.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="supervisor_approve.png">
+        <figcaption>supervisor_approve</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/supervisor/supervisor_detect_error.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="supervisor_detect_error.png">
+        <figcaption>supervisor_detect_error</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/supervisor/supervisor_idle.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="supervisor_idle.png">
+        <figcaption>supervisor_idle</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/supervisor/supervisor_review.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="supervisor_review.png">
+        <figcaption>supervisor_review</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/supervisor/supervisor_talk.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="supervisor_talk.png">
+        <figcaption>supervisor_talk</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/supervisor/supervisor_walk_down.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="supervisor_walk_down.png">
+        <figcaption>supervisor_walk_down</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/supervisor/supervisor_walk_left.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="supervisor_walk_left.png">
+        <figcaption>supervisor_walk_left</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/supervisor/supervisor_walk_right.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="supervisor_walk_right.png">
+        <figcaption>supervisor_walk_right</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/supervisor/supervisor_walk_up.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="supervisor_walk_up.png">
+        <figcaption>supervisor_walk_up</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/supervisor/supervisor_write.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="supervisor_write.png">
+        <figcaption>supervisor_write</figcaption>
+      </figure></div>
+  </section>
+  <section>
+    <h2>PLANTS <span class="count">8</span></h2>
+    <div class="grid">
+      <figure class="item">
+        <img src="../public/assets/plants/plant_abundant.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="plant_abundant.png">
+        <figcaption>plant_abundant</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/plants/plant_empty.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="plant_empty.png">
+        <figcaption>plant_empty</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/plants/plant_few.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="plant_few.png">
+        <figcaption>plant_few</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/plants/plant_harvested.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="plant_harvested.png">
+        <figcaption>plant_harvested</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/plants/plant_medium.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="plant_medium.png">
+        <figcaption>plant_medium</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/plants/plant_mixed.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="plant_mixed.png">
+        <figcaption>plant_mixed</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/plants/plant_ripe.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="plant_ripe.png">
+        <figcaption>plant_ripe</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/plants/plant_unripe.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="plant_unripe.png">
+        <figcaption>plant_unripe</figcaption>
+      </figure></div>
+  </section>
+  <section>
+    <h2>FRUITS <span class="count">6</span></h2>
+    <div class="grid">
+      <figure class="item">
+        <img src="../public/assets/fruits/fruit_fall.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="fruit_fall.png">
+        <figcaption>fruit_fall</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/fruits/fruit_group_x2.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="fruit_group_x2.png">
+        <figcaption>fruit_group_x2</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/fruits/fruit_group_x3.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="fruit_group_x3.png">
+        <figcaption>fruit_group_x3</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/fruits/fruit_in_hand.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="fruit_in_hand.png">
+        <figcaption>fruit_in_hand</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/fruits/fruit_ripe.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="fruit_ripe.png">
+        <figcaption>fruit_ripe</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/fruits/fruit_unripe.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="fruit_unripe.png">
+        <figcaption>fruit_unripe</figcaption>
+      </figure></div>
+  </section>
+  <section>
+    <h2>TERRAIN <span class="count">15</span></h2>
+    <div class="grid">
+      <figure class="item">
+        <img src="../public/assets/terrain/delivery_marker.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="delivery_marker.png">
+        <figcaption>delivery_marker</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/terrain/delivery_zone.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="delivery_zone.png">
+        <figcaption>delivery_zone</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/terrain/fence_corner.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="fence_corner.png">
+        <figcaption>fence_corner</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/terrain/fence_horizontal.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="fence_horizontal.png">
+        <figcaption>fence_horizontal</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/terrain/fence_vertical.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="fence_vertical.png">
+        <figcaption>fence_vertical</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/terrain/flower.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="flower.png">
+        <figcaption>flower</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/terrain/grass.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="grass.png">
+        <figcaption>grass</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/terrain/grass_edge.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="grass_edge.png">
+        <figcaption>grass_edge</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/terrain/ground_detail.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="ground_detail.png">
+        <figcaption>ground_detail</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/terrain/ground_soil.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="ground_soil.png">
+        <figcaption>ground_soil</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/terrain/path_corner.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="path_corner.png">
+        <figcaption>path_corner</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/terrain/path_horizontal.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="path_horizontal.png">
+        <figcaption>path_horizontal</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/terrain/path_intersection.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="path_intersection.png">
+        <figcaption>path_intersection</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/terrain/path_vertical.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="path_vertical.png">
+        <figcaption>path_vertical</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/terrain/rock.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="rock.png">
+        <figcaption>rock</figcaption>
+      </figure></div>
+  </section>
+  <section>
+    <h2>BASKET <span class="count">8</span></h2>
+    <div class="grid">
+      <figure class="item">
+        <img src="../public/assets/basket/basket_empty.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="basket_empty.png">
+        <figcaption>basket_empty</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/basket/basket_full.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="basket_full.png">
+        <figcaption>basket_full</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/basket/basket_low.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="basket_low.png">
+        <figcaption>basket_low</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/basket/basket_medium.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="basket_medium.png">
+        <figcaption>basket_medium</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/basket/box_empty.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="box_empty.png">
+        <figcaption>box_empty</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/basket/box_filled.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="box_filled.png">
+        <figcaption>box_filled</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/basket/box_on_truck.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="box_on_truck.png">
+        <figcaption>box_on_truck</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/basket/box_stack.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="box_stack.png">
+        <figcaption>box_stack</figcaption>
+      </figure></div>
+  </section>
+  <section>
+    <h2>TRUCK <span class="count">2</span></h2>
+    <div class="grid">
+      <figure class="item">
+        <img src="../public/assets/truck/truck_loaded.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="truck_loaded.png">
+        <figcaption>truck_loaded</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/truck/truck_side.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="truck_side.png">
+        <figcaption>truck_side</figcaption>
+      </figure></div>
+  </section>
+  <section>
+    <h2>UI <span class="count">12</span></h2>
+    <div class="grid">
+      <figure class="item">
+        <img src="../public/assets/ui/button_continue.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="button_continue.png">
+        <figcaption>button_continue</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/ui/button_pause.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="button_pause.png">
+        <figcaption>button_pause</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/ui/button_play.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="button_play.png">
+        <figcaption>button_play</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/ui/button_restart.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="button_restart.png">
+        <figcaption>button_restart</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/ui/heart_empty.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="heart_empty.png">
+        <figcaption>heart_empty</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/ui/heart_full.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="heart_full.png">
+        <figcaption>heart_full</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/ui/heart_medium.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="heart_medium.png">
+        <figcaption>heart_medium</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/ui/icon_blueberry.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="icon_blueberry.png">
+        <figcaption>icon_blueberry</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/ui/icon_time.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="icon_time.png">
+        <figcaption>icon_time</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/ui/panel_frame.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="panel_frame.png">
+        <figcaption>panel_frame</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/ui/progress_bar.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="progress_bar.png">
+        <figcaption>progress_bar</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/ui/quality_bar.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="quality_bar.png">
+        <figcaption>quality_bar</figcaption>
+      </figure></div>
+  </section>
+  <section>
+    <h2>EFFECTS <span class="count">9</span></h2>
+    <div class="grid">
+      <figure class="item">
+        <img src="../public/assets/effects/inspect_flash.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="inspect_flash.png">
+        <figcaption>inspect_flash</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/effects/leaf.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="leaf.png">
+        <figcaption>leaf</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/effects/particle_error.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="particle_error.png">
+        <figcaption>particle_error</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/effects/particle_harvest.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="particle_harvest.png">
+        <figcaption>particle_harvest</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/effects/selection.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="selection.png">
+        <figcaption>selection</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/effects/shadow_player.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="shadow_player.png">
+        <figcaption>shadow_player</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/effects/shadow_supervisor.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="shadow_supervisor.png">
+        <figcaption>shadow_supervisor</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/effects/text_error.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="text_error.png">
+        <figcaption>text_error</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/effects/text_plus10.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="text_plus10.png">
+        <figcaption>text_plus10</figcaption>
+      </figure></div>
+  </section>
+  <section>
+    <h2>ENVIRONMENT <span class="count">12</span></h2>
+    <div class="grid">
+      <figure class="item">
+        <img src="../public/assets/environment/bush.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="bush.png">
+        <figcaption>bush</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/environment/clouds.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="clouds.png">
+        <figcaption>clouds</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/environment/flowers.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="flowers.png">
+        <figcaption>flowers</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/environment/grass_detail2.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="grass_detail2.png">
+        <figcaption>grass_detail2</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/environment/mountains.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="mountains.png">
+        <figcaption>mountains</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/environment/rock_large.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="rock_large.png">
+        <figcaption>rock_large</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/environment/sign_fundo.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="sign_fundo.png">
+        <figcaption>sign_fundo</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/environment/sign_grupo.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="sign_grupo.png">
+        <figcaption>sign_grupo</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/environment/sky.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="sky.png">
+        <figcaption>sky</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/environment/tree_01.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="tree_01.png">
+        <figcaption>tree_01</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/environment/tree_02.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="tree_02.png">
+        <figcaption>tree_02</figcaption>
+      </figure>
+      <figure class="item">
+        <img src="../public/assets/environment/tree_03.png"
+             style="width:auto;height:128px;image-rendering:pixelated"
+             alt="tree_03.png">
+        <figcaption>tree_03</figcaption>
+      </figure></div>
+  </section>
+</body>
+</html>

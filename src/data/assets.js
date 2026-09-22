@@ -1,144 +1,253 @@
 /**
  * assets.js
  * ---------------------------------------------------------------
- * Catálogo central de assets (§27).
+ * Catálogo central de assets (§27, §31).
  *
- * REGLA CLAVE: ningún sistema del motor debe conocer nombres de
- * archivo. Todos piden assets por su clave lógica (por ejemplo
- * 'player.walkDown') y este módulo resuelve la ruta.
+ * FUENTE DE VERDAD: los nombres de archivo, las carpetas y el número
+ * de frames coinciden EXACTAMENTE con las dos láminas de referencia
+ * del proyecto:
  *
- * Así, en la fase de arte se pueden sustituir los placeholders por
- * PNG 32x32 / 48x48 / 64x64 o spritesheets SIN tocar el motor.
+ *   1. "LISTA DE SPRITES Y ASSETS – JUEGO DE COSECHA DE ARÁNDANOS"
+ *      (catálogo por secciones, 80-120 sprites estimados)
+ *   2. "public/assets/" (árbol real de carpetas con cada .png)
  *
- * Si un asset no existe todavía en disco, el AssetLoader lo marca
- * como "missing" y el SpriteRenderer dibuja el placeholder generado
- * por código. Nunca se rompe el juego por un sprite ausente.
+ * REGLA CLAVE: ningún sistema del motor conoce nombres de archivo.
+ * Todos piden assets por su CLAVE LÓGICA (por ejemplo
+ * 'player.walkDown') y este módulo resuelve la ruta real.
+ *
+ * Así el arte se puede sustituir o ampliar sin tocar el motor.
+ *
+ * Estilo: PIXEL ART 16x16 / 32x32, vista top-down (2D).
+ * Formato: PNG transparente.
  */
 
 /* Carpeta raíz de assets servida por Vite (public/). */
 export const ASSET_BASE = '/assets';
 
-/* ---------- Descripciones de spritesheet (para la fase de arte) ---------- */
-/* Formato compatible con futuras hojas de sprites. */
-export const FRAME_SIZE = {
-  small: 32,
+/* ---------- Tamaños de sprite del proyecto ---------- */
+export const SPRITE_SIZES = {
+  icon: 16,     // iconos de UI y efectos
+  small: 16,    // efectos / frutos en mano
+  base: 32,     // sprites base (16x16 o 32x32 según la lámina)
   medium: 48,
-  large: 64,
+  large: 64,    // entorno y camión
+  wide: 128,    // montañas, camión lateral
 };
 
-/* ---------- Jugador (§8) ---------- */
+/* ============================================================
+   01. PLAYER — Personaje recolector (24 sprites básicos)
+   ============================================================ */
 export const PLAYER_ASSETS = {
-  'player.idle': { path: 'player/idle.png', frames: 4, frameSize: 32 },
-  'player.walkDown': { path: 'player/walk-down.png', frames: 4, frameSize: 32 },
-  'player.walkUp': { path: 'player/walk-up.png', frames: 4, frameSize: 32 },
-  'player.walkLeft': { path: 'player/walk-left.png', frames: 4, frameSize: 32 },
-  'player.walkRight': { path: 'player/walk-right.png', frames: 4, frameSize: 32 },
-  'player.harvestLeft': { path: 'player/harvest-left.png', frames: 6, frameSize: 32 },
-  'player.harvestRight': { path: 'player/harvest-right.png', frames: 6, frameSize: 32 },
-  'player.error': { path: 'player/error.png', frames: 4, frameSize: 32 },
-  'player.tired': { path: 'player/tired.png', frames: 4, frameSize: 32 },
-  'player.victory': { path: 'player/victory.png', frames: 6, frameSize: 32 },
-  'player.defeat': { path: 'player/defeat.png', frames: 6, frameSize: 32 },
+  'player.idle': { path: 'player/player_idle.png', frames: 4, frameSize: 32 },
+  'player.walkDown': { path: 'player/player_walk_down.png', frames: 4, frameSize: 32 },
+  'player.walkUp': { path: 'player/player_walk_up.png', frames: 4, frameSize: 32 },
+  'player.walkLeft': { path: 'player/player_walk_left.png', frames: 4, frameSize: 32 },
+  'player.walkRight': { path: 'player/player_walk_right.png', frames: 4, frameSize: 32 },
+  'player.harvestLeft': { path: 'player/player_harvest_left.png', frames: 4, frameSize: 32 },
+  'player.harvestRight': { path: 'player/player_harvest_right.png', frames: 4, frameSize: 32 },
+
+  /* Estados extra */
+  'player.wait': { path: 'player/player_wait.png', frames: 1, frameSize: 32 },
+  'player.full': { path: 'player/player_full.png', frames: 1, frameSize: 32 },
+  'player.tired': { path: 'player/player_tired.png', frames: 1, frameSize: 32 },
+  'player.error': { path: 'player/player_error.png', frames: 1, frameSize: 32 },
+  'player.victory': { path: 'player/player_victory.png', frames: 1, frameSize: 32 },
+  'player.defeat': { path: 'player/player_defeat.png', frames: 1, frameSize: 32 },
 };
 
-/* ---------- Supervisor (§18) ---------- */
+/* ============================================================
+   02. SUPERVISOR — Supervisor de calidad (16 sprites)
+   ============================================================ */
 export const SUPERVISOR_ASSETS = {
-  'supervisor.walkDown': { path: 'supervisor/walk-down.png', frames: 4, frameSize: 32 },
-  'supervisor.walkUp': { path: 'supervisor/walk-up.png', frames: 4, frameSize: 32 },
-  'supervisor.walkLeft': { path: 'supervisor/walk-left.png', frames: 4, frameSize: 32 },
-  'supervisor.walkRight': { path: 'supervisor/walk-right.png', frames: 4, frameSize: 32 },
-  'supervisor.inspect': { path: 'supervisor/inspect.png', frames: 4, frameSize: 32 },
-  'supervisor.write': { path: 'supervisor/write.png', frames: 4, frameSize: 32 },
-  'supervisor.detectError': { path: 'supervisor/detect-error.png', frames: 4, frameSize: 32 },
-  'supervisor.approve': { path: 'supervisor/approve.png', frames: 4, frameSize: 32 },
+  'supervisor.idle': { path: 'supervisor/supervisor_idle.png', frames: 4, frameSize: 32 },
+  'supervisor.walkDown': { path: 'supervisor/supervisor_walk_down.png', frames: 4, frameSize: 32 },
+  'supervisor.walkUp': { path: 'supervisor/supervisor_walk_up.png', frames: 4, frameSize: 32 },
+  'supervisor.walkLeft': { path: 'supervisor/supervisor_walk_left.png', frames: 4, frameSize: 32 },
+  'supervisor.walkRight': { path: 'supervisor/supervisor_walk_right.png', frames: 4, frameSize: 32 },
+  'supervisor.review': { path: 'supervisor/supervisor_review.png', frames: 4, frameSize: 32 },
+  'supervisor.write': { path: 'supervisor/supervisor_write.png', frames: 4, frameSize: 32 },
+  'supervisor.detectError': { path: 'supervisor/supervisor_detect_error.png', frames: 4, frameSize: 32 },
+  'supervisor.approve': { path: 'supervisor/supervisor_approve.png', frames: 4, frameSize: 32 },
+  'supervisor.talk': { path: 'supervisor/supervisor_talk.png', frames: 4, frameSize: 32 },
+
+  /* Alias: el motor llamaba 'inspect' a la animación de revisar. */
+  'supervisor.inspect': { path: 'supervisor/supervisor_review.png', frames: 4, frameSize: 32 },
 };
 
-/* ---------- Plantas (§9, §15) ---------- */
+/* ============================================================
+   03. PLANTS — Plantas de arándanos (12-20 sprites)
+   ============================================================ */
 export const PLANT_ASSETS = {
-  'plant.empty': { path: 'plants/empty.png', frames: 1, frameSize: 32 },
-  'plant.few': { path: 'plants/few.png', frames: 1, frameSize: 32 },
-  'plant.medium': { path: 'plants/medium.png', frames: 1, frameSize: 32 },
-  'plant.abundant': { path: 'plants/abundant.png', frames: 1, frameSize: 32 },
-  'plant.ripe': { path: 'plants/ripe.png', frames: 1, frameSize: 32 },
-  'plant.unripe': { path: 'plants/unripe.png', frames: 1, frameSize: 32 },
-  'plant.mixed': { path: 'plants/mixed.png', frames: 1, frameSize: 32 },
-  'plant.harvested': { path: 'plants/harvested.png', frames: 1, frameSize: 32 },
+  'plant.empty': { path: 'plants/plant_empty.png', frames: 1, frameSize: 32 },
+  'plant.few': { path: 'plants/plant_few.png', frames: 1, frameSize: 32 },
+  'plant.medium': { path: 'plants/plant_medium.png', frames: 1, frameSize: 32 },
+  'plant.abundant': { path: 'plants/plant_abundant.png', frames: 1, frameSize: 32 },
+  'plant.ripe': { path: 'plants/plant_ripe.png', frames: 1, frameSize: 32 },
+  'plant.unripe': { path: 'plants/plant_unripe.png', frames: 1, frameSize: 32 },
+  'plant.mixed': { path: 'plants/plant_mixed.png', frames: 1, frameSize: 32 },
+  'plant.harvested': { path: 'plants/plant_harvested.png', frames: 1, frameSize: 32 },
 };
 
-/* ---------- Frutos (§10, §16) ---------- */
+/* ============================================================
+   04. FRUITS — Frutos / items (6 sprites)
+   ============================================================ */
 export const FRUIT_ASSETS = {
-  'fruit.ripe': { path: 'fruits/ripe.png', frames: 1, frameSize: 8 },
-  'fruit.unripe': { path: 'fruits/unripe.png', frames: 1, frameSize: 8 },
-  'fruit.small': { path: 'fruits/small.png', frames: 1, frameSize: 8 },
-  'fruit.damaged': { path: 'fruits/damaged.png', frames: 1, frameSize: 8 },
-  'fruit.special': { path: 'fruits/special.png', frames: 1, frameSize: 8 },
-  'fruit.bonus': { path: 'fruits/bonus.png', frames: 1, frameSize: 8 },
+  'fruit.ripe': { path: 'fruits/fruit_ripe.png', frames: 1, frameSize: 16 },
+  'fruit.unripe': { path: 'fruits/fruit_unripe.png', frames: 1, frameSize: 16 },
+  'fruit.group2': { path: 'fruits/fruit_group_x2.png', frames: 1, frameSize: 16 },
+  'fruit.group3': { path: 'fruits/fruit_group_x3.png', frames: 1, frameSize: 16 },
+  'fruit.inHand': { path: 'fruits/fruit_in_hand.png', frames: 1, frameSize: 16 },
+  'fruit.fall': { path: 'fruits/fruit_fall.png', frames: 1, frameSize: 16 },
 };
 
-/* ---------- Terreno (§30) ---------- */
+/* ============================================================
+   05. TERRAIN — Terreno / tiles (10-16 tiles)
+   ============================================================ */
 export const TERRAIN_ASSETS = {
-  'terrain.soil': { path: 'terrain/soil.png', frames: 1, frameSize: 32 },
-  'terrain.soilLight': { path: 'terrain/soil-light.png', frames: 1, frameSize: 32 },
-  'terrain.soilDark': { path: 'terrain/soil-dark.png', frames: 1, frameSize: 32 },
-  'terrain.path': { path: 'terrain/path.png', frames: 1, frameSize: 32 },
-  'terrain.pathH': { path: 'terrain/path-h.png', frames: 1, frameSize: 32 },
-  'terrain.corner': { path: 'terrain/corner.png', frames: 1, frameSize: 32 },
-  'terrain.cross': { path: 'terrain/cross.png', frames: 1, frameSize: 32 },
-  'terrain.border': { path: 'terrain/border.png', frames: 1, frameSize: 32 },
+  'terrain.soil': { path: 'terrain/ground_soil.png', frames: 1, frameSize: 32 },
+  'terrain.path': { path: 'terrain/path_vertical.png', frames: 1, frameSize: 32 },
+  'terrain.pathH': { path: 'terrain/path_horizontal.png', frames: 1, frameSize: 32 },
+  'terrain.corner': { path: 'terrain/path_corner.png', frames: 1, frameSize: 32 },
+  'terrain.cross': { path: 'terrain/path_intersection.png', frames: 1, frameSize: 32 },
   'terrain.grass': { path: 'terrain/grass.png', frames: 1, frameSize: 32 },
-  'terrain.fence': { path: 'terrain/fence.png', frames: 1, frameSize: 32 },
-  'terrain.delivery': { path: 'terrain/delivery.png', frames: 1, frameSize: 32 },
+  'terrain.grassEdge': { path: 'terrain/grass_edge.png', frames: 1, frameSize: 32 },
+  'terrain.fenceH': { path: 'terrain/fence_horizontal.png', frames: 1, frameSize: 32 },
+  'terrain.fenceV': { path: 'terrain/fence_vertical.png', frames: 1, frameSize: 32 },
+  'terrain.fenceCorner': { path: 'terrain/fence_corner.png', frames: 1, frameSize: 32 },
+  'terrain.deliveryZone': { path: 'terrain/delivery_zone.png', frames: 1, frameSize: 32 },
+  'terrain.deliveryMarker': { path: 'terrain/delivery_marker.png', frames: 1, frameSize: 32 },
+  'terrain.detail': { path: 'terrain/ground_detail.png', frames: 1, frameSize: 32 },
+  'terrain.rock': { path: 'terrain/rock.png', frames: 1, frameSize: 32 },
+  'terrain.flower': { path: 'terrain/flower.png', frames: 1, frameSize: 32 },
+
+  /* Alias de compatibilidad: el motor usa nombres antiguos para
+     algunos tiles. Apuntan a los mismos archivos de la referencia. */
+  'terrain.soilLight': { path: 'terrain/ground_soil.png', frames: 1, frameSize: 32 },
+  'terrain.soilDark': { path: 'terrain/ground_soil.png', frames: 1, frameSize: 32 },
+  'terrain.fence': { path: 'terrain/fence_horizontal.png', frames: 1, frameSize: 32 },
+  'terrain.delivery': { path: 'terrain/delivery_zone.png', frames: 1, frameSize: 32 },
+  'terrain.border': { path: 'terrain/grass_edge.png', frames: 1, frameSize: 32 },
 };
 
-/* ---------- Canasta y cajas (§17) ---------- */
+/* ============================================================
+   06. BASKET / BOXES / TRUCK (8 + camión)
+   ============================================================ */
 export const BASKET_ASSETS = {
-  'basket.empty': { path: 'basket/basket-empty.png', frames: 1, frameSize: 32 },
-  'basket.low': { path: 'basket/basket-low.png', frames: 1, frameSize: 32 },
-  'basket.medium': { path: 'basket/basket-medium.png', frames: 1, frameSize: 32 },
-  'basket.full': { path: 'basket/basket-full.png', frames: 1, frameSize: 32 },
-  'basket.box': { path: 'basket/box.png', frames: 1, frameSize: 32 },
-  'basket.boxFull': { path: 'basket/box-full.png', frames: 1, frameSize: 32 },
-  'basket.boxStack': { path: 'basket/box-stack.png', frames: 1, frameSize: 32 },
+  'basket.empty': { path: 'basket/basket_empty.png', frames: 1, frameSize: 32 },
+  'basket.low': { path: 'basket/basket_low.png', frames: 1, frameSize: 32 },
+  'basket.medium': { path: 'basket/basket_medium.png', frames: 1, frameSize: 32 },
+  'basket.full': { path: 'basket/basket_full.png', frames: 1, frameSize: 32 },
+  'basket.boxEmpty': { path: 'basket/box_empty.png', frames: 1, frameSize: 32 },
+  'basket.boxFilled': { path: 'basket/box_filled.png', frames: 1, frameSize: 32 },
+  'basket.boxStack': { path: 'basket/box_stack.png', frames: 1, frameSize: 32 },
+  'basket.boxOnTruck': { path: 'basket/box_on_truck.png', frames: 1, frameSize: 32 },
+
+  /* Alias de compatibilidad con las claves que usa el motor */
+  'basket.box': { path: 'basket/box_empty.png', frames: 1, frameSize: 32 },
+  'basket.boxFull': { path: 'basket/box_filled.png', frames: 1, frameSize: 32 },
 };
 
-/* ---------- Camión (§16) ---------- */
 export const TRUCK_ASSETS = {
-  'truck.idle': { path: 'truck/truck-idle.png', frames: 1, frameSize: 64 },
-  'truck.loading': { path: 'truck/truck-loading.png', frames: 2, frameSize: 64 },
-  'truck.leaving': { path: 'truck/truck-leaving.png', frames: 2, frameSize: 64 },
+  'truck.side': { path: 'truck/truck_side.png', frames: 1, frameSize: 64 },
+  'truck.loaded': { path: 'truck/truck_loaded.png', frames: 1, frameSize: 64 },
+
+  /* Alias de compatibilidad */
+  'truck.idle': { path: 'truck/truck_side.png', frames: 1, frameSize: 64 },
+  'truck.loading': { path: 'truck/truck_loaded.png', frames: 1, frameSize: 64 },
+  'truck.leaving': { path: 'truck/truck_loaded.png', frames: 1, frameSize: 64 },
 };
 
-/* ---------- UI (§34) ---------- */
+/* ============================================================
+   07. UI — Interfaz (10-15 sprites)
+   ============================================================ */
 export const UI_ASSETS = {
-  'ui.iconPause': { path: 'ui/icon-pause.png', frames: 1, frameSize: 16 },
-  'ui.iconRipe': { path: 'ui/icon-ripe.png', frames: 1, frameSize: 16 },
-  'ui.iconUnripe': { path: 'ui/icon-unripe.png', frames: 1, frameSize: 16 },
-  'ui.iconError': { path: 'ui/icon-error.png', frames: 1, frameSize: 16 },
-  'ui.iconBasket': { path: 'ui/icon-basket.png', frames: 1, frameSize: 16 },
-  'ui.lifeFull': { path: 'ui/life-full.png', frames: 1, frameSize: 16 },
-  'ui.lifeEmpty': { path: 'ui/life-empty.png', frames: 1, frameSize: 16 },
-  'ui.panel': { path: 'ui/panel.png', frames: 1, frameSize: 32 },
-  'ui.button': { path: 'ui/button.png', frames: 1, frameSize: 32 },
+  'ui.heartFull': { path: 'ui/heart_full.png', frames: 1, frameSize: 16 },
+  'ui.heartMedium': { path: 'ui/heart_medium.png', frames: 1, frameSize: 16 },
+  'ui.heartEmpty': { path: 'ui/heart_empty.png', frames: 1, frameSize: 16 },
+  'ui.iconBlueberry': { path: 'ui/icon_blueberry.png', frames: 1, frameSize: 16 },
+  'ui.iconTime': { path: 'ui/icon_time.png', frames: 1, frameSize: 16 },
+  'ui.qualityBar': { path: 'ui/quality_bar.png', frames: 1, frameSize: 32 },
+  'ui.progressBar': { path: 'ui/progress_bar.png', frames: 1, frameSize: 32 },
+  'ui.buttonPause': { path: 'ui/button_pause.png', frames: 1, frameSize: 16 },
+  'ui.buttonPlay': { path: 'ui/button_play.png', frames: 1, frameSize: 16 },
+  'ui.buttonContinue': { path: 'ui/button_continue.png', frames: 1, frameSize: 16 },
+  'ui.buttonRestart': { path: 'ui/button_restart.png', frames: 1, frameSize: 16 },
+  'ui.panelFrame': { path: 'ui/panel_frame.png', frames: 1, frameSize: 32 },
+
+  /* Alias de compatibilidad con las claves del motor */
+  'ui.iconRipe': { path: 'ui/icon_blueberry.png', frames: 1, frameSize: 16 },
+  'ui.lifeFull': { path: 'ui/heart_full.png', frames: 1, frameSize: 16 },
+  'ui.lifeEmpty': { path: 'ui/heart_empty.png', frames: 1, frameSize: 16 },
+  'ui.iconError': { path: 'effects/text_error.png', frames: 1, frameSize: 32 },
+  'ui.iconBasket': { path: 'ui/icon_blueberry.png', frames: 1, frameSize: 16 },
+  'ui.iconPause': { path: 'ui/button_pause.png', frames: 1, frameSize: 16 },
+  'ui.panel': { path: 'ui/panel_frame.png', frames: 1, frameSize: 32 },
+  'ui.button': { path: 'ui/button_play.png', frames: 1, frameSize: 16 },
+  'ui.iconUnripe': { path: 'fruits/fruit_unripe.png', frames: 1, frameSize: 16 },
 };
 
-/* ---------- Efectos (§39) ---------- */
+/* ============================================================
+   08. EFFECTS — Efectos (6-10 sprites)
+   ============================================================ */
 export const EFFECT_ASSETS = {
-  'fx.spark': { path: 'effects/spark.png', frames: 4, frameSize: 16 },
-  'fx.puff': { path: 'effects/puff.png', frames: 4, frameSize: 16 },
-  'fx.leaves': { path: 'effects/leaves.png', frames: 6, frameSize: 16 },
-  'fx.alert': { path: 'effects/alert.png', frames: 2, frameSize: 16 },
-  'fx.check': { path: 'effects/check.png', frames: 1, frameSize: 16 },
-  'fx.cross': { path: 'effects/cross.png', frames: 1, frameSize: 16 },
+  'fx.harvestParticle': { path: 'effects/particle_harvest.png', frames: 4, frameSize: 16 },
+  'fx.errorParticle': { path: 'effects/particle_error.png', frames: 4, frameSize: 16 },
+  'fx.inspectFlash': { path: 'effects/inspect_flash.png', frames: 1, frameSize: 16 },
+  'fx.leaf': { path: 'effects/leaf.png', frames: 1, frameSize: 16 },
+  'fx.textPlus10': { path: 'effects/text_plus10.png', frames: 1, frameSize: 32 },
+  'fx.textError': { path: 'effects/text_error.png', frames: 1, frameSize: 32 },
+  'fx.shadowPlayer': { path: 'effects/shadow_player.png', frames: 1, frameSize: 32 },
+  'fx.shadowSupervisor': { path: 'effects/shadow_supervisor.png', frames: 1, frameSize: 32 },
+  'fx.selection': { path: 'effects/selection.png', frames: 1, frameSize: 32 },
+
+  /* Alias de compatibilidad con las claves del motor */
+  'fx.spark': { path: 'effects/particle_harvest.png', frames: 4, frameSize: 16 },
+  'fx.puff': { path: 'effects/particle_error.png', frames: 4, frameSize: 16 },
+  'fx.leaves': { path: 'effects/leaf.png', frames: 1, frameSize: 16 },
+  'fx.alert': { path: 'effects/inspect_flash.png', frames: 1, frameSize: 16 },
+  'fx.check': { path: 'effects/selection.png', frames: 1, frameSize: 32 },
+  'fx.cross': { path: 'effects/text_error.png', frames: 1, frameSize: 32 },
 };
 
-/* ---------- Entorno (§33) ---------- */
+/* ============================================================
+   09. ENVIRONMENT — Entorno y fondo
+   ============================================================ */
 export const ENVIRONMENT_ASSETS = {
-  'env.tree': { path: 'environment/tree.png', frames: 1, frameSize: 64 },
-  'env.mountain': { path: 'environment/mountain.png', frames: 1, frameSize: 128 },
-  'env.cloud': { path: 'environment/cloud.png', frames: 1, frameSize: 64 },
-  'env.rock': { path: 'environment/rock.png', frames: 1, frameSize: 16 },
-  'env.sign': { path: 'environment/sign.png', frames: 1, frameSize: 32 },
+  'env.sky': { path: 'environment/sky.png', frames: 1, frameSize: 128 },
+  'env.clouds': { path: 'environment/clouds.png', frames: 1, frameSize: 128 },
+  'env.mountains': { path: 'environment/mountains.png', frames: 1, frameSize: 128 },
+  'env.tree1': { path: 'environment/tree_01.png', frames: 1, frameSize: 64 },
+  'env.tree2': { path: 'environment/tree_02.png', frames: 1, frameSize: 64 },
+  'env.tree3': { path: 'environment/tree_03.png', frames: 1, frameSize: 64 },
+  'env.signFundo': { path: 'environment/sign_fundo.png', frames: 1, frameSize: 64 },
+  'env.signGrupo': { path: 'environment/sign_grupo.png', frames: 1, frameSize: 64 },
   'env.bush': { path: 'environment/bush.png', frames: 1, frameSize: 32 },
+  'env.rockLarge': { path: 'environment/rock_large.png', frames: 1, frameSize: 32 },
+  'env.grassDetail': { path: 'environment/grass_detail2.png', frames: 1, frameSize: 32 },
+  'env.flowers': { path: 'environment/flowers.png', frames: 1, frameSize: 32 },
+
+  /* Alias de compatibilidad con las claves del motor */
+  'env.tree': { path: 'environment/tree_01.png', frames: 1, frameSize: 64 },
+  'env.cloud': { path: 'environment/clouds.png', frames: 1, frameSize: 128 },
+  'env.mountain': { path: 'environment/mountains.png', frames: 1, frameSize: 128 },
+  'env.rock': { path: 'environment/rock_large.png', frames: 1, frameSize: 32 },
+  'env.sign': { path: 'environment/sign_fundo.png', frames: 1, frameSize: 64 },
+};
+
+/* ============================================================
+   CATÁLOGO COMPLETO
+   ============================================================ */
+export const ASSET_MANIFEST = {
+  ...PLAYER_ASSETS,
+  ...SUPERVISOR_ASSETS,
+  ...PLANT_ASSETS,
+  ...FRUIT_ASSETS,
+  ...TERRAIN_ASSETS,
+  ...BASKET_ASSETS,
+  ...TRUCK_ASSETS,
+  ...UI_ASSETS,
+  ...EFFECT_ASSETS,
+  ...ENVIRONMENT_ASSETS,
 };
 
 /* ---------- Sonidos (§40) ---------- */
@@ -153,20 +262,6 @@ export const SOUND_ASSETS = {
   'sfx.truck': { path: 'sounds/truck.wav' },
 };
 
-/* ---------- Catálogo completo ---------- */
-export const ASSET_MANIFEST = {
-  ...PLAYER_ASSETS,
-  ...SUPERVISOR_ASSETS,
-  ...PLANT_ASSETS,
-  ...FRUIT_ASSETS,
-  ...TERRAIN_ASSETS,
-  ...BASKET_ASSETS,
-  ...TRUCK_ASSETS,
-  ...UI_ASSETS,
-  ...EFFECT_ASSETS,
-  ...ENVIRONMENT_ASSETS,
-};
-
 export const SOUND_MANIFEST = { ...SOUND_ASSETS };
 
 /** Resuelve la URL pública de un asset a partir de su clave lógica. */
@@ -179,6 +274,12 @@ export function assetUrl(key, manifest = ASSET_MANIFEST) {
 /** Lista de claves de un grupo (útil para precarga selectiva). */
 export function assetKeysByPrefix(prefix, manifest = ASSET_MANIFEST) {
   return Object.keys(manifest).filter((k) => k.startsWith(`${prefix}.`));
+}
+
+/** Nº total de sprites declarados (sin contar alias). */
+export function countUniqueSprites() {
+  const files = new Set(Object.values(ASSET_MANIFEST).map((a) => a.path));
+  return files.size;
 }
 
 export default ASSET_MANIFEST;

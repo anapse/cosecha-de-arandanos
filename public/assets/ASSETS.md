@@ -1,141 +1,164 @@
-# 🎨 Assets — Cosecha de Arándanos
+# 🎨 Sprites — Cosecha de Arándanos
 
-**Estado actual: 100% placeholders generados por código.**
+**Estado: 95 sprites PNG reales generados por código.**
 
-No hay ningún archivo de imagen en el proyecto todavía. El juego es
-completamente legible y jugable porque `PlaceholderFactory.js` dibuja por
-código el pixel art temporal de cada sprite.
+Ya no hay placeholders. Todos los sprites del juego existen como
+archivos **PNG transparentes** en `public/assets/`, con los nombres y
+tamaños EXACTOS de las láminas de referencia del proyecto.
 
-## Cómo funciona
+---
 
-1. El motor pide un sprite por su **clave lógica** (por ejemplo
-   `player.walkDown`), nunca por nombre de archivo.
-2. `AssetLoader` busca ese asset en las rutas declaradas en
-   `src/data/assets.js`.
-3. **Si el archivo no existe, se usa el placeholder generado por código.**
-   El juego nunca se rompe por un sprite ausente.
+## Cómo se generan
 
-## Cómo sustituir un placeholder por arte definitivo
+Los sprites se producen con un generador propio, **sin dependencias
+externas** (ni librerías de imagen, ni canvas nativo):
 
-1. Deja el PNG en la carpeta correspondiente con el nombre indicado en
-   `src/data/assets.js`.
-2. **Listo.** No hay que modificar ni una línea del motor.
-
-Ejemplo: para reemplazar el jugador caminando hacia abajo, guarda el
-archivo como `player/walk-down.png` dentro de `public/assets/`.
-
-## Estilo visual requerido
-
-- **Pixel art 16-bit**, colores vivos, contornos claros.
-- Personajes pequeños y reconocibles.
-- Arándanos **azules** (maduros) y **rosados/verdosos** (pintones).
-- Caminos marrones claramente visibles, plantas verdes.
-- **Rojo** para errores, **amarillo** para alertas, **verde** para
-  aprobación.
-- Fondo transparente (PNG con canal alfa).
-- **Sin suavizado**: el motor dibuja con `imageSmoothingEnabled = false`.
-
-## Tamaños soportados
-
-| Tipo | Tamaño | Formato |
-|---|---|---|
-| Jugador / Supervisor | 32×32, 48×48 o 64×64 | PNG o spritesheet horizontal |
-| Plantas | 32×32 | PNG |
-| Frutos | 8×8 (o 10×10) | PNG |
-| Terreno | 32×32 | PNG (tiles que encajen entre sí) |
-| Canasta / Cajas | 32×32 | PNG |
-| Camión | 64×40 | PNG |
-| UI | 16×16 | PNG |
-| Efectos | 16×16 | Spritesheet con N frames |
-| Entorno | 16–128 px | PNG |
-
-## Spritesheets
-
-Un spritesheet es **una sola imagen con los frames en fila horizontal**.
-El motor corta cada frame usando el tamaño declarado en
-`src/data/assets.js`:
-
-```js
-'player.walkDown': { path: 'player/walk-down.png', frames: 4, frameSize: 32 }
+```bash
+npm run sprites          # genera los 95 PNG en public/assets/
+npm run sprites:sheet    # genera + lámina de contacto para revisar
+npm run sprites:preview  # genera una página HTML con todos los sprites
 ```
 
-Esto significa: una imagen de **128×32** (4 frames de 32×32).
-
-## Frames necesarios
-
-### Jugador (30-40 frames)
-
-| Estado | Frames |
+| Herramienta | Para qué sirve |
 |---|---|
-| Quieto (`idle`) | 2-4 |
-| Caminar arriba / abajo / izquierda / derecha | 4 cada uno |
-| Recoger izquierda / derecha | 4-6 cada uno |
-| Error | 2-4 |
-| Cansado | 2-4 |
-| Victoria | 4-6 |
-| Derrota | 4-6 |
+| `tools/png.js` | Codificador PNG a mano (firma + IHDR + IDAT + IEND con zlib de Node) |
+| `tools/pixelCanvas.js` | Lienzo de pixel art: píxel, rect, círculo, elipse, polígono, línea, espejo |
+| `tools/palette.js` | Paleta de 16 bits del juego |
+| `tools/artCharacters.js` | Jugador y supervisor (anatomía fija de 32x32) |
+| `tools/artWorld.js` | Plantas, frutos, terreno, canastas, camión, UI, efectos, entorno |
+| `tools/generateSprites.js` | Orquestador: escribe los 95 PNG en disco |
+| `tools/makeContactSheet.js` | Lámina de contacto (`tools/contact-sheet.png`) para revisar el arte |
 
-### Supervisor (25-30 frames)
+### ¿Por qué a mano y no con una librería?
 
-| Estado | Frames |
+El proyecto tiene la regla de **no añadir librerías innecesarias**. Un
+PNG solo necesita firma + IHDR + IDAT + IEND, y Node ya trae `zlib`
+para el deflate. Escribir el codificador ocupa ~80 líneas y evita
+dependencias en el build.
+
+---
+
+## Inventario (95 archivos)
+
+| Carpeta | Archivos | Contenido |
+|---|---|---|
+| `player/` | 13 | Idle, 4 direcciones de caminado, recoger izq/der, esperar, lleno, cansado, error, victoria, derrota |
+| `supervisor/` | 10 | Idle, 4 direcciones, revisar, anotar, detectar error, aprobar, hablar |
+| `plants/` | 8 | Vacía, pocas, media, abundante, madura, pintona, mixta, cosechada |
+| `fruits/` | 6 | Maduro, pintón, grupo x2, grupo x3, en mano, cayendo |
+| `terrain/` | 15 | Tierra, 4 caminos, césped, borde, 3 cercas, zona/marcador de entrega, detalle, piedra, flor |
+| `basket/` | 8 | 4 estados de canasta + 4 de caja |
+| `truck/` | 2 | Camión lateral, camión cargado |
+| `ui/` | 12 | 3 corazones, iconos (arándano, reloj), barras, 4 botones, marco |
+| `effects/` | 9 | 2 partículas animadas, destello, hoja, textos, 2 sombras, selección |
+| `environment/` | 12 | Cielo, nubes, montañas, 3 árboles, 2 carteles, arbusto, roca, césped, flores |
+
+**Tamaños:** 16x16 (UI, frutos, efectos) · 32x32 (personajes, plantas,
+tiles, canastas) · 64x40 (camión) · 64x64 (árboles, carteles) ·
+128x32 (spritesheets de 4 frames) · 128x64 (cielo, nubes, montañas).
+
+**Peso total: ~24 KB** para los 95 archivos.
+
+---
+
+## Formato
+
+- **PNG transparente**, RGBA de 8 bits.
+- **Sin suavizado:** el motor dibuja con `imageSmoothingEnabled = false`.
+- Los **spritesheets** son tiras HORIZONTALES de N frames. Un archivo de
+  128x32 son 4 frames de 32x32.
+
+Ejemplo de declaración en `src/data/assets.js`:
+
+```js
+'player.walkDown': { path: 'player/player_walk_down.png', frames: 4, frameSize: 32 }
+```
+
+---
+
+## Anatomía de los personajes (32x32)
+
+Ambos personajes comparten una rejilla fija definida en
+`tools/artCharacters.js`. Todas las partes se colocan a partir de esas
+constantes para que **nunca se solapen ni dejen huecos**:
+
+```
+y = 0..1   margen
+y = 2..7   sombrero (copa + ala)
+y = 8..15  cabeza (ojos, boca, bigote del supervisor)
+y = 16..24 torso (camisa, cuello, cinturón)
+y = 25..28 piernas (izquierda y derecha, separadas)
+y = 29..31 zapatos
+sombra     y = 30
+```
+
+> Se corrigió un fallo real: antes cada parte usaba un desplazamiento
+> absoluto distinto y **el torso tapaba las piernas**, así que los pies
+> no se veían y el personaje parecía flotar.
+
+### Rasgos distintivos
+
+- **Jugador:** sombrero **rosa** (el rasgo más reconocible), camisa azul,
+  pantalón oscuro, mochila de madera. De espaldas se ve la mochila
+  completa.
+- **Supervisor:** sombrero claro con banda, camisa azul oscuro formal,
+  corbata, **bigote**, portapapeles.
+
+---
+
+## Sustituir el arte por ilustraciones a mano
+
+El arte generado es arte real y jugable, pero si más adelante se quiere
+reemplazar por ilustraciones dibujadas a mano:
+
+1. Deja el PNG **con el mismo nombre y el mismo tamaño** en
+   `public/assets/<carpeta>/`.
+2. Listo. **No hay que tocar el motor ni el manifiesto.**
+
+El motor pide los sprites por **clave lógica** (`player.walkDown`), nunca
+por nombre de archivo, así que el arte es totalmente intercambiable.
+
+---
+
+## Verificación automática
+
+Dos suites de pruebas protegen el catálogo:
+
+| Prueba | Qué garantiza |
 |---|---|
-| Caminar (4 direcciones) | 4 cada uno |
-| Revisar (`inspect`) | 4 |
-| Anotar (`write`) | 3-4 |
-| Detectar error | 2-4 |
-| Aprobar | 2-4 |
+| `tests/assets.test.js` | Cada clave del manifiesto apunta a un PNG que **existe**, es RGBA de 8 bits, pesa lo razonable, y los spritesheets tienen el ancho correcto |
+| `tests/assetLoading.test.js` | El `AssetLoader` carga los PNG reales y **NO queda ningún asset usando placeholder** |
 
-### Plantas (8 variantes reutilizables)
+Así es imposible renombrar un sprite en el manifiesto y olvidarse de
+generar el archivo: las pruebas fallan.
 
-No se crea una imagen por arbusto: se combinan estas 8 variantes:
-
-`empty` · `few` · `medium` · `abundant` · `ripe` · `unripe` · `mixed` ·
-`harvested`
-
-### Frutos
-
-`ripe` (azul) · `unripe` (rosado/verdoso)
-
-Tipos futuros ya reservados: `small`, `damaged`, `special`, `bonus`.
-
-### Terreno (10-16 tiles 32×32)
-
-`soil` · `soilLight` · `soilDark` · `path` · `pathH` · `corner` ·
-`cross` · `border` · `grass` · `fence` · `delivery`
-
-Los tiles deben **encajar entre sí** para poder construir muchos mapas
-combinándolos.
-
-### Sonidos (opcionales)
-
-`harvest.wav` · `error.wav` · `deliver.wav` · `supervisor-alert.wav` ·
-`victory.wav` · `defeat.wav` · `button.wav` · `truck.wav`
-
-> Mientras no existan, el `AudioManager` genera tonos con la WebAudio API.
+---
 
 ## Carpetas
 
 ```
 public/assets/
-├── player/       Jugador
-├── supervisor/   Supervisor de calidad
-├── plants/       Variantes de planta
-├── fruits/       Arándanos
-├── terrain/      Tiles de terreno
-├── basket/       Canastas y cajas
-├── truck/        Camión
-├── ui/           Iconos y elementos de interfaz
-├── effects/      Partículas y efectos
-├── environment/  Árboles, montañas, nubes, cercas
-└── sounds/       Efectos de sonido
+├── player/       Jugador (13)
+├── supervisor/   Supervisor de calidad (10)
+├── plants/       Plantas de arándanos (8)
+├── fruits/       Frutos (6)
+├── terrain/      Tiles de terreno (15)
+├── basket/       Canastas y cajas (8)
+├── truck/        Camión (2)
+├── ui/           Interfaz (12)
+├── effects/      Efectos y partículas (9)
+├── environment/  Entorno y fondo (12)
+└── sounds/       Sonidos (opcionales, ver abajo)
 ```
 
-## Recomendaciones
+---
 
-- Mantén los archivos **pequeños**: son pixel art de 8 a 64 px.
-- Optimiza los PNG antes de subirlos (por ejemplo con `pngquant`).
-- Nombra los archivos **en minúsculas y con guiones**.
-- No cambies las rutas sin actualizar `src/data/assets.js`.
-- Estima unos **100-150 assets/frames** en total, pero recuerda que no
-  son 100 ilustraciones distintas: la mayoría son frames y variantes
-  reutilizables.
+## Sonidos
+
+Los sonidos siguen siendo **opcionales**. Mientras no existan los `.wav`
+en `public/assets/sounds/`, el `AudioManager` genera tonos con la
+WebAudio API, así que el juego tiene feedback sonoro igualmente.
+
+Nombres esperados: `harvest.wav`, `error.wav`, `deliver.wav`,
+`supervisor-alert.wav`, `victory.wav`, `defeat.wav`, `button.wav`,
+`truck.wav`.

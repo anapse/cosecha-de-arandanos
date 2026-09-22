@@ -182,11 +182,19 @@ React (menús, HUD de páginas, resultados)
 ```
 cosecha-de-arandanos/
 ├── public/
-│   ├── assets/            ← sprites y sonidos (ver ASSETS.md)
+│   ├── assets/            ← 95 sprites PNG (ver ASSETS.md)
 │   │   ├── player/  supervisor/  plants/  fruits/  terrain/
 │   │   ├── basket/  truck/  ui/  effects/  environment/  sounds/
-│   │   └── (cada carpeta con su README)
 │   └── favicon/
+├── tools/                 ← generador de sprites (herramientas de arte)
+│   ├── png.js                  codificador PNG sin dependencias
+│   ├── pixelCanvas.js          lienzo de pixel art
+│   ├── palette.js              paleta del juego
+│   ├── artCharacters.js        jugador y supervisor
+│   ├── artWorld.js             plantas, terreno, UI, entorno
+│   ├── generateSprites.js      genera los 95 PNG
+│   ├── makeContactSheet.js     lámina de contacto para revisar
+│   └── previewSheet.js         página HTML con todos los sprites
 ├── src/
 │   ├── app/               ← App.jsx (aplicación exterior)
 │   ├── components/        ← MainMenu, Tutorial, PauseMenu,
@@ -266,27 +274,48 @@ haciendo que el personaje corra más rápido.
 
 ## 🎨 Assets
 
-**Estado actual: 100% placeholders generados por código.** No hay ni un
-solo PNG en el proyecto, y aun así el juego es completamente legible.
+**95 sprites PNG reales**, generados por código, con los nombres y
+tamaños exactos de las láminas de referencia del proyecto. No hay
+placeholders en uso.
 
-`PlaceholderFactory.js` dibuja por código el pixel art temporal de cada
-sprite (jugador, supervisor, plantas, frutos, tiles, canasta, camión,
-UI, efectos y entorno). Si un archivo no existe, el `AssetLoader` lo
-sustituye por su placeholder **sin romper el juego**.
+El arte se produce con un generador propio **sin dependencias
+externas** (codificador PNG a mano sobre `zlib` de Node):
 
-### Cómo sustituir los placeholders por arte definitivo
+```bash
+npm run sprites          # genera los 95 PNG en public/assets/
+npm run sprites:sheet    # genera + lámina de contacto para revisar
+npm run sprites:preview  # página HTML con todos los sprites
+```
 
-1. Deja el PNG en la carpeta correspondiente de `public/assets/`
-   (por ejemplo `public/assets/player/walk-down.png`).
-2. Listo. **No hay que tocar ni una línea del motor.**
+| Carpeta | Archivos | Contenido |
+|---|---|---|
+| `player/` | 13 | Idle, 4 direcciones, recoger izq/der, estados extra |
+| `supervisor/` | 10 | Idle, 4 direcciones, revisar, anotar, detectar, aprobar, hablar |
+| `plants/` | 8 | Vacía, pocas, media, abundante, madura, pintona, mixta, cosechada |
+| `fruits/` | 6 | Maduro, pintón, grupos, en mano, cayendo |
+| `terrain/` | 15 | Tierra, caminos, césped, cercas, entrega, detalles |
+| `basket/` | 8 | 4 canastas + 4 cajas |
+| `truck/` | 2 | Camión lateral y cargado |
+| `ui/` | 12 | Corazones, iconos, barras, botones, marco |
+| `effects/` | 9 | Partículas animadas, textos, sombras, selección |
+| `environment/` | 12 | Cielo, nubes, montañas, árboles, carteles, arbusto, roca, flores |
 
-Las rutas y el número de frames de cada sprite están declarados en
-`src/data/assets.js`. Se soportan PNG de **32×32, 48×48, 64×64** y
-spritesheets de N frames.
+**Peso total: ~24 KB** para los 95 archivos.
 
-Cada carpeta de assets incluye un `README.md` con las especificaciones
-exactas de tamaño, frames y estilo. Ver también
-[`public/assets/ASSETS.md`](public/assets/ASSETS.md).
+### Tamaños
+
+16x16 (UI, frutos, efectos) · 32x32 (personajes, plantas, tiles) ·
+64x40 (camión) · 64x64 (árboles) · 128x32 (spritesheets de 4 frames) ·
+128x64 (cielo, montañas).
+
+### Cómo sustituir el arte
+
+1. Deja tu PNG **con el mismo nombre y tamaño** en `public/assets/<carpeta>/`.
+2. Listo. **No hay que tocar el motor ni el manifiesto.**
+
+El motor pide sprites por **clave lógica** (`player.walkDown`), nunca por
+nombre de archivo. Ver [`public/assets/ASSETS.md`](public/assets/ASSETS.md)
+para el inventario completo, la anatomía de los personajes y el formato.
 
 ---
 
@@ -309,7 +338,7 @@ El proyecto usa **Vitest** (integrado con Vite, sin configuración extra).
 npm test
 ```
 
-**83 pruebas en 7 suites:**
+**102 pruebas en 9 suites:**
 
 | Suite | Qué comprueba |
 |---|---|
@@ -320,6 +349,8 @@ npm test
 | `gameplay.test.js` | Ciclo de juego: movimiento, colisiones, victoria y derrota |
 | `fullCycle.test.js` | El ciclo completo caminando: recoger, regresar y entregar |
 | `lifecycle.test.js` | Montaje/desmontaje del motor (StrictMode) |
+| `assets.test.js` | Cada sprite del catálogo existe en disco, es RGBA y tiene el tamaño correcto |
+| `assetLoading.test.js` | El cargador usa los **PNG reales**, sin caer a placeholders |
 
 ### Sobre Karma
 
@@ -398,15 +429,18 @@ de ellas:
 - Puntuación, calidad, vidas, tiempo y HUD.
 - Supervisor con revisión, veredicto y consecuencias.
 - Viewport vertical centrado y controles táctiles.
+- **95 sprites PNG reales** (jugador, supervisor, plantas, frutos, terreno,
+  canastas, camión, UI, efectos y entorno).
 
 ### Lo que falta (siguientes fases)
 
-- **Arte definitivo.** Hoy todo son placeholders.
-- **Sonidos reales** (hoy son tonos sintetizados).
+- **Sonidos reales** (hoy son tonos sintetizados con WebAudio).
 - **Activación del camión** por número de entregas (§16). La clase
   `Truck` está implementada y se dibuja, pero su secuencia aún no se
   dispara por regla de juego.
 - **Inteligencia completa del supervisor** (rutas, más diálogos).
+- **Integrar los sprites de entorno** (árboles, montañas, carteles) en el
+  fondo del mapa. Ya existen y se cargan; falta colocarlos en el nivel.
 - **Selector de dificultad y récords por nivel** en la UI.
 - **Publicación** de la página tipo ficha del juego.
 
