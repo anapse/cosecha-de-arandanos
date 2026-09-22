@@ -147,10 +147,13 @@ export class Renderer {
 
       if (!camera.isVisible(rect, 16)) continue;
 
+      // El sprite de planta mide 32x32 y se dibuja 32x32: sin escalar.
+      // Escalarlo (p.ej. 1.1x de alto) deformaría el pixel art y
+      // rompería la coherencia de proporciones (§18).
       this.sprites.draw(plant.spriteKey, plant.x, plant.y, {
         frameSize: ts,
         width: ts,
-        height: Math.round(ts * 1.1),
+        height: ts,
       });
 
       // Marca sutil en la planta apuntada por el jugador.
@@ -158,12 +161,7 @@ export class Renderer {
         this.ctx.save();
         this.ctx.globalAlpha = 0.35;
         this.ctx.fillStyle = highlight.color ?? PALETTE.warn;
-        this.ctx.fillRect(
-          Math.round(plant.x),
-          Math.round(plant.y),
-          ts,
-          Math.round(ts * 1.1)
-        );
+        this.ctx.fillRect(Math.round(plant.x), Math.round(plant.y), ts, ts);
         this.ctx.restore();
       }
     }

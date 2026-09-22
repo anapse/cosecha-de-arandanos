@@ -157,6 +157,11 @@ export function drawFruitFall() {
 
 /* ============================================================
    05. TERRENO — tiles de 32x32 que encajan entre sí
+   ------------------------------------------------------------
+   REFERENCIA (IMAGEN 1): el campo se ve como
+     [SURCO DE PLANTAS] [CAMINO DE TIERRA] [SURCO DE PLANTAS] ...
+   El camino es una franja de tierra apisonada con huellas y
+   piedrecitas; el suelo de cultivo es tierra arada más oscura.
    ============================================================ */
 export function drawTerrain(type) {
   const c = new PixelCanvas(32, 32);
@@ -164,60 +169,84 @@ export function drawTerrain(type) {
 
   switch (type) {
     case 'ground_soil':
+      // Tierra arada: base del campo de cultivo
       c.rect(0, 0, S, S, PAL.soil);
-      // Terrones dispersos, deterministas
-      for (let i = 0; i < 14; i += 1) {
+      // Terrones y piedrecitas, deterministas
+      for (let i = 0; i < 18; i += 1) {
         const x = (i * 7 + 3) % S;
         const y = (i * 11 + 5) % S;
-        c.rect(x, y, 2, 2, i % 3 === 0 ? PAL.soilSpeck : PAL.soilDark);
+        const shade = i % 3 === 0 ? PAL.soilSpeck : PAL.soilDark;
+        c.rect(x, y, 2, 2, shade);
       }
+      // Alguna piedra más grande
+      c.rect(20, 9, 3, 2, '#c8a878');
+      c.rect(6, 24, 2, 2, '$b09060'.replace('$', '#'));
       break;
 
     case 'path_vertical':
+      // Camino vertical: tierra apisonada, más clara y lisa
       c.rect(0, 0, S, S, PAL.path);
-      c.rect(0, 0, 3, S, PAL.pathLight);
-      c.rect(S - 3, 0, 3, S, PAL.pathDark);
-      for (let i = 0; i < 8; i += 1) {
+      // Bordes iluminados (por donde se camina)
+      c.rect(0, 0, 2, S, PAL.pathLight);
+      c.rect(S - 2, 0, 2, S, PAL.pathDark);
+      // Huellas y piedrecitas a lo largo
+      for (let i = 0; i < 10; i += 1) {
         c.rect((i * 9 + 4) % S, (i * 7 + 6) % S, 2, 2, PAL.pathDark);
       }
+      c.rect(14, 4, 3, 2, '#e8d0a8', 0.7);
+      c.rect(8, 26, 2, 2, '#e8d0a8', 0.7);
       break;
 
     case 'path_horizontal':
       c.rect(0, 0, S, S, PAL.path);
-      c.rect(0, 0, S, 3, PAL.pathLight);
-      c.rect(0, S - 3, S, 3, PAL.pathDark);
-      for (let i = 0; i < 8; i += 1) {
+      c.rect(0, 0, S, 2, PAL.pathLight);
+      c.rect(0, S - 2, S, 2, PAL.pathDark);
+      for (let i = 0; i < 10; i += 1) {
         c.rect((i * 6 + 5) % S, (i * 9 + 8) % S, 2, 2, PAL.pathDark);
       }
+      c.rect(4, 14, 3, 2, '#e8d0a8', 0.7);
+      c.rect(24, 8, 2, 2, '#e8d0a8', 0.7);
       break;
 
     case 'path_corner':
-      c.rect(0, 0, S, S, PAL.path);
-      // Zona clara arriba-izquierda
-      c.rect(0, 0, 16, 16, PAL.pathLight);
+      // Esquina: camino que gira
+      c.rect(0, 0, S, S, PAL.soil);
+      // Franja vertical (mitad izquierda)
+      c.rect(0, 0, 16, S, PAL.path);
+      // Franja horizontal (mitad inferior)
+      c.rect(0, 16, S, 16, PAL.path);
+      // Luz de las juntas
+      c.rect(0, 0, 2, S, PAL.pathLight);
+      c.rect(0, 16, S, 2, PAL.pathLight);
+      // Sombra interior de la esquina
+      c.rect(16, 16, 2, 16, PAL.pathDark);
+      c.rect(16, 16, 16, 2, PAL.pathDark);
       for (let i = 0; i < 6; i += 1) {
         c.rect((i * 8 + 2) % S, (i * 6 + 3) % S, 2, 2, PAL.pathDark);
       }
       break;
 
     case 'path_intersection':
+      // Cruce: caminos en cruz
       c.rect(0, 0, S, S, PAL.path);
-      c.rect(0, 0, S, 3, PAL.pathLight);
-      c.rect(0, 0, 3, S, PAL.pathLight);
-      for (let i = 0; i < 5; i += 1) {
+      c.rect(0, 0, S, 2, PAL.pathLight);
+      c.rect(0, 0, 2, S, PAL.pathLight);
+      c.rect(0, S - 2, S, 2, PAL.pathDark);
+      c.rect(S - 2, 0, 2, S, PAL.pathDark);
+      for (let i = 0; i < 6; i += 1) {
         c.rect((i * 7 + 6) % S, (i * 5 + 7) % S, 2, 2, PAL.pathDark);
       }
       break;
 
     case 'grass':
       c.rect(0, 0, S, S, PAL.grass);
-      for (let i = 0; i < 20; i += 1) {
+      for (let i = 0; i < 22; i += 1) {
         const x = (i * 5 + 2) % S;
         const y = (i * 7 + 3) % S;
         c.rect(x, y, 1, 2, i % 2 === 0 ? PAL.grassLight : PAL.grassDark);
       }
       // Matas altas
-      for (let i = 0; i < 6; i += 1) {
+      for (let i = 0; i < 7; i += 1) {
         const x = (i * 9 + 4) % S;
         const y = (i * 11 + 5) % S;
         c.vLine(x, y, 3, PAL.grassHi);
@@ -225,64 +254,67 @@ export function drawTerrain(type) {
       break;
 
     case 'grass_edge':
-      // Borde de césped con transición a tierra
+      // Transición césped → tierra: borde ondulado
       c.rect(0, 0, S, S, PAL.grass);
-      c.rect(0, 20, S, 12, PAL.soil);
       for (let x = 0; x < S; x += 1) {
-        // Borde ondulado
-        const h = 20 + (x % 4 === 0 ? -2 : x % 3 === 0 ? 2 : 0);
-        c.rect(x, h, 1, 32 - h, PAL.soil);
+        const wave = Math.round(Math.sin(x / 3.2) * 1.5);
+        const h = 20 + wave;
+        c.rect(x, h, 1, S - h, PAL.soil);
+        // Briznas en el borde
+        if (x % 4 === 0) c.rect(x, h - 2, 1, 2, PAL.grassHi);
       }
-      for (let i = 0; i < 10; i += 1) {
+      for (let i = 0; i < 8; i += 1) {
         c.rect((i * 7 + 2) % S, (i * 5 + 3) % S, 1, 2, PAL.grassLight);
       }
       break;
 
     case 'fence_horizontal':
+      // Cerca de madera horizontal (como la del borde inferior)
       c.rect(0, 0, S, S, PAL.grass);
       // Dos travesaños
-      c.rect(0, 10, S, 4, PAL.wood);
-      c.rect(0, 10, S, 1, PAL.woodLight);
-      c.rect(0, 20, S, 4, PAL.wood);
-      c.rect(0, 20, S, 1, PAL.woodLight);
-      c.rect(0, 13, S, 1, PAL.woodDark);
-      c.rect(0, 23, S, 1, PAL.woodDark);
-      // Postes
-      c.rect(5, 6, 5, 22, PAL.woodDark);
-      c.rect(5, 6, 5, 2, PAL.wood);
-      c.rect(22, 6, 5, 22, PAL.woodDark);
-      c.rect(22, 6, 5, 2, PAL.wood);
+      c.rect(0, 11, S, 4, PAL.wood);
+      c.rect(0, 11, S, 1, PAL.woodLight);
+      c.rect(0, 14, S, 1, PAL.woodDark);
+      c.rect(0, 21, S, 4, PAL.wood);
+      c.rect(0, 21, S, 1, PAL.woodLight);
+      c.rect(0, 24, S, 1, PAL.woodDark);
+      // Postes con sombra
+      c.rect(5, 7, 5, 22, PAL.woodDark);
+      c.rect(5, 7, 5, 2, PAL.wood);
+      c.rect(5, 7, 1, 22, PAL.woodLight);
+      c.rect(22, 7, 5, 22, PAL.woodDark);
+      c.rect(22, 7, 5, 2, PAL.wood);
+      c.rect(22, 7, 1, 22, PAL.woodLight);
       break;
 
     case 'fence_vertical':
       c.rect(0, 0, S, S, PAL.grass);
-      // Postes verticales
       c.rect(6, 0, 5, S, PAL.wood);
       c.rect(6, 0, 1, S, PAL.woodLight);
       c.rect(9, 0, 2, S, PAL.woodDark);
       c.rect(21, 0, 5, S, PAL.wood);
       c.rect(21, 0, 1, S, PAL.woodLight);
       c.rect(24, 0, 2, S, PAL.woodDark);
-      // Travesaños cortos
-      c.rect(11, 12, 10, 3, PAL.woodDark);
-      c.rect(11, 20, 10, 3, PAL.woodDark);
+      // Travesaños
+      c.rect(11, 11, 10, 3, PAL.woodDark);
+      c.rect(11, 21, 10, 3, PAL.woodDark);
       break;
 
     case 'fence_corner':
       c.rect(0, 0, S, S, PAL.grass);
       // Esquina en L
-      c.rect(4, 6, 24, 5, PAL.wood);
-      c.rect(4, 6, 24, 1, PAL.woodLight);
-      c.rect(4, 6, 5, 24, PAL.wood);
-      c.rect(4, 6, 1, 24, PAL.woodLight);
-      c.rect(4, 10, 24, 1, PAL.woodDark);
-      c.rect(8, 6, 1, 24, PAL.woodDark);
+      c.rect(4, 7, 24, 5, PAL.wood);
+      c.rect(4, 7, 24, 1, PAL.woodLight);
+      c.rect(4, 7, 5, 24, PAL.wood);
+      c.rect(4, 7, 1, 24, PAL.woodLight);
+      c.rect(4, 11, 24, 1, PAL.woodDark);
+      c.rect(8, 7, 1, 24, PAL.woodDark);
       break;
 
     case 'delivery_zone':
-      // Zona de entrega: grava clara con textura
+      // Zona de entrega: tierra clara apisonada
       c.rect(0, 0, S, S, '#c9b08a');
-      for (let i = 0; i < 18; i += 1) {
+      for (let i = 0; i < 20; i += 1) {
         const x = (i * 6 + 2) % S;
         const y = (i * 9 + 4) % S;
         c.rect(x, y, 2, 2, i % 3 === 0 ? '#ded0ae' : '#a89070');
@@ -291,7 +323,7 @@ export function drawTerrain(type) {
       break;
 
     case 'delivery_marker':
-      // Marcador de esquina amarillo (como en la referencia)
+      // Marcador amarillo de esquina (indica la zona de entrega)
       c.rect(4, 4, 12, 3, PAL.warn);
       c.rect(4, 4, 3, 12, PAL.warn);
       c.rect(4, 4, 3, 3, '#fff0b0');
@@ -300,12 +332,13 @@ export function drawTerrain(type) {
       break;
 
     case 'ground_detail':
-      // Huellas / detalle de tierra
+      // Manchas de tierra / hierba seca
       c.rect(0, 0, S, S, PAL.soil);
-      c.circle(10, 12, 3, PAL.soilDark);
-      c.circle(20, 20, 4, PAL.soilDark);
-      c.circle(24, 8, 2, PAL.soilSpeck);
-      c.circle(8, 24, 2, PAL.soilSpeck);
+      c.circle(10, 12, 3, PAL.soilDark, 0.8);
+      c.circle(20, 20, 4, PAL.soilDark, 0.7);
+      c.circle(24, 8, 2, PAL.soilSpeck, 0.9);
+      c.circle(8, 24, 2, PAL.soilSpeck, 0.9);
+      c.rect(15, 15, 2, 2, '#c8a878');
       break;
 
     case 'rock':
@@ -313,18 +346,20 @@ export function drawTerrain(type) {
       c.ellipse(15, 19, 8, 6, PAL.mountain);
       c.ellipse(13, 17, 4, 3, '#c8b098');
       c.ellipse(16, 26, 10, 3, PAL.shadow, 0.2);
+      // Grietas
+      c.line(14, 14, 17, 24, PAL.mountainDark);
       break;
 
     case 'flower':
+      // Flores silvestres sobre césped
       c.rect(0, 0, S, S, PAL.grass);
-      // Flores dispersas
       const flowerColors = ['#ff6b9d', '#ffffff', '#ffd93d'];
-      for (let i = 0; i < 5; i += 1) {
+      for (let i = 0; i < 6; i += 1) {
         const x = 5 + (i * 6) % 22;
         const y = 6 + (i * 9) % 20;
         const col = flowerColors[i % flowerColors.length];
         c.rect(x, y, 3, 3, col);
-        c.rect(x + 1, y + 1, 1, 1, '#c88a2a');
+        c.setPixel(x + 1, y + 1, '#c88a2a');
       }
       break;
 

@@ -27,7 +27,9 @@ export class Plant {
     this.x = def.x;
     this.y = def.y;
     this.width = TILE_SIZE;
-    this.height = Math.round(TILE_SIZE * 1.1);
+    // Tamaño lógico: EXACTAMENTE el del tile y del sprite (32x32).
+    // Debe coincidir con el PNG para no deformar el pixel art (§18).
+    this.height = TILE_SIZE;
 
     /** @type {Array<{type:string,collected:boolean}>} */
     this.fruits = def.fruits ?? [];
@@ -35,9 +37,12 @@ export class Plant {
     this.harvested = def.harvested ?? false;
     this.visualVariant = def.visualVariant ?? 0;
 
-    // Pequeña variación de escala para dar naturalidad, sin afectar
-    // al tamaño lógico ni a las colisiones.
-    this.visualScale = 0.94 + (this.visualVariant % 3) * 0.03;
+    /**
+     * Variación visual. NO se usa para escalar el sprite (eso
+     * deformaría el pixel art): sirve para elegir variante de dibujo
+     * y para pequeños desplazamientos decorativos.
+     */
+    this.visualScale = 1;
 
     this.state = resolvePlantState({
       totalFruits: this.remainingFruits,
@@ -146,13 +151,30 @@ export class Plant {
     return this.remainingFruits === 0 && !this.harvested;
   }
 
-  /** Posición de un fruto dentro de la planta, en px lógicos. */
+  /**
+   * Posición de un fruto dentro de la planta, en px lógicos.
+   *
+   * El generador asigna a cada fruto:
+   *   - `side` → 'left' | 'right', en qué mitad de la mata cuelga
+   *   - `slot` → 0..1, altura relativa dentro de la planta
+   *
+   * El arte (tools/artPlants.js) pinta los frutos en posiciones que
+   * respetan ese mismo reparto: izquierda/derecha y de arriba abajo.
+   * Así el fruto lógico cae sobre el fruto pintado.
+   */
   fruitPosition(fruit) {
     const def = this.definition;
-    const sideOffset = fruit.side === 'left' ? 0.22 : 0.78;
+
+    // Mitad correspondiente (un poco hacia el centro para que quede
+    // dentro del follaje, no en el borde del tile).
+    const sideOffset = fruit.side === 'left' ? 0.3 : 0.7;
     const x = this.x + this.width * sideOffset + (fruit.jitter ?? 0);
-    // slot 0 = arriba de la planta, 1 = abajo
-    const y = this.y + 8 + (fruit.slot ?? 0.5) * (this.height - 16);
+
+    // Altura: `slot` va de 0 (arriba) a 1 (abajo). Se deja margen
+    // arriba y abajo para que el fruto no se salga de la mata.
+    const slot = typeof fruit.slot === 'number' ? fruit.slot : 0.5;
+    const y = this.y + 9 + slot * (this.height - 18);
+
     return { x, y, size: 9, density: def.foliage };
   }
 

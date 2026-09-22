@@ -64,22 +64,30 @@ const BG_B = [40, 62, 42];
 
 const FOLDERS = [
   'player', 'supervisor', 'plants', 'fruits', 'terrain',
-  'basket', 'truck', 'ui', 'effects', 'environment',
+  'basket', 'ui', 'effects', 'environment',
 ];
 
-/** Recoge todos los sprites con su carpeta. */
+/** Recoge todos los sprites recursivamente con su ruta relativa. */
 function collect() {
   const items = [];
-  FOLDERS.forEach((folder) => {
-    const dir = join(ASSETS, folder);
+
+  const walk = (dir, relPrefix) => {
     if (!existsSync(dir)) return;
-    readdirSync(dir)
-      .filter((f) => f.endsWith('.png'))
-      .sort()
-      .forEach((file) => {
-        items.push({ folder, file, path: join(dir, file) });
+    readdirSync(dir, { withFileTypes: true })
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .forEach((entry) => {
+        const full = join(dir, entry.name);
+        const rel = relPrefix ? `${relPrefix}/${entry.name}` : entry.name;
+
+        if (entry.isDirectory()) {
+          walk(full, rel);
+        } else if (entry.name.endsWith('.png')) {
+          items.push({ label: rel.replace('.png', ''), path: full });
+        }
       });
-  });
+  };
+
+  FOLDERS.forEach((folder) => walk(join(ASSETS, folder), folder));
   return items;
 }
 

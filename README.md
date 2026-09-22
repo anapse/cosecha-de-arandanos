@@ -182,7 +182,7 @@ React (menús, HUD de páginas, resultados)
 ```
 cosecha-de-arandanos/
 ├── public/
-│   ├── assets/            ← 95 sprites PNG (ver ASSETS.md)
+│   ├── assets/            ← 114 sprites PNG (ver ASSET_MANIFEST.md)
 │   │   ├── player/  supervisor/  plants/  fruits/  terrain/
 │   │   ├── basket/  truck/  ui/  effects/  environment/  sounds/
 │   └── favicon/
@@ -274,48 +274,74 @@ haciendo que el personaje corra más rápido.
 
 ## 🎨 Assets
 
-**95 sprites PNG reales**, generados por código, con los nombres y
-tamaños exactos de las láminas de referencia del proyecto. No hay
-placeholders en uso.
+**114 sprites PNG reales**, organizados en la estructura oficial de
+carpetas con los nombres y tamaños de las láminas de referencia del
+proyecto. No hay placeholders en uso.
 
 El arte se produce con un generador propio **sin dependencias
 externas** (codificador PNG a mano sobre `zlib` de Node):
 
 ```bash
-npm run sprites          # genera los 95 PNG en public/assets/
-npm run sprites:sheet    # genera + lámina de contacto para revisar
+npm run sprites          # genera los 114 PNG en public/assets/
+npm run manifest         # regenera ASSET_MANIFEST.md
+npm run sprites:sheet    # + lámina de contacto para revisar
 npm run sprites:preview  # página HTML con todos los sprites
 ```
 
-| Carpeta | Archivos | Contenido |
-|---|---|---|
-| `player/` | 13 | Idle, 4 direcciones, recoger izq/der, estados extra |
-| `supervisor/` | 10 | Idle, 4 direcciones, revisar, anotar, detectar, aprobar, hablar |
-| `plants/` | 8 | Vacía, pocas, media, abundante, madura, pintona, mixta, cosechada |
-| `fruits/` | 6 | Maduro, pintón, grupos, en mano, cayendo |
-| `terrain/` | 15 | Tierra, caminos, césped, cercas, entrega, detalles |
-| `basket/` | 8 | 4 canastas + 4 cajas |
-| `truck/` | 2 | Camión lateral y cargado |
-| `ui/` | 12 | Corazones, iconos, barras, botones, marco |
-| `effects/` | 9 | Partículas animadas, textos, sombras, selección |
-| `environment/` | 12 | Cielo, nubes, montañas, árboles, carteles, arbusto, roca, flores |
+### Estructura
 
-**Peso total: ~24 KB** para los 95 archivos.
+```
+public/assets/
+├── player/       idle/ walk/ harvest/ states/            13
+├── supervisor/   walk/ inspection/ states/               10
+├── plants/       las 8 variantes + base y fila            10
+├── fruits/       maduro, pintón, grupos, en mano          8
+├── terrain/      tierra, caminos, cercas, entrega         15
+├── basket/       4 canastas + 4 cajas + camión            10
+├── ui/           hud/ icons/ buttons/ bars/ panels/ prompts  26
+├── effects/      harvest/ error/ inspection/ particles/
+│                 shadows/ floating-text/                  9
+└── environment/  sky/ clouds/ mountains/ trees/ signs/
+                  decorations/                             13
+```
+
+**Peso total: ~30 KB** para los 114 archivos.
 
 ### Tamaños
 
-16x16 (UI, frutos, efectos) · 32x32 (personajes, plantas, tiles) ·
-64x40 (camión) · 64x64 (árboles) · 128x32 (spritesheets de 4 frames) ·
-128x64 (cielo, montañas).
+16x16 (UI, frutos, efectos) · 32x32 (personajes, plantas, tiles,
+canastas) · 32x64 (hilera alta) · 64x40 (camión) · 64x64 (árboles,
+carteles) · 128x32 (spritesheets de 4 frames) · 128x64 (cielo,
+montañas).
+
+### Arquitectura planta + frutos (§7)
+
+El juego **no depende de 8 imágenes fijas** para las plantas. Se
+compone:
+
+```
+PLANTA BASE (follaje)  +  FRUTOS INDIVIDUALES
+```
+
+`plant_base.png` es el follaje y los frutos (`fruit_ripe.png`,
+`fruit_unripe.png`) se colocan encima. Así la posición y la cantidad de
+frutos se puede variar por código. Las 8 variantes completas también
+existen, para usarlas directamente cuando convenga.
 
 ### Cómo sustituir el arte
 
-1. Deja tu PNG **con el mismo nombre y tamaño** en `public/assets/<carpeta>/`.
-2. Listo. **No hay que tocar el motor ni el manifiesto.**
+1. Deja tu PNG **con el mismo nombre y tamaño** en la carpeta que le
+   corresponde dentro de `public/assets/`.
+2. Actualiza la entrada en `src/data/assets.js` si cambian las
+   dimensiones.
+3. `npm test` verifica que todo cuadra.
 
-El motor pide sprites por **clave lógica** (`player.walkDown`), nunca por
-nombre de archivo. Ver [`public/assets/ASSETS.md`](public/assets/ASSETS.md)
-para el inventario completo, la anatomía de los personajes y el formato.
+**No hay que tocar el motor.** Pide sprites por **clave lógica**
+(`player.walkDown`), nunca por nombre de archivo.
+
+Ver [`public/assets/ASSET_MANIFEST.md`](public/assets/ASSET_MANIFEST.md)
+— documento **generado** con la tabla completa de ID, ruta, tipo,
+tamaño, frames, estado y uso.
 
 ---
 
@@ -338,7 +364,7 @@ El proyecto usa **Vitest** (integrado con Vite, sin configuración extra).
 npm test
 ```
 
-**102 pruebas en 9 suites:**
+**123 pruebas en 10 suites:**
 
 | Suite | Qué comprueba |
 |---|---|
@@ -351,6 +377,7 @@ npm test
 | `lifecycle.test.js` | Montaje/desmontaje del motor (StrictMode) |
 | `assets.test.js` | Cada sprite del catálogo existe en disco, es RGBA y tiene el tamaño correcto |
 | `assetLoading.test.js` | El cargador usa los **PNG reales**, sin caer a placeholders |
+| `integration.test.js` | Escala 1:1 del pixel art (§18) y frutos anclados a su planta |
 
 ### Sobre Karma
 
@@ -429,8 +456,9 @@ de ellas:
 - Puntuación, calidad, vidas, tiempo y HUD.
 - Supervisor con revisión, veredicto y consecuencias.
 - Viewport vertical centrado y controles táctiles.
-- **95 sprites PNG reales** (jugador, supervisor, plantas, frutos, terreno,
-  canastas, camión, UI, efectos y entorno).
+- **114 sprites PNG reales** organizados en la estructura oficial de
+  carpetas (jugador, supervisor, plantas, frutos, terreno, canastas,
+  camión, UI, efectos y entorno).
 
 ### Lo que falta (siguientes fases)
 

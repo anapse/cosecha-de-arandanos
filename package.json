@@ -15,8 +15,10 @@
     "test:ui": "vitest --ui",
     "lint": "eslint .",
     "sprites": "node tools/generateSprites.js",
+    "manifest": "node tools/generateManifest.js",
     "sprites:sheet": "node tools/generateSprites.js && node tools/makeContactSheet.js",
-    "sprites:preview": "node tools/previewSheet.js"
+    "sprites:preview": "node tools/previewSheet.js",
+    "sprites:plants": "node tools/previewPlants.js"
   },
   "dependencies": {
     "react": "^18.3.1",
