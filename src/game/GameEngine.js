@@ -48,6 +48,7 @@ import { TouchInput } from './input/TouchInput.js';
 
 import { Camera } from './rendering/Camera.js';
 import { Renderer } from './rendering/Renderer.js';
+import { HudRenderer } from './rendering/HudRenderer.js';
 import { SpriteRenderer } from './rendering/SpriteRenderer.js';
 import { AssetLoader } from './rendering/AssetLoader.js';
 
@@ -96,6 +97,15 @@ export class GameEngine {
     this.assetLoader = new AssetLoader();
     this.sprites = new SpriteRenderer(this.ctx, this.assetLoader);
     this.renderer = new Renderer(this.ctx, this.sprites);
+    // HUD dedicado: paneles, leyenda y barras (§2-§7).
+    this.hud = new HudRenderer(this.sprites);
+    this.hud.resize(this.logicalWidth, this.logicalHeight, {
+      hudHeight: GAME_CONFIG.hudHeight,
+      bottomHeight: GAME_CONFIG.hudBottomHeight,
+    });
+
+    /** Tiempo acumulado para animaciones del HUD (flecha, pulsos). */
+    this.presentationTime = 0;
 
     /* ---------- Entidades (se crean al cargar el nivel) ---------- */
     this.player = null;
@@ -283,6 +293,10 @@ export class GameEngine {
    */
   update(dt) {
     const status = this.state.status;
+
+    // Tiempo de presentación: anima la flecha de entrega y los pulsos
+    // del HUD. No afecta a la lógica del juego.
+    this.presentationTime += dt;
 
     // La cámara y los efectos siempre se actualizan (así la sacudida
     // y las partículas terminan aunque el juego esté pausado).
@@ -875,6 +889,11 @@ export class GameEngine {
     this.camera.setWorldSize(this.map.width, this.map.height);
     this.camera.snapTo(this.player.x, this.player.y);
 
+    /* ---------- Paisaje (§8) ---------- */
+    // La franja de paisaje vive en las primeras filas del mundo.
+    // Se calcula a partir del alto de la zona de césped superior.
+    this.#setupLandscape();
+
     /* ---------- Efectos ---------- */
     this.effects.clear();
 
@@ -1047,6 +1066,14 @@ export class GameEngine {
 
     this.ctx.imageSmoothingEnabled = false;
     this.renderer.resize(this.logicalWidth, this.logicalHeight);
+    this.hud.resize(this.logicalWidth, this.logicalHeight, {
+      hudHeight: GAME_CONFIG.hudHeight,
+      bottomHeight: GAME_CONFIG.hudBottomHeight,
+    });
+
+    // La cámara respeta el espacio de la interfaz: el campo se ve
+    // entre el HUD superior y el inferior (§2, §7).
+    this.camera.setInsets(GAME_CONFIG.hudHeight, GAME_CONFIG.hudBottomHeight);
 
     // Recalcula límites de cámara por si cambió el tamaño.
     if (this.map.data) {
@@ -1083,8 +1110,15 @@ export class GameEngine {
     }
 
     /* ---------- Mundo (con cámara) ---------- */
+    // El mundo se dibuja en la franja entre el HUD superior y el
+    // inferior: se traslada hacia abajo por el alto del HUD de arriba.
     ctx.save();
+    ctx.translate(0, this.camera.worldOffsetY);
     ctx.translate(-this.camera.originX, -this.camera.originY);
+
+    // Paisaje al fondo: cielo, montañas y árboles (§8). Va primero
+    // para que el campo se dibuje encima.
+    this.renderer.drawLandscape(this.camera, this.landscapeLayout);
 
     this.renderer.drawTerrain(this.map.tileMap, this.camera);
     this.renderer.drawFruits(this.plants, this.camera);
@@ -1107,8 +1141,16 @@ export class GameEngine {
 
     /* ---------- HUD (coordenadas lógicas, sin cámara) ---------- */
     if (status !== GAME_STATES.MENU && status !== GAME_STATES.TUTORIAL) {
-      this.renderer.drawHud(this.#hudData());
-      this.renderer.drawSupervisorTimer(this.#hudData());
+      const hudData = this.#hudData();
+
+      // HUD superior: logo, stats, objetivo y calidad (§2)
+      this.hud.drawTop(hudData);
+
+      // Leyenda de frutos, flotando sobre la esquina derecha del campo (§3)
+      this.hud.drawLegend(this.logicalWidth - 88, GAME_CONFIG.hudHeight + 4);
+
+      // HUD inferior: vidas, puntuación y siguiente revisión (§7)
+      this.hud.drawBottom(hudData);
     }
 
     /* ---------- Efectos de pantalla ---------- */
@@ -1116,22 +1158,44 @@ export class GameEngine {
 
     /* ---------- Pista contextual sobre el jugador ---------- */
     if (this.contextHint && this.player && status === GAME_STATES.PLAYING) {
+      // El mundo está trasladado por el HUD superior y la cámara.
       const screenX = this.player.x - this.camera.originX;
-      const screenY = this.player.y - this.camera.originY;
+      const screenY = this.player.y - this.camera.originY + this.camera.worldOffsetY;
 
       this.renderer.drawContextHint(screenX, screenY, this.contextHint.text, {
         color: this.contextHint.type === 'unripe' ? '#e2453c' : '#f2c14e',
       });
     }
 
-    /* ---------- Burbuja del supervisor ---------- */
+    /* ---------- Burbuja del supervisor (§6) ---------- */
     if (this.supervisor?.bubbleText) {
       const bx = this.supervisor.x - this.camera.originX;
-      const by = this.supervisor.y - this.camera.originY;
+      const by = this.supervisor.y - this.camera.originY + this.camera.worldOffsetY;
       this.renderer.drawBubble(bx, by, this.supervisor.bubbleText, {
         color: '#1a2c4e',
         borderColor: '#4a6fa5',
       });
+    }
+
+    /* ---------- Contador de canasta (§5) ---------- */
+    if (this.basket && status === GAME_STATES.PLAYING) {
+      const bx = this.basket.x + this.basket.width / 2 - this.camera.originX;
+      const by = this.basket.y - this.camera.originY + this.camera.worldOffsetY;
+      this.hud.drawBasketCounter(bx, by, this.basket.current, this.basket.capacity, this.basket.isFull);
+    }
+
+    /* ---------- Flecha de entrega (§4) ---------- */
+    // Aparece cuando el jugador lleva fruta y está en la zona de entrega.
+    if (this.basket && status === GAME_STATES.PLAYING && this.basket.current > 0) {
+      const near =
+        this.basket.current >= this.basket.capacity ||
+        (this.deliverySystem?.isPlayerInZone?.(this.player) ?? false);
+
+      if (near) {
+        const bx = this.basket.x + this.basket.width / 2 - this.camera.originX - 11;
+        const by = this.basket.y - this.camera.originY + this.camera.worldOffsetY - 34;
+        this.hud.drawDeliverArrow(bx, by, this.presentationTime * 4);
+      }
     }
 
     /* ---------- Panel de depuración ---------- */
@@ -1145,6 +1209,8 @@ export class GameEngine {
 
   /** Datos compactos para el HUD del canvas. */
   #hudData() {
+    const levelConfig = this.state.levelConfig ?? {};
+
     return {
       level: this.state.levelId,
       totalLevels: TOTAL_LEVELS,
@@ -1155,12 +1221,15 @@ export class GameEngine {
       quality: this.state.quality,
       lives: this.state.lives,
       maxLives: this.state.maxLives,
+      score: this.state.score,
       basketCurrent: this.basket?.current ?? 0,
       basketCapacity: this.basket?.capacity ?? 0,
       basketFull: this.basket?.isFull ?? false,
       supervisorTimer: this.timerSystem.supervisorLeft,
       supervisorInterval: this.timerSystem.supervisorInterval,
       supervisorActive: this.supervisor?.isActive ?? false,
+      // Texto de objetivo del nivel (o el genérico del HUD)
+      objective: levelConfig.objective ?? null,
     };
   }
 
@@ -1254,7 +1323,26 @@ export class GameEngine {
     }
   }
 
-  /** Fondo del menú (cuando aún no hay mapa generado). */
+  /**
+   * Calcula la franja de paisaje (§8).
+   *
+   * El paisaje ocupa las primeras filas del mundo (césped superior) y
+   * muestra, de atrás hacia delante: cielo, nubes, montañas y árboles.
+   * Se guarda en `this.landscapeLayout` y el Renderer lo usa cada frame.
+   */
+  #setupLandscape() {
+    // Alto disponible: las filas de césped iniciales del mapa.
+    const grassRows = this.map.data?.grassRows ?? 2;
+    const height = Math.max(96, grassRows * TILE_SIZE + 64);
+
+    this.landscapeLayout = {
+      height,
+      skyHeight: Math.round(height * 0.44),
+      mountainHeight: Math.round(height * 0.31),
+      treesY: Math.round(height * 0.78),
+    };
+  }
+
   #renderEmptyBackground() {
     const ctx = this.ctx;
     // Cielo

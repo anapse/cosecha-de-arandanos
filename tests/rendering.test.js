@@ -147,7 +147,7 @@ describe('Renderizado del mundo', () => {
     global.performance = global.performance ?? { now: () => 0 };
   });
 
-  it('el nivel 1 cubre el viewport, así que la cámara NO deja franjas (§38)', () => {
+  it('la cámara nunca muestra fuera del mundo (sin franjas vacías) (§38)', () => {
     const engine = new GameEngine({ canvas: createCanvas() });
     engine.resize();
     engine.loadLevel(1, { seed: 1234 });
@@ -164,14 +164,27 @@ describe('Renderizado del mundo', () => {
     engine.destroy();
   });
 
-  it('el mundo es al menos tan grande como la pantalla lógica', () => {
+  it('el campo cubre el ÁREA ÚTIL entre los dos HUD (§2, §7)', () => {
     const engine = new GameEngine({ canvas: createCanvas() });
     engine.resize();
 
+    // El área útil descuenta el HUD superior y el inferior.
+    const playHeight = engine.camera.playHeight;
+    expect(playHeight).toBe(VIEW_HEIGHT - engine.camera.insetTop - engine.camera.insetBottom);
+    expect(playHeight).toBeLessThan(VIEW_HEIGHT);
+
     for (let id = 1; id <= 12; id += 1) {
       engine.loadLevel(id, { seed: id * 7 });
+
+      // El mundo debe ser al menos tan alto como el área útil: si no,
+      // la cámara dejaría un hueco sin campo.
+      expect(
+        engine.map.height,
+        `nivel ${id}: el campo no cubre el área útil`
+      ).toBeGreaterThanOrEqual(playHeight);
+
+      // Y al menos tan ancho como la pantalla.
       expect(engine.map.width).toBeGreaterThanOrEqual(VIEW_WIDTH);
-      expect(engine.map.height).toBeGreaterThanOrEqual(VIEW_HEIGHT);
     }
 
     engine.destroy();
@@ -231,7 +244,7 @@ describe('Renderizado del mundo', () => {
     engine.destroy();
   });
 
-  it('la canasta cabe en pantalla y no queda bajo el borde inferior', () => {
+  it('la canasta cabe en la franja útil y es alcanzable', () => {
     const engine = new GameEngine({ canvas: createCanvas() });
     engine.resize();
     engine.loadLevel(1, { seed: 5 });
@@ -239,9 +252,12 @@ describe('Renderizado del mundo', () => {
     const view = engine.camera.viewRect;
     const basketBottom = engine.basket.y + engine.basket.height;
 
-    // La canasta debe poder alcanzarse: dentro de la altura del mundo.
+    // La canasta debe estar dentro del mundo y poder quedar visible.
     expect(engine.basket.y).toBeLessThan(engine.map.height);
     expect(basketBottom).toBeLessThanOrEqual(engine.map.height + 1);
+
+    // La franja visible nunca sale del mundo.
+    expect(view.y).toBeGreaterThanOrEqual(0);
     expect(view.y + view.h).toBeLessThanOrEqual(engine.map.height + 1);
 
     engine.destroy();

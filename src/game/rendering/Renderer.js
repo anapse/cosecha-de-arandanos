@@ -31,12 +31,16 @@ export class Renderer {
     this.sprites = sprites;
     this.width = GAME_CONFIG.logicalWidth;
     this.height = GAME_CONFIG.logicalHeight;
+    this.viewWidth = this.width;
+    this.viewHeight = this.height;
   }
 
   /** Ajusta el tamaño lógico (por si cambia la configuración). */
   resize(width, height) {
     this.width = width;
     this.height = height;
+    this.viewWidth = width;
+    this.viewHeight = height;
   }
 
   /** Limpia el frame completo. */
@@ -126,6 +130,165 @@ export class Renderer {
         });
         break;
     }
+  }
+
+  /* ============================================================
+     PAISAJE (§8)
+     ------------------------------------------------------------
+     La referencia muestra una franja vertical de profundidad:
+
+        CIELO  →  MONTAÑAS  →  ÁRBOLES  →  (campo de cultivo)
+
+     Se dibuja al principio del frame, ANTES del terreno, ocupando las
+     primeras filas del mundo. Como el mundo es más alto que la pantalla
+     y la cámara hace scroll, el paisaje queda arriba del todo y se ve
+     al subir por el campo.
+     ============================================================ */
+
+  /**
+   * Dibuja la franja de paisaje al inicio del mundo.
+   *
+   * @param {import('./Camera.js').Camera} camera
+   * @param {object} layout { height, skyHeight, mountainHeight, treesY }
+   */
+  drawLandscape(camera, layout = {}) {
+    const {
+      height = 96,
+      skyHeight = 42,
+      mountainHeight = 30,
+      treesY = 62,
+    } = layout;
+
+    const ctx = this.ctx;
+    const vw = this.viewWidth;
+
+    // Culling: si el paisaje no está en la vista, no se dibuja.
+    if (!camera.isVisible({ x: 0, y: 0, w: vw, h: height }, 8)) return;
+
+    // Parallax suave: el paisaje se mueve menos que el campo.
+    const px = camera.originX * 0.35;
+
+    /* ---------- 1. Cielo ---------- */
+    // Sprite del catálogo, repetido horizontalmente para cubrir el ancho.
+    const skyW = 128;
+    for (let x = -Math.floor(px) - skyW; x < vw + skyW; x += skyW) {
+      this.sprites.draw('env.sky', x, 0, {
+        frameSize: 128, width: skyW, height: 64,
+      });
+    }
+    // Relleno por si el sprite es más bajo que la franja de cielo
+    if (skyHeight > 64) {
+      ctx.fillStyle = '#5aa8e8';
+      ctx.fillRect(0, 64, vw, skyHeight - 64);
+    }
+
+    /* ---------- 2. Nubes ---------- */
+    // Se desplazan algo más rápido que el cielo, bajo las montañas.
+    const cloudX = camera.originX * 0.5;
+    for (let x = -Math.floor(cloudX) - 128; x < vw + 128; x += 128) {
+      this.sprites.draw('env.clouds', x, 6, {
+        frameSize: 128, width: 128, height: 64, alpha: 0.9,
+      });
+    }
+
+    /* ---------- 3. Montañas ---------- */
+    const mtnX = camera.originX * 0.4;
+    const mtnY = skyHeight - 22;
+    for (let x = -Math.floor(mtnX) - 128; x < vw + 128; x += 128) {
+      this.sprites.draw('env.mountains', x, mtnY, {
+        frameSize: 128, width: 128, height: 64,
+      });
+    }
+
+    /* ---------- 4. Franja de césped y árboles ---------- */
+    const grassY = skyHeight + mountainHeight - 6;
+    ctx.fillStyle = '#4a7a3a';
+    ctx.fillRect(0, grassY, vw, height - grassY);
+
+    // Árboles repartidos por la franja (variante determinista)
+    const treeSpacing = 54;
+    const treeOffset = camera.originX * 0.55;
+    const firstTree = Math.floor((treeOffset - treeSpacing) / treeSpacing) * treeSpacing;
+
+    for (let i = 0; i < 14; i += 1) {
+      const wx = firstTree + i * treeSpacing;
+      const sx = wx - treeOffset;
+      if (sx < -64 || sx > vw + 64) continue; // culling
+
+      // Variante estable por posición (no cambia entre frames)
+      const variant = ((wx / treeSpacing) | 0) % 3;
+      const key = `env.treesTree${variant + 1}`;
+
+      this.sprites.draw(key, sx, treesY - 26, {
+        frameSize: 64, width: 44, height: 44,
+      });
+    }
+
+    // Arbustos en el borde con el campo
+    for (let i = 0; i < 10; i += 1) {
+      const wx = firstTree + i * treeSpacing + 26;
+      const sx = wx - treeOffset;
+      if (sx < -32 || sx > vw + 32) continue;
+
+      this.sprites.draw('env.treesBush', sx, grassY + 2, {
+        frameSize: 32, width: 26, height: 26,
+      });
+    }
+  }
+
+  /**
+   * Valla de madera que separa el campo de la zona de entrega (§4).
+   * Se dibuja como una línea horizontal de tiles de cerca.
+   *
+   * @param {number} width ancho del mapa en px
+   * @param {number} y fila del mundo donde va la cerca
+   */
+  drawDeliveryFence(width, y) {
+    const ts = TILE_SIZE;
+    for (let x = 0; x < width; x += ts) {
+      this.sprites.draw('terrain.fenceH', x, y, {
+        frameSize: ts, width: ts, height: ts,
+      });
+    }
+  }
+
+  /**
+   * Carteles del fundo y del grupo, integrados en el escenario (§14).
+   *
+   * @param {number} x
+   * @param {number} y
+   * @param {'fundo'|'grupo'} kind
+   */
+  drawSign(x, y, kind = 'fundo') {
+    const key = kind === 'grupo' ? 'env.signsGrupo' : 'env.signsFundo';
+    this.sprites.draw(key, x, y, {
+      frameSize: 64, width: 52, height: 52,
+    });
+  }
+
+  /**
+   * Decoración de suelo: rocas, matas y flores (§13).
+   * Se colocan de forma determinista para que no parpadeen.
+   *
+   * @param {number} width
+   * @param {number} height
+   * @param {number} y0 fila inicial (bajo el paisaje)
+   */
+  drawSceneryDecoration(width, height, y0) {
+    const items = [
+      { key: 'env.decorationsRockLarge', x: 8, y: y0 + 6, w: 22 },
+      { key: 'env.decorationsRockLarge', x: width - 30, y: y0 + 40, w: 20 },
+      { key: 'env.decorationsFlowers', x: 40, y: y0 + 30, w: 20 },
+      { key: 'env.decorationsFlowers', x: width - 70, y: y0 + 8, w: 20 },
+      { key: 'env.decorationsGrassDetail', x: 90, y: y0 + 14, w: 20 },
+      { key: 'env.decorationsGrassDetail', x: width - 110, y: y0 + 52, w: 20 },
+    ];
+
+    items.forEach((item) => {
+      this.sprites.draw(item.key, item.x, item.y, {
+        frameSize: 32, width: item.w, height: item.w,
+      });
+    });
   }
 
   /* ============================================================

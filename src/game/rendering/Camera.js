@@ -41,6 +41,33 @@ export class Camera {
     this.shakeIntensity = 0;
     this.offsetX = 0;
     this.offsetY = 0;
+
+    /**
+     * Márgenes en px lógicos ocupados por la interfaz:
+     * el HUD superior arriba y el HUD inferior abajo.
+     *
+     * La cámara NO dibuja el mundo bajo esos márgenes: el campo se ve
+     * entre los dos paneles, como en la referencia. Se expresan como
+     * alto total reservado y se aplican centrando la vista.
+     */
+    this.insetTop = 0;
+    this.insetBottom = 0;
+  }
+
+  /**
+   * Reserva espacio de pantalla para la interfaz.
+   * @param {number} top px lógicos del HUD superior
+   * @param {number} bottom px lógicos del HUD inferior
+   */
+  setInsets(top, bottom) {
+    this.insetTop = Math.max(0, top);
+    this.insetBottom = Math.max(0, bottom);
+    return this;
+  }
+
+  /** Alto útil del viewport (sin contar la interfaz). */
+  get playHeight() {
+    return Math.max(1, this.viewHeight - this.insetTop - this.insetBottom);
   }
 
   /** Define el tamaño del mundo para poder acotar la cámara. */
@@ -88,17 +115,20 @@ export class Camera {
   }
 
   #clampTarget(x, y) {
-    // La cámara nunca muestra fuera del mundo.
+    // La cámara trabaja SOLO en unidades del mundo.
     //
-    // Dos casos por eje:
-    //   a) El mundo es MÁS GRANDE que la vista → se acota al rango
-    //      válido para no mostrar el exterior.
-    //   b) El mundo cabe ENTERO en la vista → se fija el centro en la
-    //      MITAD del mundo. Si se dejara en 0, el origen de dibujo
-    //      (centro - vista/2) quedaría negativo y el mundo se pintaría
-    //      desplazado hacia abajo, dejando una franja vacía arriba.
+    // En horizontal la franja visible mide viewWidth; en vertical mide
+    // playHeight (el viewport menos los dos HUD). El desplazamiento del
+    // HUD se aplica al dibujar (worldOffsetY), no aquí.
+    //
+    //   franja visible del mundo = [originY, originY + playHeight]
+    //   restricción: 0 <= originY  y  originY + playHeight <= worldHeight
+    //   con originY = camera.y - playHeight / 2
+    //
+    //   =>  camera.y en [playHeight/2, worldHeight - playHeight/2]
     const halfW = this.viewWidth / 2;
-    const halfH = this.viewHeight / 2;
+    const playH = this.playHeight;
+    const halfPlay = playH / 2;
 
     const clampedX =
       this.worldWidth <= this.viewWidth
@@ -106,9 +136,10 @@ export class Camera {
         : clamp(x, halfW, this.worldWidth - halfW);
 
     const clampedY =
-      this.worldHeight <= this.viewHeight
+      this.worldHeight <= playH
+        // El mundo cabe entero: se centra en la franja.
         ? this.worldHeight / 2
-        : clamp(y, halfH, this.worldHeight - halfH);
+        : clamp(y, halfPlay, this.worldHeight - halfPlay);
 
     return { x: clampedX, y: clampedY };
   }
@@ -116,9 +147,9 @@ export class Camera {
   /**
    * Origen del mundo para aplicar en el contexto del canvas.
    *
-   * Se acota a 0 como mínimo: si el mundo es más pequeño que la vista,
-   * un origen negativo dibujaría el mundo desplazado y dejaría una
-   * franja vacía en la parte superior de la pantalla.
+   * En Y se usa playHeight, porque la franja visible del campo es el
+   * viewport menos los dos HUD. El desplazamiento del HUD superior se
+   * aplica aparte con worldOffsetY.
    */
   get originX() {
     const raw = Math.round(this.x - this.viewWidth / 2 + this.offsetX);
@@ -126,17 +157,27 @@ export class Camera {
   }
 
   get originY() {
-    const raw = Math.round(this.y - this.viewHeight / 2 + this.offsetY);
+    const raw = Math.round(this.y - this.playHeight / 2 + this.offsetY);
     return Math.max(0, raw);
   }
 
-  /** Rectángulo visible en coordenadas del mundo. */
+  /**
+   * Desplazamiento vertical del mundo en pantalla.
+   *
+   * El mundo se dibuja en la franja entre los dos HUD, así que se
+   * traslada hacia abajo por el alto del HUD superior.
+   */
+  get worldOffsetY() {
+    return this.insetTop;
+  }
+
+  /** Rectángulo visible del MUNDO (franja útil entre los dos HUD). */
   get viewRect() {
     return {
       x: this.originX,
       y: this.originY,
       w: this.viewWidth,
-      h: this.viewHeight,
+      h: this.playHeight,
     };
   }
 

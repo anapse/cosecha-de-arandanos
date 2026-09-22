@@ -7,20 +7,29 @@
  * dimensiones con construcción del terreno.
  *
  * IMPORTANTE — proporción con el viewport:
- * El juego se ve en un viewport lógico vertical de 360x640 (§7, §11).
- * Si el campo fuese más pequeño que la pantalla, el motor tendría que
- * estirarlo o dejar franjas vacías. Por eso el alto del campo se
- * calcula para CUBRIR el viewport: el mapa siempre es igual o más
- * grande que la cámara, y la cámara hace su trabajo (§38).
+ * El juego se ve en un viewport lógico vertical de 360x640 (§7, §11),
+ * pero el campo NO ocupa toda la pantalla: arriba va el HUD y abajo el
+ * HUD inferior (§2, §7). La franja útil para el campo es:
+ *
+ *     alto útil = 640 - HUD_SUPERIOR - HUD_INFERIOR
+ *
+ * El campo se calcula para CUBRIR esa franja. Si fuese más pequeño, la
+ * cámara dejaría huecos; si es más grande, la cámara hace scroll y el
+ * campo se siente profundo, como en la referencia.
  */
 
 import { TILE_SIZE } from '../config/constants.js';
+import { GAME_CONFIG } from '../config/gameConfig.js';
 
-/** Alto del viewport lógico que hay que cubrir (px). */
-export const VIEW_HEIGHT = 640;
+/** Alto del viewport lógico completo (px). */
+export const VIEW_HEIGHT = GAME_CONFIG.logicalHeight;
 
 /** Ancho del viewport lógico que hay que cubrir (px). */
-export const VIEW_WIDTH = 360;
+export const VIEW_WIDTH = GAME_CONFIG.logicalWidth;
+
+/** Alto de la franja útil donde vive el campo (px). */
+export const PLAY_HEIGHT =
+  GAME_CONFIG.logicalHeight - GAME_CONFIG.hudHeight - GAME_CONFIG.hudBottomHeight;
 
 /**
  * Número de columnas: [pasillo][PLANTA][CAMINO][PLANTA]...[PLANTA][pasillo]
@@ -42,8 +51,11 @@ export const DELIVERY_ROWS = 3;
 /** Filas del pasillo horizontal que cierra el campo por abajo. */
 export const CORRIDOR_ROWS = 1;
 
+/** Filas de cultivo MÍNIMAS: dan la sensación de campo profundo. */
+export const MIN_FIELD_ROWS = 14;
+
 /**
- * Número de filas de CULTIVO necesarias para cubrir la pantalla.
+ * Número de filas de CULTIVO necesarias para cubrir el área útil.
  *
  * Las plantas se reparten a lo largo de estas filas, así que en
  * niveles con menos plantas por línea el campo es más alto pero cada
@@ -58,13 +70,13 @@ export function FIELD_ROWS_FOR(plantsPerRow) {
 
   // Filas fijas: césped + pasillo inferior + zona de entrega.
   const fixedRows = GRASS_ROWS + CORRIDOR_ROWS + DELIVERY_ROWS;
-  const availablePx = VIEW_HEIGHT - fixedRows * TILE_SIZE;
+  const availablePx = PLAY_HEIGHT - fixedRows * TILE_SIZE;
 
-  // Con más plantas por línea, la misma parcela puede mostrar más
-  // filas de cultivo; con menos, hay que repartirlas para llenar.
-  // La densidad objetivo mantiene el campo legible.
-  const targetFieldPx = Math.max(availablePx, p * TILE_SIZE);
-  return Math.max(p, Math.ceil(targetFieldPx / TILE_SIZE));
+  // El campo debe cubrir el área útil Y tener al menos MIN_FIELD_ROWS
+  // para verse como setos continuos y no como un par de filas.
+  const neededPx = Math.max(availablePx, MIN_FIELD_ROWS * TILE_SIZE);
+
+  return Math.max(p, Math.ceil(neededPx / TILE_SIZE));
 }
 
 /**

@@ -60,8 +60,13 @@ export const GAME_CONFIG = {
   cameraLerp: 7.5,        // suavizado de seguimiento
   cameraDeadZone: 46,     // zona muerta vertical en px lógicos
 
-  /* ---------- Presentación ---------- */
-  hudHeight: 58,          // alto del HUD en px lógicos (top)
+  /* ---------- Presentación (§34) ----------
+     Composición vertical, de arriba a abajo:
+       HUD superior · paisaje · campo de cultivo · entrega · HUD inferior
+     Estas alturas definen cuánto ocupa cada franja en px lógicos. */
+  hudHeight: 62,          // alto del HUD superior en px lógicos
+  hudBottomHeight: 46,    // alto del HUD inferior
+  landscapeHeight: 46,    // franja de cielo + montañas tras el campo
   touchControlsHeight: 132,
   showFps: false,
   debugCollisions: false,
