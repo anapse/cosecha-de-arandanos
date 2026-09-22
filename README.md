@@ -79,6 +79,110 @@ npm run test:watch # modo vigilancia
 
 ---
 
+## 📱 Jugar desde otro dispositivo (LAN)
+
+El juego es **100% individual**: cada dispositivo abre el juego y juega
+**su propia partida**. No hay multijugador, ni salas, ni servidor de
+partidas. El servidor de Vite **solo sirve los archivos** (HTML, JS,
+sprites, sonidos) a los demás dispositivos de la red.
+
+### Cómo
+
+1. Arranca el servidor en la PC:
+
+   ```bash
+   npm run dev
+   ```
+
+2. Vite muestra dos direcciones:
+
+   ```
+   Local:    http://localhost:5173/
+   Network:  http://192.168.1.3:5173/     ← esta se usa desde fuera
+   ```
+
+3. Abre la dirección **Network** desde otra PC o desde un teléfono
+   conectado a la **misma Wi-Fi**:
+
+   ```
+   http://192.168.1.3:5173/
+   ```
+
+La IP **no está fija en el código**: la detecta Vite en cada arranque,
+así que si el router le cambia la IP a la PC, la dirección que muestra
+sigue siendo la correcta. Copia siempre la que aparezca en `Network`.
+
+> `localhost` **no** sirve desde otro dispositivo: en un teléfono,
+> `localhost` es el propio teléfono, no tu PC.
+
+### Cortafuegos de Windows
+
+Si otro dispositivo no puede conectarse, probablemente Windows está
+bloqueando el puerto. **No desactives el cortafuegos**: basta permitir
+el puerto de Vite.
+
+**TCP 5173** — puerto del servidor de desarrollo.
+
+La primera vez que ejecutes `npm run dev`, Windows suele mostrar un
+aviso ("Permitir que Node.js se comunique en redes privadas"). Marca
+**Redes privadas** y acepta.
+
+Si ya lo rechazaste, se puede abrir el puerto a mano desde PowerShell
+**como Administrador**:
+
+```powershell
+New-NetFirewallRule -DisplayName "Cosecha de Arandanos (Vite dev)" `
+  -Direction Inbound -Protocol TCP -LocalPort 5173 `
+  -Action Allow -Profile Private
+```
+
+Para el build de producción (puerto 4173):
+
+```powershell
+New-NetFirewallRule -DisplayName "Cosecha de Arandanos (Vite preview)" `
+  -Direction Inbound -Protocol TCP -LocalPort 4173 `
+  -Action Allow -Profile Private
+```
+
+Para ver el estado de la regla y la IP de la PC:
+
+```powershell
+Get-NetFirewallRule -DisplayName "Cosecha de Arandanos*" | Select DisplayName, Enabled
+ipconfig            # busca "Dirección IPv4" del adaptador Wi-Fi o Ethernet
+```
+
+Para quitar una regla:
+
+```powershell
+Remove-NetFirewallRule -DisplayName "Cosecha de Arandanos (Vite dev)"
+```
+
+### Servir el build de producción en la red
+
+```bash
+npm run build     # genera dist/
+npm run preview   # sirve dist/ en http://IP:4173/
+```
+
+`npm run preview` también escucha en toda la red (`host: true`), así que
+la dirección `Network` que muestra sirve igual desde el móvil.
+
+Si prefieres servir `dist/` con otra herramienta, cualquier servidor
+estático vale (`npx serve dist`, `python -m http.server`, etc.). El
+build usa rutas **relativas** (`base: './'`), así que funciona tanto en
+la raíz del dominio como en una subcarpeta.
+
+### Si no conecta
+
+| Síntoma | Causa probable |
+|---|---|
+| No carga nada desde el móvil | Cortafuegos bloqueando el 5173 (ver arriba) |
+| Carga pero sin imágenes | El móvil no está en la misma Wi-Fi |
+| Solo funciona en la PC | Vite arrancó sin `host: true` (revisa `vite.config.js`) |
+| La dirección cambió | Normal: la IP es dinámica, copia la que muestre Vite |
+
+---
+
 ## 🎮 Controles
 
 ### Teclado (PC)

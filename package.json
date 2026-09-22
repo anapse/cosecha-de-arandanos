@@ -18,7 +18,8 @@
     "manifest": "node tools/generateManifest.js",
     "sprites:sheet": "node tools/generateSprites.js && node tools/makeContactSheet.js",
     "sprites:preview": "node tools/previewSheet.js",
-    "sprites:plants": "node tools/previewPlants.js"
+    "sprites:plants": "node tools/previewPlants.js",
+    "test:lan": "bash tools/test-lan.sh"
   },
   "dependencies": {
     "react": "^18.3.1",
