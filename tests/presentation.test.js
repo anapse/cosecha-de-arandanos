@@ -193,6 +193,31 @@ describe('Contenido del HUD', () => {
     expect(drawn).toContain('SIGUIENTE REVISIÓN:');
   });
 
+  it('el HUD no tapa el campo: los textos viven en las franjas de HUD', () => {
+    const engine = createEngine(1);
+    engine.render();
+
+    const top = GAME_CONFIG.hudHeight;
+    const bottom = GAME_CONFIG.logicalHeight - GAME_CONFIG.hudBottomHeight;
+
+    // Textos que caen DENTRO de la franja del campo (sin contar la
+    // leyenda, que va a propósito sobre la esquina, ni el contador de
+    // canasta, que va flotando sobre la canasta por diseño §5).
+    const allowed = ['Maduro', 'Pintón', 'Error', '(Recoge)', '(No recoger)', '(Baja puntos)'];
+
+    const intruders = calls.fillText.filter((c) => {
+      const inField = c.y > top && c.y < bottom;
+      if (!inField) return false;
+      if (allowed.some((w) => String(c.t).includes(w))) return false;
+      // El contador de la canasta ("n / m") flota sobre la canasta.
+      if (/^\d+\s*\/\s*\d+$/.test(String(c.t))) return false;
+      return true;
+    });
+
+    const unique = [...new Set(intruders.map((c) => c.t))];
+    expect(unique, `textos de HUD dentro del campo: ${unique.join(', ')}`).toEqual([]);
+  });
+
   it('el texto del objetivo es el de la especificación', () => {
     expect(OBJETIVO_TEXT).toContain('Recolecta arándanos maduros');
     expect(OBJETIVO_TEXT).toContain('Evita los pintones');
