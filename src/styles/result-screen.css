@@ -1,0 +1,204 @@
+/* ============================================================
+   result-screen.css — Estilos compartidos de resultados
+   Usado por LevelComplete (§25) y GameOver (§26).
+   ============================================================ */
+
+.result-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 55;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(8px, 2vh, 18px) var(--sp-3);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.result-screen--victory {
+  background: linear-gradient(to bottom, rgba(13, 27, 16, 0.94), rgba(24, 60, 32, 0.96));
+}
+
+.result-screen--defeat {
+  background: linear-gradient(to bottom, rgba(20, 10, 10, 0.95), rgba(48, 16, 16, 0.96));
+}
+
+.result-screen__panel {
+  width: 100%;
+  max-width: 300px;
+  margin: auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(7px, 1.8vh, 12px);
+
+  padding: clamp(12px, 3vh, 20px) var(--sp-4);
+  border-radius: var(--radius-lg);
+  background: rgba(13, 27, 16, 0.92);
+  border: 3px solid var(--c-panel-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.result-screen--victory .result-screen__panel {
+  border-color: var(--c-ok);
+}
+
+.result-screen--defeat .result-screen__panel {
+  border-color: var(--c-danger);
+}
+
+/* ---------- Encabezado ---------- */
+.result-screen__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.result-screen__badge {
+  font-size: clamp(26px, 7.5vmin, 40px);
+  line-height: 1;
+}
+
+.result-screen__title {
+  margin: 0;
+  font-size: clamp(13px, 3.7vmin, 19px);
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  color: var(--c-text);
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.55);
+}
+
+.result-screen--victory .result-screen__title {
+  color: #9ff5a8;
+}
+
+.result-screen--defeat .result-screen__title {
+  color: #ff9a94;
+}
+
+.result-screen__subtitle {
+  margin: 0;
+  font-size: clamp(9px, 2.4vmin, 12px);
+  color: var(--c-text-dim);
+}
+
+/* ---------- Motivo ---------- */
+.result-screen__reason {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 9px;
+  border-radius: var(--radius-sm);
+  background: rgba(226, 69, 60, 0.14);
+  border: 1px solid rgba(226, 69, 60, 0.5);
+}
+
+.result-screen__reason-label {
+  font-size: clamp(8px, 2.1vmin, 10px);
+  letter-spacing: 0.08em;
+  color: var(--c-text-dim);
+}
+
+.result-screen__reason-value {
+  font-size: clamp(11px, 2.9vmin, 14px);
+  font-weight: 700;
+  color: #ff9a94;
+}
+
+/* ---------- Estadísticas ---------- */
+.result-screen__stats {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* Sin cambios de altura bruscos al variar los valores */
+  font-variant-numeric: tabular-nums;
+}
+
+.result-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.09);
+  font-size: clamp(10px, 2.6vmin, 13px);
+}
+
+.result-row dt {
+  color: var(--c-text-dim);
+}
+
+.result-row dd {
+  margin: 0;
+  font-weight: 800;
+  color: var(--c-text);
+}
+
+.result-row dd.is-ok { color: var(--c-ok); }
+.result-row dd.is-warn { color: var(--c-warn); }
+.result-row dd.is-danger { color: var(--c-danger); }
+
+.result-row__hint {
+  font-size: 0.82em;
+  font-weight: 600;
+  color: var(--c-text-dim);
+}
+
+.result-row--total {
+  border-bottom: none;
+  padding-top: 5px;
+}
+
+.result-row--total dt {
+  color: var(--c-text-soft);
+  font-weight: 700;
+}
+
+.result-row--total dd {
+  font-size: 1.22em;
+  color: var(--c-warn);
+}
+
+/* ---------- Cosecha perfecta ---------- */
+.result-screen__perfect {
+  padding: 6px;
+  text-align: center;
+  border-radius: var(--radius-sm);
+  background: rgba(242, 193, 78, 0.18);
+  border: 1px solid var(--c-warn);
+  color: var(--c-warn);
+  font-size: clamp(10px, 2.6vmin, 13px);
+  font-weight: 800;
+}
+
+/* ---------- Consejo ---------- */
+.result-screen__tip {
+  margin: 0;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(74, 158, 255, 0.12);
+  border-left: 3px solid var(--c-accent);
+  font-size: clamp(9px, 2.4vmin, 12px);
+  line-height: 1.45;
+  color: var(--c-text-soft);
+}
+
+.result-screen__final {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(9px, 2.4vmin, 12px);
+  color: var(--c-warn);
+}
+
+/* ---------- Acciones ---------- */
+.result-screen__actions {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.5vh, 9px);
+}
+
+.result-screen__actions .menu-btn {
+  height: clamp(40px, 7.2vh, 50px);
+}

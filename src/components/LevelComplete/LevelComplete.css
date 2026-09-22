@@ -1,0 +1,14 @@
+/**
+ * LevelComplete.css — solo lo específico de la victoria.
+ * Los estilos comunes están en src/styles/result-screen.css
+ */
+
+.result-screen--victory .result-screen__badge {
+  animation: badge-pop 0.5s ease-out;
+}
+
+@keyframes badge-pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  70% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}

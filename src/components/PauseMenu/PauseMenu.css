@@ -1,0 +1,62 @@
+/* ============================================================
+   PauseMenu.css — Pausa (§38)
+   ============================================================ */
+
+.pause-menu {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+  background: rgba(13, 27, 16, 0.86);
+  backdrop-filter: blur(2px);
+}
+
+.pause-menu__panel {
+  width: 100%;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(9px, 2.6vh, 16px);
+
+  padding: clamp(16px, 4.5vh, 28px) var(--sp-4);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(to bottom, rgba(26, 44, 78, 0.96), rgba(13, 27, 16, 0.96));
+  border: 3px solid var(--c-panel-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.pause-menu__title {
+  margin: 0;
+  font-size: clamp(14px, 3.9vmin, 20px);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: var(--c-text);
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+.pause-menu__level {
+  margin: 0;
+  font-size: clamp(10px, 2.7vmin, 13px);
+  color: var(--c-text-dim);
+}
+
+.pause-menu__actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(7px, 1.8vh, 11px);
+}
+
+.pause-menu__actions .menu-btn {
+  height: clamp(44px, 8vh, 54px);
+}
+
+.pause-menu__hint {
+  margin: 0;
+  font-size: clamp(9px, 2.3vmin, 11px);
+  color: rgba(207, 224, 210, 0.6);
+}

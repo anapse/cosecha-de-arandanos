@@ -1,0 +1,198 @@
+/* ============================================================
+   MainMenu.css — Pantalla de inicio (§35)
+   ============================================================ */
+
+.main-menu {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+
+  /* Cielo de campo de arándanos */
+  background:
+    linear-gradient(to bottom, #4a9eff 0%, #7ec8ff 42%, #4e8f3f 42%, #2b5a28 100%);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.main-menu__inner {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(10px, 3vh, 22px);
+  text-align: center;
+}
+
+/* ---------- Título ---------- */
+.main-menu__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.main-menu__berry {
+  font-size: clamp(38px, 12vmin, 62px);
+  line-height: 1;
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.35));
+  animation: berry-float 2.6s ease-in-out infinite;
+}
+
+@keyframes berry-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+.main-menu__title {
+  margin: 0;
+  font-size: var(--fs-title);
+  line-height: 1.18;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #fff8e7;
+
+  /* Contorno duro estilo pixel art */
+  text-shadow:
+    2px 2px 0 var(--c-wood-dark),
+    -2px 2px 0 var(--c-wood-dark),
+    2px -2px 0 var(--c-wood-dark),
+    -2px -2px 0 var(--c-wood-dark),
+    0 5px 0 rgba(0, 0, 0, 0.4);
+}
+
+.main-menu__subtitle {
+  margin: 0;
+  font-size: clamp(10px, 2.6vmin, 13px);
+  color: #e8f5d8;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- Botones ---------- */
+.main-menu__actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(7px, 2vh, 12px);
+}
+
+.menu-btn {
+  /* Altura fija: los botones NO cambian de tamaño (§ UI estable) */
+  height: clamp(46px, 8.4vh, 56px);
+  width: 100%;
+
+  border-radius: var(--radius-md);
+  border: 3px solid var(--c-wood-dark);
+  background: linear-gradient(to bottom, var(--c-wood-light), var(--c-wood));
+
+  color: #2a1a06;
+  font-size: var(--fs-btn);
+  font-weight: 900;
+  letter-spacing: 0.05em;
+
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.35),
+    0 4px 0 var(--c-wood-dark);
+
+  transition: transform var(--t-fast) ease, filter var(--t-fast) ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.35),
+    0 1px 0 var(--c-wood-dark);
+}
+
+.menu-btn--primary {
+  background: linear-gradient(to bottom, #6f8ff0, #3a5fcd);
+  color: #ffffff;
+  border-color: #1b2a5c;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.35),
+    0 4px 0 #1b2a5c;
+}
+
+.menu-btn--ghost {
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--c-text-soft);
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: none;
+  font-size: clamp(11px, 2.9vmin, 14px);
+}
+
+/* ---------- Selector de niveles ---------- */
+.main-menu__levels {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 5px;
+  width: 100%;
+}
+
+.level-chip {
+  /* Cuadrado fijo: la cuadrícula nunca se deforma */
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--c-panel-border);
+  background: var(--c-panel);
+  color: var(--c-text);
+  font-size: clamp(10px, 2.7vmin, 14px);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.level-chip.is-locked {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.level-chip.is-unlocked:active {
+  background: var(--c-accent);
+}
+
+/* ---------- Récord ---------- */
+.main-menu__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: center;
+}
+
+.main-menu__record {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.42);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.main-menu__record-label {
+  font-size: clamp(8px, 2.2vmin, 11px);
+  letter-spacing: 0.08em;
+  color: var(--c-text-dim);
+}
+
+.main-menu__record-value {
+  font-size: clamp(14px, 3.6vmin, 19px);
+  font-weight: 900;
+  color: var(--c-warn);
+  font-variant-numeric: tabular-nums;
+}
+
+.main-menu__hint {
+  margin: 0;
+  font-size: clamp(8px, 2.1vmin, 10px);
+  color: rgba(232, 245, 216, 0.72);
+  line-height: 1.4;
+}

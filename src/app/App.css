@@ -1,0 +1,62 @@
+/* ============================================================
+   App.css — estilos de la aplicación exterior
+   El tamaño y la proporción del visor están en
+   src/styles/responsive.css (regla visual más importante, §45).
+   ============================================================ */
+
+.app {
+  position: relative;
+}
+
+/* ---------- Botón de sonido: flota fuera del visor ---------- */
+.app__sound-toggle {
+  position: fixed;
+  top: calc(8px + env(safe-area-inset-top, 0px));
+  right: calc(10px + env(safe-area-inset-right, 0px));
+  z-index: 90;
+
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+
+  background: rgba(26, 44, 78, 0.8);
+  border: 2px solid var(--c-panel-border);
+  color: var(--c-text);
+  font-size: 17px;
+  line-height: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: background var(--t-fast) ease, transform var(--t-fast) ease;
+}
+
+.app__sound-toggle:active {
+  transform: scale(var(--tap-scale));
+  background: var(--c-panel-2);
+}
+
+/* En móvil vertical, el botón se aparta del HUD del juego */
+@media (max-width: 600px) and (orientation: portrait) {
+  .app__sound-toggle {
+    top: auto;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    right: calc(8px + env(safe-area-inset-right, 0px));
+    opacity: 0.55;
+  }
+}
+
+/* ---------- Cargando el primer nivel ---------- */
+.app__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  width: 100%;
+  height: 100%;
+  background: var(--c-bg-deep);
+  color: var(--c-text-soft);
+  font-size: var(--fs-body);
+}

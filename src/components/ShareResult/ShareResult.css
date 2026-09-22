@@ -1,0 +1,98 @@
+/* ============================================================
+   ShareResult.css — Compartir resultado (§48)
+   ============================================================ */
+
+.share-result {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+  background: rgba(13, 27, 16, 0.9);
+}
+
+.share-result__panel {
+  width: 100%;
+  max-width: 290px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+
+  padding: var(--sp-4);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(to bottom, rgba(26, 44, 78, 0.97), rgba(13, 27, 16, 0.97));
+  border: 3px solid var(--c-panel-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.share-result__title {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(12px, 3.3vmin, 16px);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: var(--c-warn);
+}
+
+/* ---------- Ficha ---------- */
+.share-result__card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  font-variant-numeric: tabular-nums;
+}
+
+.share-result__line {
+  display: flex;
+  justify-content: space-between;
+  font-size: clamp(10px, 2.6vmin, 13px);
+  color: var(--c-text-soft);
+}
+
+.share-result__line strong {
+  color: var(--c-text);
+}
+
+/* ---------- Vista previa del texto ---------- */
+.share-result__preview {
+  margin: 0;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(74, 158, 255, 0.1);
+  border-left: 3px solid var(--c-accent);
+  font-size: clamp(9px, 2.4vmin, 12px);
+  line-height: 1.5;
+  color: var(--c-text-soft);
+  font-style: italic;
+}
+
+/* ---------- Campo de copia manual ---------- */
+.share-result__fallback {
+  width: 100%;
+  padding: 7px;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid var(--c-panel-border);
+  color: var(--c-text);
+  font-family: var(--font-ui);
+  font-size: clamp(9px, 2.4vmin, 12px);
+  line-height: 1.4;
+  resize: none;
+}
+
+/* ---------- Acciones ---------- */
+.share-result__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.share-result__actions .menu-btn {
+  height: clamp(40px, 7vh, 48px);
+}

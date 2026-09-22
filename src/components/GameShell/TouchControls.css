@@ -1,0 +1,159 @@
+/* ============================================================
+   TouchControls.css — Controles táctiles grandes (§26, §37)
+   Los botones se dimensionan en relación al tamaño del juego para
+   que sean cómodos en cualquier teléfono.
+   ============================================================ */
+
+.touch-controls {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+
+  /* No bloquea el juego: solo los botones capturan el toque. */
+  pointer-events: none;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+  gap: 8px;
+}
+
+/* ---------- Cruceta ---------- */
+.touch-dpad {
+  position: relative;
+  width: 43%;
+  max-width: 168px;
+  aspect-ratio: 3 / 2.4;
+  pointer-events: auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 3px;
+}
+
+.touch-btn {
+  /* Área táctil mínima cómoda (§37) */
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+  border-radius: var(--radius-md);
+
+  background: rgba(26, 44, 78, 0.82);
+  border: 2px solid rgba(74, 111, 165, 0.9);
+  color: var(--c-text);
+
+  font-size: clamp(14px, 4.2vmin, 22px);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Feedback táctil inmediato, sin mover el layout */
+  transition: background var(--t-fast) ease, transform var(--t-fast) ease;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.touch-btn.is-active {
+  background: rgba(74, 158, 255, 0.9);
+  transform: scale(var(--tap-scale));
+}
+
+.touch-btn--up {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.touch-btn--left {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.touch-btn--down {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.touch-btn--right {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+/* ---------- Botones de acción ---------- */
+.touch-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.touch-action-btn {
+  min-width: 58px;
+  min-height: 58px;
+  padding: 4px 6px;
+  border-radius: var(--radius-md);
+
+  background: rgba(26, 44, 78, 0.85);
+  border: 2px solid rgba(74, 111, 165, 0.9);
+  color: var(--c-text);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+
+  transition: background var(--t-fast) ease, transform var(--t-fast) ease;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.touch-action-btn.is-active {
+  background: rgba(74, 158, 255, 0.95);
+  transform: scale(var(--tap-scale));
+}
+
+.touch-action-btn__icon {
+  font-size: clamp(16px, 4.4vmin, 22px);
+  line-height: 1;
+}
+
+.touch-action-btn__label {
+  font-size: clamp(7px, 1.8vmin, 10px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+  line-height: 1.15;
+  color: var(--c-text-soft);
+}
+
+.touch-action-btn--harvest-left {
+  border-color: rgba(74, 158, 255, 0.9);
+}
+
+.touch-action-btn--harvest-right {
+  border-color: rgba(74, 158, 255, 0.9);
+}
+
+.touch-action-btn--deliver {
+  border-color: rgba(242, 193, 78, 0.95);
+  background: rgba(60, 44, 20, 0.85);
+}
+
+.touch-action-btn--deliver .touch-action-btn__label {
+  color: var(--c-warn);
+}
+
+/* ---------- Móvil apaisado: controles más compactos ---------- */
+@media (max-height: 560px) and (orientation: landscape) {
+  .touch-dpad {
+    max-width: 120px;
+  }
+
+  .touch-action-btn {
+    min-width: 46px;
+    min-height: 46px;
+  }
+}

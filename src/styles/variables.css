@@ -1,0 +1,87 @@
+/* ============================================================
+   variables.css — Tokens de diseño de COSECHA DE ARÁNDANOS
+   Todos los colores, tamaños y tiempos viven aquí.
+   ============================================================ */
+
+:root {
+  /* ---------- Paleta pixel art 16-bit ---------- */
+  --c-bg-deep: #0d1b10;
+  --c-bg-outer: #16281a;
+  --c-bg-outer-2: #1d3a1f;
+
+  /* Madera / UI (tomado del mockup) */
+  --c-wood: #8b5a2b;
+  --c-wood-light: #c98f4e;
+  --c-wood-dark: #5c3a17;
+
+  /* Panel oscuro del HUD */
+  --c-panel: #1a2c4e;
+  --c-panel-2: #22345c;
+  --c-panel-border: #4a6fa5;
+
+  /* Acentos */
+  --c-accent: #4a9eff;
+  --c-accent-2: #7ec8ff;
+
+  /* Semánticos (especificación §32) */
+  --c-blueberry: #3a5fcd;      /* arándano maduro */
+  --c-blueberry-dark: #24409a;
+  --c-unripe: #e8a0b4;         /* pintón rosado */
+  --c-unripe-green: #b9d47a;   /* pintón verdoso */
+  --c-ok: #4fbf5a;             /* aprobación */
+  --c-warn: #f2c14e;           /* alerta */
+  --c-danger: #e2453c;         /* error */
+  --c-leaf: #3f7d3a;
+  --c-leaf-dark: #2b5a28;
+  --c-path: #a9764a;           /* camino marrón */
+  --c-path-dark: #7d5533;
+
+  /* Texto */
+  --c-text: #ffffff;
+  --c-text-soft: #cfe0d2;
+  --c-text-dim: #8fa394;
+
+  /* ---------- Geometría ---------- */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+
+  --border-pixel: 3px solid var(--c-wood-dark);
+  --shadow-panel: 0 4px 0 rgba(0, 0, 0, 0.45);
+
+  /* Espaciado */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+
+  /* ---------- Viewport lógico del juego ---------- */
+  --game-logical-w: 360;
+  --game-logical-h: 640;
+  --game-aspect: 9 / 16;
+
+  /* Altura/cuadre máximo en escritorio: máquina arcade vertical */
+  --arcade-max-h: 92vh;
+  --arcade-max-w: 430px;
+
+  /* ---------- Tipografía ---------- */
+  --font-pixel: 'Press Start 2P', 'Courier New', ui-monospace, monospace;
+  --font-ui: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+
+  /* Escala tipográfica fluida, legible en móvil (§34, §37) */
+  --fs-hud: clamp(10px, 2.6vmin, 15px);
+  --fs-hud-big: clamp(13px, 3.4vmin, 20px);
+  --fs-title: clamp(18px, 5.4vmin, 34px);
+  --fs-body: clamp(12px, 3vmin, 16px);
+  --fs-btn: clamp(12px, 3.2vmin, 17px);
+
+  /* ---------- Interacción ---------- */
+  --touch-min: 48px;            /* tamaño mínimo táctil cómodo */
+  --tap-scale: 0.96;
+  --t-fast: 90ms;
+  --t-med: 180ms;
+}
+
+/* El juego siempre trabaja en proporción vertical: 9/16 */
