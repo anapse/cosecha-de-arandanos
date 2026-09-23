@@ -13,7 +13,7 @@
 | Assets DEFINITIVO | **114** |
 | Assets PLACEHOLDER | **0** |
 | Assets PENDIENTE | **0** |
-| Peso total | **30.2 KB** |
+| Peso total | **30.3 KB** |
 
 ### Estados
 
@@ -72,16 +72,16 @@
 
 | ID | Ruta | Tipo | Tamaño | Frames | Estado | Uso | Peso |
 |---|---|---|---|---|---|---|---|
-| `plants_empty` | `assets/plants/plant_empty.png` | png | 32x32 | 1 | DEFINITIVO | vacía | 0.45 KB |
+| `plants_empty` | `assets/plants/plant_empty.png` | png | 32x32 | 1 | DEFINITIVO | vacía | 0.47 KB |
 | `plants_few` | `assets/plants/plant_few.png` | png | 32x32 | 1 | DEFINITIVO | pocos frutos | 0.55 KB |
-| `plants_medium` | `assets/plants/plant_medium.png` | png | 32x32 | 1 | DEFINITIVO | media | 0.60 KB |
-| `plants_abundant` | `assets/plants/plant_abundant.png` | png | 32x32 | 1 | DEFINITIVO | abundante | 0.61 KB |
-| `plants_ripe` | `assets/plants/plant_ripe.png` | png | 32x32 | 1 | DEFINITIVO | madura | 0.59 KB |
-| `plants_unripe` | `assets/plants/plant_unripe.png` | png | 32x32 | 1 | DEFINITIVO | pintona | 0.56 KB |
-| `plants_mixed` | `assets/plants/plant_mixed.png` | png | 32x32 | 1 | DEFINITIVO | mixta | 0.67 KB |
-| `plants_harvested` | `assets/plants/plant_harvested.png` | png | 32x32 | 1 | DEFINITIVO | cosechada | 0.41 KB |
-| `plants_base` | `assets/plants/plant_base.png` | png | 32x32 | 1 | DEFINITIVO | follaje base sin frutos | 0.50 KB |
-| `plants_row` | `assets/plants/plant_row.png` | png | 32x64 | 1 | DEFINITIVO | hilera alta de cultivo (32x64) | 0.74 KB |
+| `plants_medium` | `assets/plants/plant_medium.png` | png | 32x32 | 1 | DEFINITIVO | media | 0.63 KB |
+| `plants_abundant` | `assets/plants/plant_abundant.png` | png | 32x32 | 1 | DEFINITIVO | abundante | 0.63 KB |
+| `plants_ripe` | `assets/plants/plant_ripe.png` | png | 32x32 | 1 | DEFINITIVO | madura | 0.61 KB |
+| `plants_unripe` | `assets/plants/plant_unripe.png` | png | 32x32 | 1 | DEFINITIVO | pintona | 0.58 KB |
+| `plants_mixed` | `assets/plants/plant_mixed.png` | png | 32x32 | 1 | DEFINITIVO | mixta | 0.68 KB |
+| `plants_harvested` | `assets/plants/plant_harvested.png` | png | 32x32 | 1 | DEFINITIVO | cosechada | 0.42 KB |
+| `plants_base` | `assets/plants/plant_base.png` | png | 32x32 | 1 | DEFINITIVO | follaje base sin frutos | 0.49 KB |
+| `plants_row` | `assets/plants/plant_row.png` | png | 32x64 | 1 | DEFINITIVO | hilera alta de cultivo (32x64) | 0.77 KB |
 
 ---
 

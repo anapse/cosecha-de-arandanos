@@ -29,8 +29,17 @@ describe('MapGenerator', () => {
 
     expect(world.cols).toBe(TILE_COLUMNS_FOR_VIEW(level.rows));
     expect(world.tileMap.rows).toBe(TILE_ROWS_FOR(level.plantsPerRow));
-    // Cada línea tiene exactamente las plantas que define el nivel.
-    expect(world.plants.length).toBe(level.rows * level.plantsPerRow);
+
+    // HILERA CONTINUA (§3): cada línea de cultivo lleva una planta en
+    // CADA fila del campo (antes se repartían solo `plantsPerRow` y
+    // quedaban huecos que se veían como matas sueltas).
+    const fieldRows = FIELD_ROWS_FOR(level.plantsPerRow);
+    expect(world.plants.length).toBe(level.rows * fieldRows);
+
+    // El nivel define cuántas de esas plantas llevan frutos.
+    const withFruit = world.plants.filter((p) => p.fruits.length > 0).length;
+    expect(withFruit).toBeGreaterThan(0);
+    expect(withFruit).toBeLessThanOrEqual(level.rows * level.plantsPerRow);
   });
 
   it('el mapa CUBRE el área útil entre los dos HUD (§7, §11)', () => {

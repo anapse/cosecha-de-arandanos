@@ -68,23 +68,32 @@ export function drawPlantBase({
   c.ellipse(cx, 29, 12, 3, PAL.shadow, 0.22);
 
   // ---- Montículo de tierra ----
-  c.rect(3, 27, 26, 3, PAL.soilDark);
-  c.rect(3, 27, 26, 1, PAL.soil);
+  // Ancho COMPLETO: la tierra tiene que tocar los bordes del tile para
+  // que las plantas contiguas formen una hilera continua sin cortes.
+  c.rect(0, 27, PLANT_W, 4, PAL.soilDark);
+  c.rect(0, 27, PLANT_W, 1, PAL.soil);
+  // Matas de tierra sueltas en el borde inferior (da textura de arado)
+  c.rect(0, 30, PLANT_W, 2, PAL.soilDark);
+  for (let i = 0; i < PLANT_W; i += 4) {
+    c.rect(i, 30, 2, 1, PAL.soil);
+  }
 
-  // ---- Estructura principal: varias capas de elipses solapadas ----
-  // (da volumen de mata tupida, no un bloque plano)
+  // ---- Estructura principal: capas de elipses solapadas ----
+  // Los radios se amplían hasta cubrir TODO el ancho del tile: antes
+  // quedaban 3 px vacíos a cada lado y las plantas se veían como matas
+  // sueltas en vez de una línea de cultivo continua.
   const layers = tall
     ? [
-        { y: 22, rx: 13, ry: 8, col: leafDark },
-        { y: 18, rx: 12, ry: 8, col: leafMid },
-        { y: 13, rx: 11, ry: 7, col: leafLight },
-        { y: 9, rx: 8, ry: 6, col: leafHi },
+        { y: 23, rx: 16, ry: 9, col: leafDark },
+        { y: 19, rx: 16, ry: 9, col: leafMid },
+        { y: 13, rx: 15, ry: 8, col: leafLight },
+        { y: 8, rx: 12, ry: 6, col: leafHi },
       ]
     : [
-        { y: 23, rx: 12, ry: 7, col: leafDark },
-        { y: 19, rx: 11, ry: 7, col: leafMid },
-        { y: 15, rx: 9, ry: 6, col: leafLight },
-        { y: 12, rx: 6, ry: 4, col: leafHi },
+        { y: 24, rx: 16, ry: 8, col: leafDark },
+        { y: 20, rx: 16, ry: 8, col: leafMid },
+        { y: 15, rx: 14, ry: 7, col: leafLight },
+        { y: 11, rx: 10, ry: 5, col: leafHi },
       ];
 
   layers.forEach((l) => {
@@ -94,13 +103,15 @@ export function drawPlantBase({
 
   // ---- Textura de hojas: bultos irregulares en el borde ----
   // Determinista a partir de la semilla: cada planta se ve algo distinta.
-  const bumps = tall ? 16 : 12;
+  // Los bultos también llegan a los bordes para que la hilera se vea
+  // tupida y continua.
+  const bumps = tall ? 20 : 16;
   for (let i = 0; i < bumps; i += 1) {
     if (i / bumps > density + 0.1) continue;
 
     const a = (i / bumps) * Math.PI * 2 + seed;
-    const rx = (tall ? 12 : 11) - 1;
-    const ry = (tall ? 9 : 8) - 1;
+    const rx = 16;
+    const ry = (tall ? 10 : 9);
     const bx = cx + Math.cos(a) * rx;
     const by = 18 + Math.sin(a) * ry;
 

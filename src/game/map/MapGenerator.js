@@ -135,17 +135,33 @@ export class MapGenerator {
       basketCapacity = 30,
     } = levelConfig;
 
-    plantColumns.forEach((col, colIndex) => {
-      // El nivel define cuántas plantas debe tener cada línea. El campo
-      // puede ser más alto que ese número de filas, así que las plantas
-      // se reparten uniformemente a lo largo de la línea para que el
-      // campo se vea lleno sin cambiar la cantidad total (§20).
-      const plantRows = distributeRows(plantsPerRow, fieldStartRow, fieldEndRow);
+    plantColumns.forEach((col) => {
+      // HILERA CONTINUA (§3).
+      //
+      // Antes se repartían solo `plantsPerRow` plantas a lo largo de la
+      // línea, dejando filas vacías: en pantalla se veía "planta, hueco,
+      // planta, hueco" en vez de una línea de cultivo tupida.
+      //
+      // Ahora se coloca una planta en CADA fila del campo, así que la
+      // hilera se ve continua de arriba abajo. La dificultad del nivel
+      // NO depende del número de matas (el objetivo es `targetHarvest`,
+      // una cantidad de frutos), así que llenar el campo no la altera.
+      //
+      // `plantsPerRow` se conserva como densidad: define cuántos de
+      // esos huecos de cultivo llevan frutos.
+      const plantRows = [];
+      for (let row = fieldStartRow; row <= fieldEndRow; row += 1) {
+        plantRows.push(row);
+      }
+
+      // Filas que llevan frutos: las que marca el nivel, repartidas
+      // uniformemente para que la cosecha quede bien distribuida.
+      const fruitRows = new Set(distributeRows(plantsPerRow, fieldStartRow, fieldEndRow));
 
       plantRows.forEach((row) => {
         // La planta vive en el tile; los frutos se colocan a sus lados
         // accesibles desde los caminos contiguos.
-        const hasFruit = rng() < fruitChance;
+        const hasFruit = fruitRows.has(row) && rng() < fruitChance;
         const fruits = [];
 
         if (hasFruit) {
@@ -184,7 +200,7 @@ export class MapGenerator {
         }
 
         plants.push({
-          id: `p-${colIndex}-${row}`,
+          id: `p-${col}-${row}`,
           col,
           row,
           x: col * TILE_SIZE,
