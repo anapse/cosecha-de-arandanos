@@ -468,7 +468,7 @@ El proyecto usa **Vitest** (integrado con Vite, sin configuración extra).
 npm test
 ```
 
-**123 pruebas en 10 suites:**
+**156 pruebas en 12 suites:**
 
 | Suite | Qué comprueba |
 |---|---|
@@ -482,6 +482,38 @@ npm test
 | `assets.test.js` | Cada sprite del catálogo existe en disco, es RGBA y tiene el tamaño correcto |
 | `assetLoading.test.js` | El cargador usa los **PNG reales**, sin caer a placeholders |
 | `integration.test.js` | Escala 1:1 del pixel art (§18) y frutos anclados a su planta |
+| `presentation.test.js` | HUD único, contenido del HUD, leyenda, paisaje y que el HUD no tape el campo |
+| `lanConfig.test.js` | Vite en red, rutas relativas y que **no exista** capa multijugador |
+
+### Auditorías en navegador real
+
+Las pruebas de arriba corren en Node. Para lo que solo se puede medir en
+un navegador de verdad (viewport, scroll, táctil, red) hay auditorías
+que lanzan **Chrome headless por CDP**, sin instalar nada:
+
+```bash
+npm run audit:viewport    # 7 tamaños: scroll, proporción y centrado
+npm run audit:touch       # controles táctiles con emulación de móvil
+npm run audit:keyboard    # teclado en PC
+npm run audit:network     # red por la IP de la LAN
+npm run test:lan          # sirve HTML, JS y sprites por LAN
+```
+
+| Auditoría | Resultado |
+|---|---|
+| `audit:viewport` (localhost) | **7/7** — 0 scroll, proporción 9:16 y centrado |
+| `audit:viewport` (IP LAN) | **7/7** |
+| `audit:touch` | **9/9** — 7 botones, capa superpuesta, transparencia, mantener pulsado mueve y soltar detiene |
+| `audit:keyboard` | **10/10** — flechas y WASD, parada al soltar, ESC pausa, centrado |
+| `audit:network` (dev) | **7/7** — 114/114 sprites a 200, 0 peticiones a localhost |
+| `audit:network` (build) | **7/7** en `http://IP:4173/` |
+
+Para diagnosticar una resolución concreta:
+
+```bash
+npm run probe:viewport 390 844 1
+```
+
 
 ### Sobre Karma
 
