@@ -6,6 +6,9 @@
  * dificultad sin tocar la lógica.
  */
 
+// constants.js no importa nada, así que no hay ciclo de imports.
+import { TILE_SIZE } from './constants.js';
+
 export const GAME_CONFIG = {
   /* ---------- Jugador ---------- */
   // Velocidad en píxeles lógicos por segundo. No se aumenta para
@@ -39,7 +42,13 @@ export const GAME_CONFIG = {
 
   /* ---------- Cosecha (§6) ---------- */
   // Distancia máxima (px lógicos) a la que se detecta un fruto.
-  harvestReach: 34,
+  //
+  // Debe ir en proporción al tamaño del tile: con tiles de 48px el
+  // jugador se sitúa en el camino y el fruto cuelga dentro de la
+  // hilera, así que el alcance tiene que cubrir algo más de un tile.
+  // Con 34 (valor de cuando los tiles eran de 32) la recolección
+  // fallaba en silencio.
+  harvestReach: TILE_SIZE + 6,
   harvestDuration: 0.34,  // segundos de la animación de recoger
   harvestCooldown: 0.08,
 
@@ -49,8 +58,19 @@ export const GAME_CONFIG = {
   supervisorInspectionDuration: 4.5,
 
   /* ---------- Vista (§7, §11) ---------- */
-  logicalWidth: 360,
-  logicalHeight: 640,
+/* ============================================================
+   PRESENTACIÓN — escala del juego
+   ------------------------------------------------------------
+   El viewport lógico define cuánto ocupa cada cosa EN PANTALLA.
+   Con 360x640 los personajes de 32px se veían diminutos y el campo
+   tenía demasiadas hileras (aspecto de prototipo técnico).
+
+   Con 480x800 (misma proporción 9:16) cada sprite se dibuja más
+   grande en el móvil y caben menos hileras, así que el campo queda
+   COMPACTO y legible como un juego de 16 bits.
+   ============================================================ */
+  logicalWidth: 480,
+  logicalHeight: 800,
 
   /* ---------- Bucle ---------- */
   fixedTimeStep: 1 / 60,
@@ -64,8 +84,8 @@ export const GAME_CONFIG = {
      Composición vertical, de arriba a abajo:
        HUD superior · paisaje · campo de cultivo · entrega · HUD inferior
      Estas alturas definen cuánto ocupa cada franja en px lógicos. */
-  hudHeight: 62,          // alto del HUD superior en px lógicos
-  hudBottomHeight: 46,    // alto del HUD inferior
+  hudHeight: 64,          // alto del HUD superior en px lógicos
+  hudBottomHeight: 52,    // alto del HUD inferior
   landscapeHeight: 46,    // franja de cielo + montañas tras el campo
   touchControlsHeight: 132,
   showFps: false,

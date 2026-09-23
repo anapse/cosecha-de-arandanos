@@ -6,7 +6,20 @@
  */
 
 /* ---------- Tamaños ---------- */
-export const TILE_SIZE = 32;         // tiles de terreno 32x32 (§30)
+/**
+ * Lado del tile de terreno, en px lógicos.
+ *
+ * 48px (antes 32px): con 32 el campo mostraba demasiadas hileras finas
+ * y los personajes se veían diminutos, con aspecto de prototipo
+ * técnico. Con 48 cada sprite se dibuja un 50% más grande en pantalla,
+ * así que el juego se lee como un título de 16 bits.
+ *
+ * Los PNG del arte son de 32x32 y se dibujan a 48: es un múltiplo
+ * exacto (1.5x), así que el pixel art se mantiene nítido y sin
+ * deformar, y las proporciones entre personajes, plantas y frutos no
+ * cambian.
+ */
+export const TILE_SIZE = 48;
 export const FRUIT_SIZE = 8;
 export const SPRITE_SIZE = 32;
 

@@ -51,16 +51,29 @@ export const DELIVERY_ROWS = 3;
 /** Filas del pasillo horizontal que cierra el campo por abajo. */
 export const CORRIDOR_ROWS = 1;
 
-/** Filas de cultivo MÍNIMAS: dan la sensación de campo profundo. */
-export const MIN_FIELD_ROWS = 14;
+/**
+ * Filas de CULTIVO objetivo.
+ *
+ * El campo NO debe ser un mapa enorme con muchas hileras finas: eso
+ * hacía que todo se viera diminuto. Con pocas hileras y plantas
+ * grandes, el campo se lee de un vistazo y el jugador no tiene que
+ * recorrer una distancia enorme para una acción sencilla.
+ *
+ * El mínimo debe además CUBRIR el área útil de la cámara: si el mundo
+ * fuese más bajo que la franja entre los dos HUD, la cámara dejaría
+ * una banda sin campo. Con tiles de 48px hacen falta 9 filas.
+ */
+export const MIN_FIELD_ROWS = 9;
+
+/** Máximo de hileras de cultivo: el campo debe quedar COMPACTO. */
+export const MAX_FIELD_ROWS = 10;
 
 /**
  * Número de filas de CULTIVO necesarias para cubrir el área útil.
  *
- * Las plantas se reparten a lo largo de estas filas, así que en
- * niveles con menos plantas por línea el campo es más alto pero cada
- * línea tiene las mismas plantas repartidas. El nivel sigue teniendo
- * exactamente `plantsPerRow` plantas por línea (§20).
+ * Las plantas se reparten a lo largo de estas filas, así que el nivel
+ * sigue teniendo exactamente `plantsPerRow` plantas por línea (§20),
+ * pero vistas como una hilera continua y tupida.
  *
  * @param {number} plantsPerRow plantas por línea (define la densidad)
  * @returns {number} filas de cultivo
@@ -72,11 +85,12 @@ export function FIELD_ROWS_FOR(plantsPerRow) {
   const fixedRows = GRASS_ROWS + CORRIDOR_ROWS + DELIVERY_ROWS;
   const availablePx = PLAY_HEIGHT - fixedRows * TILE_SIZE;
 
-  // El campo debe cubrir el área útil Y tener al menos MIN_FIELD_ROWS
-  // para verse como setos continuos y no como un par de filas.
-  const neededPx = Math.max(availablePx, MIN_FIELD_ROWS * TILE_SIZE);
+  // Se cubre el área útil pero con un TOPE: un campo más alto que esto
+  // deja de aportar y solo hace que el jugador camine de más.
+  const needed = Math.ceil(availablePx / TILE_SIZE);
+  const rows = Math.min(MAX_FIELD_ROWS, Math.max(MIN_FIELD_ROWS, needed));
 
-  return Math.max(p, Math.ceil(neededPx / TILE_SIZE));
+  return Math.max(p, rows);
 }
 
 /**

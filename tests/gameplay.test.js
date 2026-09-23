@@ -102,9 +102,9 @@ function teleport(engine, x, y) {
  * Coloca al jugador en el CAMINO contiguo a un fruto.
  *
  * Importante: no basta con desplazarse unos píxeles desde el fruto.
- * El rect de los pies mide 16 px y el camino 32 px, así que un
- * desplazamiento pequeño deja medio cuerpo dentro de la línea de
- * cultivo (bloqueante) y el jugador queda atascado.
+ * Hay que centrar al jugador en la COLUMNA de camino, porque si el
+ * rect de los pies queda medio dentro de la línea de cultivo
+ * (bloqueante) el jugador aparece atascado.
  *
  * Aquí se calcula la columna de camino adyacente y se centra al
  * jugador en ella, a la altura del fruto.
@@ -116,7 +116,8 @@ function standNextToFruit(engine, plant, fruit) {
   // Columna de camino contigua: izquierda → col-1, derecha → col+1.
   const pathCol = fruit.side === 'left' ? plant.col - 1 : plant.col + 1;
 
-  // Si esa columna no fuese transitable, se busca la más cercana.
+  // Si esa columna no fuese transitable, se busca la más cercana
+  // (la geometría del campo depende del tamaño de tile).
   let targetCol = pathCol;
   if (engine.map.tileMap.isBlockingAt(targetCol, plant.row)) {
     targetCol = findWalkableSpot(engine, { row: plant.row }).col;
@@ -134,13 +135,20 @@ function standNextToFruit(engine, plant, fruit) {
  * impares son líneas de CULTIVO (bloqueantes). Colocar al jugador en
  * una columna de planta lo deja atascado, así que las pruebas deben
  * pedir una columna de camino explícitamente.
+ *
+ * `row` se acota al rango válido del mapa: las pruebas piden filas
+ * "de la mitad del campo" sin conocer cuántas tiene el nivel, y el
+ * número de filas depende del tamaño de tile.
  */
 function findWalkableSpot(engine, { col = null, row = null } = {}) {
   const tileMap = engine.map.tileMap;
   const TILE = tileMap.tileSize;
 
   const cols = col !== null ? [col] : [...Array(tileMap.cols).keys()];
-  const rows = row !== null ? [row] : [...Array(tileMap.rows).keys()];
+  const rows =
+    row !== null
+      ? [Math.max(0, Math.min(tileMap.rows - 1, Math.floor(row)))]
+      : [...Array(tileMap.rows).keys()];
 
   for (const c of cols) {
     for (const r of rows) {

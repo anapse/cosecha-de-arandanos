@@ -70,10 +70,18 @@ export class Camera {
     return Math.max(1, this.viewHeight - this.insetTop - this.insetBottom);
   }
 
-  /** Define el tamaño del mundo para poder acotar la cámara. */
+  /**
+   * Define el tamaño del mundo para poder acotar la cámara.
+   *
+   * Se usa el tamaño REAL del mapa, sin forzarlo al del viewport: el
+   * campo solo se ve en la franja entre los dos HUD (playHeight), y
+   * inflar worldHeight al alto completo del viewport hacía que la
+   * cámara creyera que había mundo donde no lo hay, mostrando una
+   * banda vacía por debajo del campo.
+   */
   setWorldSize(width, height) {
-    this.worldWidth = Math.max(width, this.viewWidth);
-    this.worldHeight = Math.max(height, this.viewHeight);
+    this.worldWidth = Math.max(width, 1);
+    this.worldHeight = Math.max(height, 1);
     return this;
   }
 

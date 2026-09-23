@@ -13,10 +13,14 @@ import {
   TILE_COLUMNS_FOR_VIEW,
   TILE_ROWS_FOR,
   FIELD_ROWS_FOR,
-  VIEW_HEIGHT,
+  VIEW_WIDTH,
+  PLAY_HEIGHT,
 } from '../src/game/map/mapLayout.js';
 
 const generator = new MapGenerator();
+
+/** Niveles de muestra con el alto útil que deben cubrir. */
+const PLAY_HEIGHTS = [1, 6, 12].map((id) => ({ id, play: PLAY_HEIGHT }));
 
 describe('MapGenerator', () => {
   it('genera el nivel 1 con las dimensiones esperadas', () => {
@@ -29,14 +33,17 @@ describe('MapGenerator', () => {
     expect(world.plants.length).toBe(level.rows * level.plantsPerRow);
   });
 
-  it('el mapa CUBRE el viewport lógico de 360x640 (§7, §11)', () => {
-    // Si el mundo fuese más pequeño que la vista, la cámara dejaría
-    // franjas vacías y el juego no llenaría la pantalla del móvil.
-    for (let id = 1; id <= 12; id += 1) {
+  it('el mapa CUBRE el área útil entre los dos HUD (§7, §11)', () => {
+    // El campo solo se ve en la franja entre el HUD superior y el
+    // inferior, así que lo que debe cubrir es PLAY_HEIGHT (el viewport
+    // menos los dos HUD). Si fuese más bajo, la cámara dejaría franjas
+    // vacías; cubrir el viewport COMPLETO sería desperdiciar campo
+    // escondido detrás de los paneles.
+    PLAY_HEIGHTS.forEach(({ id, play }) => {
       const world = generator.generateLevel(getLevelConfig(id), { seed: id });
-      expect(world.tileMap.pixelWidth).toBeGreaterThanOrEqual(360);
-      expect(world.tileMap.pixelHeight).toBeGreaterThanOrEqual(VIEW_HEIGHT);
-    }
+      expect(world.tileMap.pixelWidth, `nivel ${id} ancho`).toBeGreaterThanOrEqual(VIEW_WIDTH);
+      expect(world.tileMap.pixelHeight, `nivel ${id} alto`).toBeGreaterThanOrEqual(play);
+    });
   });
 
   it('el alto del campo crece con las plantas por línea', () => {
