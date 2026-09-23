@@ -19,7 +19,12 @@
     "sprites:sheet": "node tools/generateSprites.js && node tools/makeContactSheet.js",
     "sprites:preview": "node tools/previewSheet.js",
     "sprites:plants": "node tools/previewPlants.js",
-    "test:lan": "bash tools/test-lan.sh"
+    "test:lan": "bash tools/test-lan.sh",
+    "audit:viewport": "node tools/auditViewport.js",
+    "audit:touch": "node tools/auditTouch.js",
+    "audit:keyboard": "node tools/auditKeyboard.js",
+    "audit:network": "node tools/auditNetwork.js",
+    "probe:viewport": "node tools/probeViewport.js"
   },
   "dependencies": {
     "react": "^18.3.1",
