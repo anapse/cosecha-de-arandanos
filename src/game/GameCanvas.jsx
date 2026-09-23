@@ -13,7 +13,7 @@
  * NO renderiza la lógica del juego. React no dibuja ni un frame.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { GameEngine } from './GameEngine.js';
 import TouchControls from '../components/GameShell/TouchControls.jsx';
 
@@ -137,6 +137,39 @@ export default function GameCanvas({
     engineRef.current?.setSoundEnabled(soundEnabled);
   }, [soundEnabled]);
 
+  /* ============================================================
+     Recolección por click/toque (§5)
+     ------------------------------------------------------------
+     Un click del ratón (PC) o un toque (móvil) sobre un arándano
+     recoge ESE fruto. Es la acción principal del juego y funciona
+     igual en los dos dispositivos: los dos terminan llamando a
+     engine.harvestAtScreen(), así que no hay lógica duplicada.
+
+     Se usa `pointerdown` porque cubre ratón, dedo y lápiz con un solo
+     evento, y responde al instante (sin el retardo del click).
+     ============================================================ */
+  const handlePointerDown = useCallback((event) => {
+    const engine = engineRef.current;
+    const canvas = canvasRef.current;
+    if (!engine || !canvas) return;
+
+    // Solo el botón principal (o un toque) recolecta.
+    if (event.button != null && event.button !== 0) return;
+
+    // Posición relativa al canvas, en px CSS. La conversión a
+    // coordenadas del mundo la hace el motor, que conoce la escala y
+    // el desplazamiento del HUD (así no se duplica el cálculo).
+    const rect = canvas.getBoundingClientRect();
+    const cssX = event.clientX - rect.left;
+    const cssY = event.clientY - rect.top;
+
+    engine.unlockAudio();
+
+    // Si se toca un fruto, se recoge. Si no, no pasa nada: el toque
+    // se ignora para no penalizar un toque al aire.
+    engine.harvestAtScreen(cssX, cssY);
+  }, []);
+
   if (loadError) {
     return (
       <div className="game-canvas-error" role="alert">
@@ -153,6 +186,7 @@ export default function GameCanvas({
         className="game-canvas pixelated"
         tabIndex={0}
         aria-label="Área de juego de Cosecha de Arándanos"
+        onPointerDown={handlePointerDown}
       />
 
       {engineReady && (

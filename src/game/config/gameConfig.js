@@ -52,6 +52,15 @@ export const GAME_CONFIG = {
   harvestDuration: 0.34,  // segundos de la animación de recoger
   harvestCooldown: 0.08,
 
+  /* ---------- Recolección por click/toque (§5) ---------- */
+  // Radio extra de acierto alrededor del fruto, en px lógicos.
+  //
+  // El fruto mide pocos píxeles: en PC el ratón es preciso y basta un
+  // margen pequeño, pero en un teléfono el dedo es mucho más grueso y
+  // hay que perdonar bastante o no se acierta nunca.
+  clickToleranceMouse: 8,
+  clickToleranceTouch: 22,
+
   /* ---------- Supervisor (§17, §19) ---------- */
   supervisorInterval: 45, // segundos por defecto
   supervisorWalkSpeed: 42,

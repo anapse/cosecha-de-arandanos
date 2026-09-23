@@ -208,6 +208,29 @@ export class Camera {
     };
   }
 
+  /**
+   * Convierte un punto de la PANTALLA DEL JUEGO a coordenadas del mundo,
+   * teniendo en cuenta el desplazamiento por el HUD superior.
+   *
+   * El mundo se dibuja trasladado hacia abajo por `worldOffsetY` (el
+   * alto del HUD de arriba), así que un toque en (sx, sy) de pantalla
+   * corresponde al punto (sx/scale, sy/scale - worldOffsetY) del
+   * lienzo lógico, y de ahí al mundo.
+   *
+   * @param {number} screenX x en px de pantalla (relativo al canvas)
+   * @param {number} screenY y en px de pantalla
+   * @param {number} scale escala aplicada al canvas
+   */
+  screenToWorldWithHud(screenX, screenY, scale = 1) {
+    const logicalX = screenX / scale;
+    const logicalY = screenY / scale - this.worldOffsetY;
+
+    return {
+      x: this.originX + logicalX,
+      y: this.originY + logicalY,
+    };
+  }
+
   /** Sacudida de cámara para el feedback de error (§39). */
   shake(intensity = 4, duration = 0.25) {
     this.shakeIntensity = intensity;

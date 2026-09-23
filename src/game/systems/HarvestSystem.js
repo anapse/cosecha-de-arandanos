@@ -14,7 +14,7 @@
  * las consecuencias (puntos, calidad, efectos, sonidos).
  */
 
-import { FRUIT_TYPES, HARVEST_SIDES } from '../config/constants.js';
+import { FRUIT_TYPES, FRUIT_SIZE, HARVEST_SIDES } from '../config/constants.js';
 import { GAME_CONFIG } from '../config/gameConfig.js';
 import { distance } from '../../utils/math.js';
 
@@ -88,6 +88,60 @@ export class HarvestSystem {
   }
 
   /**
+   * Busca el fruto que hay BAJO un punto del mundo (click/toque directo).
+   *
+   * Es la vía principal de recolección (§5): en PC se hace click sobre
+   * el arándano y en móvil se toca encima. Cada fruto es una unidad
+   * individual, así que cada uno requiere su propio toque (§6).
+   *
+   * A diferencia de `findTarget`, aquí NO se filtra por lado: el
+   * jugador señala el fruto concreto que quiere. Sí se exige que esté
+   * dentro del alcance, para que no se pueda cosechar a distancia.
+   *
+   * @param {import('../entities/Player.js').Player} player
+   * @param {number} worldX x del punto pulsado, en coordenadas del mundo
+   * @param {number} worldY y del punto pulsado
+   * @param {number} radius radio de acierto en px (dedo en móvil)
+   * @returns {object|null} { plant, fruit, position, distance }
+   */
+  findFruitAt(player, worldX, worldY, radius = 0) {
+    const plants = this.map.plants;
+    let best = null;
+    let bestDistance = Infinity;
+
+    for (let i = 0; i < plants.length; i += 1) {
+      const plant = plants[i];
+      if (!plant.hasFruits) continue;
+
+      for (let f = 0; f < plant.fruits.length; f += 1) {
+        const fruit = plant.fruits[f];
+        if (fruit.collected) continue;
+
+        const pos = plant.fruitPosition(fruit);
+
+        // Distancia del punto pulsado al centro del fruto. El radio
+        // perdona la imprecisión del dedo: el fruto mide pocos píxeles
+        // y en un teléfono es difícil acertar al píxel.
+        const hitDistance = distance(worldX, worldY, pos.x, pos.y);
+        const hitRadius = FRUIT_SIZE / 2 + radius;
+        if (hitDistance > hitRadius) continue;
+
+        // Debe estar dentro del alcance del jugador (§6): no se puede
+        // recolectar desde el otro extremo del campo.
+        const reachDistance = distance(player.x, player.y, pos.x, pos.y);
+        if (reachDistance > this.reach) continue;
+
+        if (hitDistance < bestDistance) {
+          bestDistance = hitDistance;
+          best = { plant, fruit, position: pos, distance: reachDistance };
+        }
+      }
+    }
+
+    return best;
+  }
+
+  /**
    * Comprueba si hay ALGO recogible al lado indicado (para el
    * indicador visual de "RECOGE", §54).
    * @param {import('../entities/Player.js').Player} player
@@ -111,9 +165,11 @@ export class HarvestSystem {
    *
    * @param {import('../entities/Player.js').Player} player
    * @param {'left'|'right'} side
+   * @param {object} [explicitTarget] objetivo ya resuelto (click/toque
+   *   directo sobre un fruto). Si se pasa, no se busca por lado.
    * @returns {object} { result, plant, fruit, position, def }
    */
-  harvest(player, side) {
+  harvest(player, side, explicitTarget = null) {
     if (!player) return { result: HARVEST_RESULT.NONE };
 
     // ¿Está el jugador ocupado?
@@ -121,7 +177,7 @@ export class HarvestSystem {
       return { result: HARVEST_RESULT.COOLDOWN };
     }
 
-    const target = this.findTarget(player, side);
+    const target = explicitTarget ?? this.findTarget(player, side);
     if (!target) {
       // Hay frutos cerca pero no en ese lado: se avisa sin penalizar.
       return { result: HARVEST_RESULT.NONE, side };
@@ -129,9 +185,16 @@ export class HarvestSystem {
 
     const { plant, fruit, position } = target;
 
+    // Con click directo el lado se deduce del fruto señalado, para que
+    // la animación se reproduzca hacia donde está la mata.
+    const harvestSide =
+      explicitTarget && !side
+        ? (player.x <= plant.centerX ? HARVEST_SIDES.LEFT : HARVEST_SIDES.RIGHT)
+        : side;
+
     // El jugador siempre inicia la animación, aunque sea un error:
     // el gesto de "recoger un pintón" debe verse (§6).
-    player.startHarvest(side, fruit);
+    player.startHarvest(harvestSide, fruit);
 
     const isRipe = fruit.type === FRUIT_TYPES.RIPE;
 
@@ -143,7 +206,7 @@ export class HarvestSystem {
         plant,
         fruit,
         position,
-        side,
+        side: harvestSide,
       };
     }
 
@@ -155,7 +218,7 @@ export class HarvestSystem {
       plant,
       fruit,
       position,
-      side,
+      side: harvestSide,
     };
   }
 

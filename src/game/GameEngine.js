@@ -75,6 +75,13 @@ export class GameEngine {
     this.logicalWidth = GAME_CONFIG.logicalWidth;
     this.logicalHeight = GAME_CONFIG.logicalHeight;
 
+    /* ---------- Dispositivo (§15) ----------
+       Decide el radio de acierto al recolectar con el dedo. Se detecta
+       una sola vez: si hay eventos táctiles, se asume pantalla táctil. */
+    this.isTouchDevice =
+      typeof window !== 'undefined' &&
+      ('ontouchstart' in window || (navigator.maxTouchPoints ?? 0) > 0);
+
     /* ---------- Callbacks hacia React ---------- */
     this.callbacks = {
       onHudUpdate: callbacks.onHudUpdate ?? null,
@@ -489,6 +496,88 @@ export class GameEngine {
 
     const outcome = this.harvestSystem.harvest(this.player, side);
     this.#applyHarvestOutcome(outcome, side);
+  }
+
+  /**
+   * Recolecta el fruto que hay bajo un punto del mundo (click/toque).
+   *
+   * Es la vía principal de recolección (§5): en PC se hace click sobre
+   * el arándano y en móvil se toca encima. Reutiliza exactamente la
+   * misma lógica que la recolección por lado, así que las reglas
+   * (alcance, puntuación, errores, efectos) son idénticas.
+   *
+   * Cada fruto es una unidad: un toque recoge UN fruto (§6), nunca el
+   * grupo entero.
+   *
+   * @param {number} worldX x del punto pulsado, en px del mundo
+   * @param {number} worldY y del punto pulsado
+   * @param {number} radius radio extra de acierto (dedo en móvil)
+   * @returns {boolean} true si había un fruto bajo el punto
+   */
+  harvestAt(worldX, worldY, radius = 0) {
+    if (this.state.status !== GAME_STATES.PLAYING) return false;
+    if (!this.player) return false;
+
+    const target = this.harvestSystem.findFruitAt(
+      this.player,
+      worldX,
+      worldY,
+      radius
+    );
+    if (!target) return false;
+
+    // Sin lado explícito: harvest() lo deduce de dónde está el jugador.
+    const outcome = this.harvestSystem.harvest(this.player, null, target);
+    this.#applyHarvestOutcome(outcome, outcome.side);
+    return true;
+  }
+
+  /**
+   * Recolecta a partir de un punto de la PANTALLA (px CSS relativos al
+   * canvas). Es lo que llaman el ratón y el dedo.
+   *
+   * El canvas se dibuja en píxeles FÍSICOS (CSS × devicePixelRatio) y
+   * luego se aplica una escala para pasar del espacio lógico (480x800)
+   * a ese buffer. Por eso convertir "px del dedo" a "px del mundo" no
+   * es una simple división: hay que deshacer el DPR, la escala y el
+   * centrado del lienzo.
+   *
+   * @param {number} cssX x en px CSS, relativo a la esquina del canvas
+   * @param {number} cssY y en px CSS, relativo a la esquina del canvas
+   */
+  harvestAtScreen(cssX, cssY) {
+    const rect = this.canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return false;
+
+    const dpr = this.canvas.width / rect.width;
+    const scale = this.scale > 0 ? this.scale : 1;
+
+    // Centrado del lienzo (mismo cálculo que usa render()).
+    const offsetX = (this.canvas.width - this.logicalWidth * scale) / 2;
+    const offsetY = (this.canvas.height - this.logicalHeight * scale) / 2;
+
+    // px CSS → px físicos → px lógicos del juego.
+    const logicalX = (cssX * dpr - offsetX) / scale;
+    const logicalY = (cssY * dpr - offsetY) / scale;
+
+    // Fuera del área de juego: no se recolecta nada.
+    if (
+      logicalX < 0 || logicalY < 0 ||
+      logicalX > this.logicalWidth || logicalY > this.logicalHeight
+    ) {
+      return false;
+    }
+
+    // px lógicos → mundo, descontando el desplazamiento del HUD.
+    const world = this.camera.screenToWorldWithHud(logicalX, logicalY, 1);
+
+    // En móvil el dedo no acierta al píxel: se perdona un radio extra.
+    // En PC el ratón es preciso, así que el radio es pequeño.
+    const radius = this.isTouchDevice
+      ? GAME_CONFIG.clickToleranceTouch
+      : GAME_CONFIG.clickToleranceMouse;
+
+    return this.harvestAt(world.x, world.y, radius);
   }
 
   #applyHarvestOutcome(outcome, side) {
