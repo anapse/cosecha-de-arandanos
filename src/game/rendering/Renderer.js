@@ -81,11 +81,18 @@ export class Renderer {
 
     switch (type) {
       case TILE_TYPES.PLANT_ROW:
-        // El suelo de la línea de cultivo: tierra oscura arada.
-        sprites.draw('terrain.soilDark', x, y, { frameSize: size, width: size, height: size });
-        // Surcos horizontales para marcar que es tierra trabajada.
-        this.ctx.fillStyle = withAlpha(PALETTE.soilShadow, 0.5);
-        this.ctx.fillRect(Math.round(x), Math.round(y + size * 0.45), size, 2);
+        // Lecho de la hilera de cultivo: una BANDA CONTINUA, no una
+        // baldosa por celda.
+        //
+        // Antes se dibujaba el mismo cuadro de tierra en cada celda y
+        // encima una línea horizontal en cada tile: eso marcaba una
+        // frontera dura cada 48px y hacía que la hilera pareciera una
+        // cuadrícula de cuadrados de tierra (efecto "hoja de Excel").
+        //
+        // Ahora se rellena con un color plano y solo se añaden surcos
+        // verticales largos, de modo que las celdas contiguas se leen
+        // como una sola franja de tierra arada.
+        this.#drawHedgeBed(x, y, size, col, row);
         break;
 
       case TILE_TYPES.PATH:
@@ -122,14 +129,62 @@ export class Renderer {
 
       case TILE_TYPES.SOIL:
       default:
-        // Variación determinista por posición: el campo no se ve plano.
-        sprites.draw((col + row) % 2 === 0 ? 'terrain.soil' : 'terrain.soilLight', x, y, {
+        // Tierra del campo, en franjas continuas.
+        //
+        // Antes se alternaba soil/soilLight con (col+row) % 2, lo que
+        // producía un TABLERO DE AJEDREZ: el campo entero se veía como
+        // una cuadrícula de cuadrados claros y oscuros. Ahora la
+        // variación es por COLUMNA, así que se lee como surcos
+        // verticales de tierra, no como casillas.
+        sprites.draw(col % 2 === 0 ? 'terrain.soil' : 'terrain.soilLight', x, y, {
           frameSize: size,
           width: size,
           height: size,
         });
         break;
     }
+  }
+
+  /**
+   * Lecho continuo de una hilera de cultivo.
+   *
+   * Las celdas de una misma columna de cultivo deben leerse como UNA
+   * sola franja de tierra arada. Para lograrlo:
+   *
+   *   - no se dibuja ninguna frontera horizontal entre celdas (antes
+   *     había una línea por tile, que marcaba la cuadrícula)
+   *   - los surcos son VERTICALES y atraviesan la celda de arriba
+   *     abajo, así que se continúan de una celda a la siguiente
+   *
+   * @param {number} x posición x en el mundo
+   * @param {number} y posición y en el mundo
+   * @param {number} size lado del tile
+   */
+  #drawHedgeBed(x, y, size) {
+    const ctx = this.ctx;
+    const left = Math.round(x);
+    const top = Math.round(y);
+
+    // Base de tierra arada, algo más oscura que el suelo del campo
+    // para que la hilera se distinga como zona de cultivo.
+    ctx.fillStyle = PALETTE.soilDark ?? '#5b3f28';
+    ctx.fillRect(left, top, size, size);
+
+    // Surcos verticales: tres por celda, siempre en las mismas
+    // posiciones relativas, de modo que siguen alineados entre celdas
+    // contiguas y forman líneas largas.
+    ctx.fillStyle = withAlpha(PALETTE.soilShadow ?? '#3d2a1a', 0.45);
+
+    const groove = Math.max(2, Math.round(size / 16));
+    for (let i = 1; i <= 3; i += 1) {
+      const gx = left + Math.round((size * i) / 4);
+      ctx.fillRect(gx, top, groove, size);
+    }
+
+    // Un borde interior a cada lado, para dar volumen al lecho.
+    ctx.fillStyle = withAlpha(PALETTE.soilLight ?? '#7a5a3a', 0.35);
+    ctx.fillRect(left, top, 1, size);
+    ctx.fillRect(left + size - 1, top, 1, size);
   }
 
   /* ============================================================
