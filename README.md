@@ -685,4 +685,4 @@ Inspirado en la cosecha de arándanos de **Ica, Perú** — una actividad
 que la comunidad ha hecho suya a base de esfuerzo, y que a partir de
 esta idea convive con una pequeña versión digital.
 
-Fundo San Jorge · Ica — Perú
+
