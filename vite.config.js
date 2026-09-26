@@ -37,7 +37,7 @@ export default defineConfig({
       - http://192.168.X.X:5173/
       - una subcarpeta servida a mano
   */
-  base: './',
+  base: '/cosecha-de-arandanos/',
 
   server: {
     // Escucha en TODAS las interfaces de red (LAN), no solo localhost.
