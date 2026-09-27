@@ -404,10 +404,12 @@ export class Renderer {
         const pos = plant.fruitPosition(fruit);
         const key = fruit.type === 'RIPE' ? 'fruit.ripe' : 'fruit.unripe';
         // Fruto visible con tamaño uniforme, sin deformar (scaleX == scaleY).
+        // 16px de ancho es lo suficientemente grande para ser distinguible
+        // sin distorsionar el sprite.
         const fruitDrawSize = 16;
 
         this.sprites.draw(key, pos.x - fruitDrawSize / 2, pos.y - fruitDrawSize / 2, {
-          frameSize: 10,
+          frameSize: fruitDrawSize,
           width: fruitDrawSize,
           height: fruitDrawSize,
         });
