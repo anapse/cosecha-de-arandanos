@@ -14,6 +14,7 @@
 
 import { useCallback, useRef, useState } from 'react';
 import GameCanvas from '../../game/GameCanvas.jsx';
+import GameHud from './GameHud.jsx';
 import PauseMenu from '../PauseMenu/PauseMenu.jsx';
 import LevelComplete from '../LevelComplete/LevelComplete.jsx';
 import GameOver from '../GameOver/GameOver.jsx';
@@ -123,7 +124,7 @@ export default function GameShell({ levelId = 1, soundEnabled = true, onExit }) 
   return (
     <div className="game-shell">
       {/* ---------- Visor vertical (la "arcade") ---------- */}
-      <div className="game-viewport">
+      <div className="game-canvas-wrap">
         <GameCanvas
           levelId={levelId}
           paused={paused}
@@ -136,17 +137,13 @@ export default function GameShell({ levelId = 1, soundEnabled = true, onExit }) 
           onRequestPause={handleRequestPause}
         />
 
-        {/*
-          HUD: vive DENTRO del canvas (HudRenderer).
-
-          Antes había además una capa React (GameHud) encima, y las dos
-          se pisaban: los paneles del canvas quedaban tapados por la
-          barra HTML. Se conserva solo el HUD del canvas porque:
-            - es pixel-art, coherente con el resto del juego;
-            - escala con el canvas, así se ve idéntico en PC y teléfono;
-            - es el mismo HUD en cualquier dispositivo.
-          Los botones de pausa siguen disponibles en el HUD inferior.
-        */}
+        {/* ---------- HUD HTML sobre el canvas ---------- */}
+        {hud && (
+          <GameHud
+            hud={hud}
+            onPause={handleRequestPause}
+          />
+        )}
 
         {/* ---------- Avisos breves ---------- */}
         {toast && !paused && !result && (
