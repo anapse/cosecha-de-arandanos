@@ -63,10 +63,10 @@ export const CORRIDOR_ROWS = 1;
  * fuese más bajo que la franja entre los dos HUD, la cámara dejaría
  * una banda sin campo. Con tiles de 48px hacen falta 9 filas.
  */
-export const MIN_FIELD_ROWS = 9;
+export const MIN_FIELD_ROWS = 5;
 
 /** Máximo de hileras de cultivo: el campo debe quedar COMPACTO. */
-export const MAX_FIELD_ROWS = 10;
+export const MAX_FIELD_ROWS = 5;
 
 /**
  * Número de filas de CULTIVO necesarias para cubrir el área útil.
