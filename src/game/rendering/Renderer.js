@@ -365,13 +365,13 @@ export class Renderer {
 
       if (!camera.isVisible(rect, 16)) continue;
 
-      // El sprite de planta mide 32x32 y se dibuja 32x32: sin escalar.
-      // Escalarlo (p.ej. 1.1x de alto) deformaría el pixel art y
-      // rompería la coherencia de proporciones (§18).
+      // El sprite de planta se escala uniformemente para que sea visible
+      // sin deformar el pixel art (scaleX == scaleY).
+      const plantDrawSize = Math.round(TILE_SIZE * 1.4);
       this.sprites.draw(plant.spriteKey, plant.x, plant.y, {
-        frameSize: ts,
-        width: ts,
-        height: ts,
+        frameSize: TILE_SIZE,
+        width: plantDrawSize,
+        height: plantDrawSize,
       });
 
       // Marca sutil en la planta apuntada por el jugador.
@@ -403,11 +403,13 @@ export class Renderer {
 
         const pos = plant.fruitPosition(fruit);
         const key = fruit.type === 'RIPE' ? 'fruit.ripe' : 'fruit.unripe';
+        // Fruto visible con tamaño uniforme, sin deformar (scaleX == scaleY).
+        const fruitDrawSize = 16;
 
-        this.sprites.draw(key, pos.x - pos.size / 2, pos.y - pos.size / 2, {
+        this.sprites.draw(key, pos.x - fruitDrawSize / 2, pos.y - fruitDrawSize / 2, {
           frameSize: 10,
-          width: pos.size,
-          height: pos.size,
+          width: fruitDrawSize,
+          height: fruitDrawSize,
         });
       }
     }
