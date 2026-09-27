@@ -95,11 +95,7 @@ export default function App() {
         )}
       </div>
 
-      {/* ---------- Aviso de rotación en móvil apaisado ---------- */}
-      <div className="rotate-hint" aria-hidden="true">
-        <span style={{ fontSize: '34px' }}>📱</span>
-        <span>Gira el teléfono a vertical para jugar mejor</span>
-      </div>
+
     </div>
   );
 }

@@ -20,33 +20,45 @@
  * en los 12 niveles.
  *
  * ---------------------------------------------------------------
- * COMPOSICIÓN VERTICAL (800 px)
+ * COMPOSICIÓN VERTICAL (800 px) — 25/50/25 REAL
  * ---------------------------------------------------------------
  *
  *   ┌────────────────────────────────────┐  0
- *   │  HUD SUPERIOR                75 px │
- *   ├────────────────────────────────────┤  75
- *   │  CIELO                              │
- *   │  MONTAÑAS / HORIZONTE               │  CIELO_Y .. FIELD_Y
- *   │  ÁRBOLES                            │
- *   ├────────────────────────────────────┤  FIELD_Y = 75
+ *   │  CIELO / MONTAÑAS / ÁRBOLES         │  Paisaje continuo
+ *   │  HUD SUPERPUESTO           200 px  │  (overlay, no suma al flujo)
+ *   ├────────────────────────────────────┤  FIELD_Y = 200
  *   │  CAMPO                              │
  *   │    camino                           │
  *   │    hilera 1                         │
- *   │    camino                           │  FIELD_HEIGHT
+ *   │    camino                           │
  *   │    hilera 2                         │
- *   │    ...                              │
+ *   │    camino                           │  FIELD_HEIGHT = 384 (8 tiles)
+ *   │    hilera 3                         │
+ *   │    camino                           │
+ *   │    hilera 4                         │
+ *   │    camino                           │
  *   │    hilera 5                         │
  *   │    camino                           │
- *   ├────────────────────────────────────┤  FENCE_Y
+ *   ├────────────────────────────────────┤  FENCE_Y = 584
  *   │  VALLA                        12 px │
- *   ├────────────────────────────────────┤  HARVEST_Y
+ *   ├────────────────────────────────────┤  HARVEST_Y = 596
  *   │  ZONA DE COSECHA                    │
- *   │    cajas · canasta · supervisor     │  HARVEST_HEIGHT
+ *   │    cajas · canasta · supervisor     │  HARVEST_HEIGHT = 164
  *   │    camión                           │
- *   ├────────────────────────────────────┤  FOOTER_Y
+ *   ├────────────────────────────────────┤  FOOTER_Y = 760
  *   │  FOOTER                       40 px │
  *   └────────────────────────────────────┘  800
+ *
+ * DISTRIBUCIÓN APROXIMADA:
+ *   - 25% superior: Paisaje (cielo/montañas) con HUD superpuesto
+ *   - 48% central: Campo con 5 hileras (8 tiles = 384px, cercano al 50%)
+ *   - 20.5% inferior: Zona cosecha + valla
+ *   - 5% footer
+ *   = 100% = 800px
+ *
+ * NOTA: El HUD es un overlay React/CSS que se dibuja ENCIMA del canvas.
+ * El canvas Renderer dibuja el paisaje completo (0-800) y el HUD
+ * no empuja el contenido del canvas hacia abajo.
  *
  * ---------------------------------------------------------------
  * COMPOSICIÓN HORIZONTAL (480 px) — 5 HILERAS
@@ -73,13 +85,6 @@
  *   Son 5 hileras y 5 columnas de camino (0,2,4,6,8): el jugador
  *   tiene margen a la izquierda, camino entre cada par de hileras,
  *   y acceso a la hilera 5 desde la columna 8.
- *
- *   NOTA sobre el margen derecho: 2·margen + 5·hilera + 4·camino
- *   pedía 11 bandas, y 11 no cabe en 10 columnas exactas sin dejar
- *   un resto que forzaría scroll. Se resuelve fusionando el margen
- *   derecho con la última hilera: la hilera 5 se dibuja igual y se
- *   cosecha desde la columna 8, así que la jugabilidad es idéntica
- *   y el ancho queda exacto.
  */
 
 import { TILE_SIZE } from '../config/constants.js';
@@ -91,29 +96,19 @@ export const VIEW_WIDTH = 480;
 export const VIEW_HEIGHT = 800;
 
 /* ============================================================
-   FRANJAS VERTICALES
+   FRANJAS VERTICALES — HUD ES OVERLAY, NO EMPUJA CONTENIDO
    ============================================================ */
-/** Alto del HUD superior. */
+/** Alto del HUD superior (superpuesto, overlay React/CSS). */
 export const HUD_HEIGHT = 200;
 
-/** Y donde empieza la franja de cielo/paisaje. */
-export const SKY_Y = HUD_HEIGHT;
+/** Y donde empieza la franja de cielo/paisaje (0 = tope canvas). */
+export const SKY_Y = 0;
 
-/**
- * Alto del paisaje (cielo + montañas + árboles).
- *
- * El cielo es una CAPA CONTINUA al fondo, no un trozo por tile
- * (§4). Su alto se elige para que el horizonte quede visible por
- * encima del campo sin comerse el área de cultivo, y además para que
- * FIELD_Y caiga en un múltiplo del tile: así la rejilla de cultivo
- * cuadra con los caminos y no hay medio tile desalineado.
- *
- *   HUD 144 + SKY 48 = 192 = 4 tiles exactos
- */
-export const SKY_HEIGHT = 40;
+/** Alto del paisaje visible detrás del HUD (el HUD no lo empuja). */
+export const SKY_HEIGHT = HUD_HEIGHT;
 
-/** Y donde empieza el campo de cultivo. */
-export const FIELD_Y = SKY_Y + SKY_HEIGHT; // 147
+/** Y donde empieza el campo de cultivo (debajo del HUD visual). */
+export const FIELD_Y = HUD_HEIGHT;
 
 /* ---------- Estructura horizontal del campo ---------- */
 
@@ -150,9 +145,9 @@ export const ROW_HEIGHT = TILE_SIZE;
 /**
  * Número de filas de cultivo a lo alto del campo.
  *
- * El campo visible tiene FIELD_HEIGHT; la primera y la última fila
- * se reservan para los pasillos horizontales superior e inferior,
- * que permiten cambiar de línea y llegar a la valla.
+ * El campo tiene FIELD_HEIGHT = 384px = 8 tiles exactos.
+ * La primera y última fila son pasillos horizontales.
+ * Quedan 6 filas de cultivo reales para las 5 hileras (una hilera por fila + 1 extra).
  */
 export const FIELD_ROWS_COUNT = 8;
 
@@ -160,16 +155,16 @@ export const FIELD_ROWS_COUNT = 8;
 export const CROP_HEIGHT = FIELD_ROWS_COUNT * ROW_HEIGHT; // 384
 
 /** Alto del campo completo (pasillos + cultivo). */
-export const FIELD_HEIGHT = CROP_HEIGHT + 2 * ROW_HEIGHT; // 480
+export const FIELD_HEIGHT = CROP_HEIGHT; // 384 (8 tiles exactos, sin pasillos extra)
 
 /** Y donde termina el campo / empieza la valla. */
-export const FENCE_Y = FIELD_Y + FIELD_HEIGHT; // 627
+export const FENCE_Y = FIELD_Y + FIELD_HEIGHT; // 584
 
 /** Alto de la valla que separa campo de zona de cosecha. */
 export const FENCE_HEIGHT = 12;
 
 /** Y donde empieza la zona de cosecha. */
-export const HARVEST_Y = FENCE_Y + FENCE_HEIGHT; // 639
+export const HARVEST_Y = FENCE_Y + FENCE_HEIGHT; // 596
 
 /** Alto del footer. */
 export const FOOTER_HEIGHT = 40;
@@ -178,16 +173,15 @@ export const FOOTER_HEIGHT = 40;
 export const FOOTER_Y = VIEW_HEIGHT - FOOTER_HEIGHT; // 760
 
 /** Alto de la zona de cosecha (lo que queda entre valla y footer). */
-export const HARVEST_HEIGHT = FOOTER_Y - HARVEST_Y; // 121
+export const HARVEST_HEIGHT = FOOTER_Y - HARVEST_Y; // 164
 
 /* ============================================================
    COMPROBACIONES
    ------------------------------------------------------------
    Si alguien ajusta una constante y descuadra la composición,
-   esto lo delata al importar el módulo. Es barato y evita el tipo
-   de bug silencioso que dejaba el campo desalineado.
+   esto lo delata al importar el módulo.
    ============================================================ */
-const totalVertical = HUD_HEIGHT + SKY_HEIGHT + FIELD_HEIGHT
+const totalVertical = SKY_HEIGHT + FIELD_HEIGHT
   + FENCE_HEIGHT + HARVEST_HEIGHT + FOOTER_HEIGHT;
 
 if (totalVertical !== VIEW_HEIGHT) {
@@ -231,7 +225,7 @@ export function isRowCol(col) {
  * @param {number} rowIndex 0-based, dentro de CROP_ROWS
  */
 export function cropRowY(rowIndex) {
-  return FIELD_Y + ROW_HEIGHT + rowIndex * ROW_HEIGHT;
+  return FIELD_Y + rowIndex * ROW_HEIGHT;
 }
 
 /** Fila vertical (índice global del TileMap) donde empieza el campo. */
