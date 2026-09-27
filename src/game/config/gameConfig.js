@@ -93,9 +93,8 @@ export const GAME_CONFIG = {
      Composición vertical, de arriba a abajo:
        HUD superior · paisaje · campo de cultivo · entrega · HUD inferior
      Estas alturas definen cuánto ocupa cada franja en px lógicos. */
-  hudHeight: 64,          // alto del HUD superior en px lógicos
-  hudBottomHeight: 52,    // alto del HUD inferior
-  landscapeHeight: 46,    // franja de cielo + montañas tras el campo
+  hudHeight: 100,          // alto del HUD superior en px lógicos
+  hudBottomHeight: 0,       // HUD inferior eliminado (Fase previa)
   touchControlsHeight: 132,
   showFps: false,
   debugCollisions: false,

@@ -143,19 +143,19 @@ export const ROW_COLS = Object.freeze(
 export const ROW_HEIGHT = TILE_SIZE;
 
 /**
- * Número de filas de cultivo a lo alto del campo.
- *
- * El campo tiene FIELD_HEIGHT = 384px = 8 tiles exactos.
- * La primera y última fila son pasillos horizontales.
- * Quedan 6 filas de cultivo reales para las 5 hileras (una hilera por fila + 1 extra).
- */
-export const FIELD_ROWS_COUNT = 8;
+ /** Número de filas de cultivo a lo alto del campo.
 
-/** Alto del área de cultivo propiamente dicha. */
-export const CROP_HEIGHT = FIELD_ROWS_COUNT * ROW_HEIGHT; // 384
+  * El campo tiene FIELD_HEIGHT = 480px = 10 tiles exactos.
+  * La primera y última fila son pasillos horizontales.
+  * Quedan 8 filas de cultivo reales para las 5 hileras (cada hilera ocupa ~1-2 filas).
+  */
+ export const FIELD_ROWS_COUNT = 10;
 
-/** Alto del campo completo (pasillos + cultivo). */
-export const FIELD_HEIGHT = CROP_HEIGHT; // 384 (8 tiles exactos, sin pasillos extra)
+ /** Alto del área de cultivo propiamente dicha. */
+ export const CROP_HEIGHT = FIELD_ROWS_COUNT * ROW_HEIGHT; // 480
+
+ /** Alto del campo completo (pasillos + cultivo). */
+ export const FIELD_HEIGHT = CROP_HEIGHT; // 480 (10 tiles exactos)
 
 /** Y donde termina el campo / empieza la valla. */
 export const FENCE_Y = FIELD_Y + FIELD_HEIGHT; // 584

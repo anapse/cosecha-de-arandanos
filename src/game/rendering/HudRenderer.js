@@ -73,10 +73,10 @@ export class HudRenderer {
   constructor(sprites) {
     this.sprites = sprites;
     /** Alto lógico de la ventana; lo fija GameEngine. */
-    this.width = 360;
-    this.height = 640;
-    this.hudHeight = 62;
-    this.bottomHeight = 46;
+    this.width = 480;
+    this.height = 800;
+    this.hudHeight = 100;
+    this.bottomHeight = 0;
   }
 
   /** Ajusta las dimensiones lógicas. */
@@ -236,31 +236,31 @@ export class HudRenderer {
 
     const pad = 4;
     const top = 4;
-    const panelH = H - 10;
+    const panelH = H - 14;
 
     /* ---------- 1. Logo: COSECHA DE ARÁNDANOS ---------- */
-    const logoW = 122;
+    const logoW = 140;
     this.woodPanel(pad, top, logoW, panelH);
 
     // Arándano del logo (sprite real del catálogo)
-    this.sprite('ui.hudLogoBerry', pad + 3, top + 5, { frameSize: 32, w: 20, h: 20 });
+    this.sprite('ui.hudLogoBerry', pad + 4, top + 6, { frameSize: 32, w: 24, h: 24 });
 
-    this.text('COSECHA DE', pad + 25, top + 4, {
-      size: 7, color: '#ffffff',
+    this.text('COSECHA DE', pad + 30, top + 5, {
+      size: 9, color: '#ffffff',
     });
-    this.text('ARÁNDANOS', pad + 25, top + 12, {
-      size: 7, color: '#ffffff',
+    this.text('ARÁNDANOS', pad + 30, top + 14, {
+      size: 9, color: '#ffffff',
     });
-    this.text('FUNDO SAN JORGE - ICA', pad + 25, top + 22, {
-      size: 5, color: '#ffe8b0',
+    this.text('FUNDO SAN JORGE - ICA', pad + 30, top + 24, {
+      size: 7, color: '#ffe8b0',
     });
 
     /* ---------- 2. Estadísticas: NIVEL / TIEMPO / COSECHADOS / ERRORES ---------- */
-    const statsX = pad + logoW + 4;
-    const statsW = 108;
+    const statsX = pad + logoW + 6;
+    const statsW = 120;
     this.panel(statsX, top, statsW, panelH);
 
-    const rowH = 11;
+    const rowH = 14;
     const statsRows = [
       {
         label: 'NIVEL:',
@@ -286,53 +286,53 @@ export class HudRenderer {
 
     statsRows.forEach((row, i) => {
       const ry = top + 4 + i * rowH;
-      this.text(row.label, statsX + 4, ry, { size: 6, color: HUD_COLORS.textDim });
+      this.text(row.label, statsX + 4, ry, { size: 8, color: HUD_COLORS.textDim });
       this.text(row.value, statsX + statsW - 4, ry, {
-        size: 6, color: row.valueColor, align: 'right',
+        size: 8, color: row.valueColor, align: 'right',
       });
     });
 
     /* ---------- 3. Objetivo ---------- */
-    const objX = statsX + statsW + 4;
+    const objX = statsX + statsW + 6;
     const objW = W - objX - pad;
     this.panel(objX, top, objW, panelH);
 
-    this.text('OBJETIVO:', objX + 4, top + 4, { size: 6, color: HUD_COLORS.gold });
+    this.text('OBJETIVO:', objX + 4, top + 4, { size: 8, color: HUD_COLORS.gold });
 
     // El texto del objetivo se ajusta al nivel si lo define.
     const objetivo = hud.objective || OBJETIVO_TEXT;
-    this.wrapText(objetivo, objX + 4, top + 13, objW - 8, {
-      size: 5,
+    this.wrapText(objetivo, objX + 4, top + 14, objW - 8, {
+      size: 7,
       color: HUD_COLORS.textSoft,
-      lineHeight: 7,
+      lineHeight: 9,
     });
 
     /* ---------- 4. Barra de calidad (bajo las stats) ---------- */
-    // Se dibuja como una fina franja inferior dentro del panel de stats
+    // Se dibuja como una franja inferior dentro del panel de stats
     // para no ocupar más alto.
-    const qBarY = top + panelH - 7;
+    const qBarY = top + panelH - 9;
     const qBarW = statsW - 8;
     const qRatio = Math.max(0, Math.min(1, hud.quality / 100));
     const qColor =
       hud.quality >= 90 ? HUD_COLORS.green :
       hud.quality >= 75 ? HUD_COLORS.gold : HUD_COLORS.red;
 
-    this.bar(statsX + 4, qBarY, qBarW - 22, 5, qRatio, qColor);
+    this.bar(statsX + 4, qBarY, qBarW - 22, 6, qRatio, qColor);
     this.text(`CALIDAD ${Math.round(hud.quality)}%`, statsX + qBarW - 20, qBarY - 1, {
-      size: 5, color: qColor,
+      size: 7, color: qColor,
     });
 
     /* ---------- 5. Botón de pausa ---------- */
-    const pauseX = W - pad - 18;
+    const pauseX = W - pad - 22;
     // El botón vive dentro del panel de objetivo en la esquina.
-    this.panel(pauseX, top + 1, 17, 16, {
+    this.panel(pauseX, top + 2, 20, 18, {
       fill: HUD_COLORS.panelLight,
       border: HUD_COLORS.panelBorder,
     });
     ctx.save();
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(pauseX + 5, top + 5, 2, 8);
-    ctx.fillRect(pauseX + 10, top + 5, 2, 8);
+    ctx.fillRect(pauseX + 6, top + 6, 3, 10);
+    ctx.fillRect(pauseX + 11, top + 6, 3, 10);
     ctx.restore();
 
     // Aviso de tiempo crítico
