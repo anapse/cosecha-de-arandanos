@@ -1,8 +1,7 @@
 /* ============================================================
    responsive.css — Visor vertical tipo máquina arcade
-   Regla visual más importante (§45):
-   el juego es SIEMPRE un rectángulo vertical 9:16 centrado.
-   En PC sobra espacio a izquierda y derecha. Nunca se estira.
+   El juego mantiene viewport lógico 9:16 y escala proporcionalmente
+   al espacio disponible. En PC crece, en móvil aprovecha el espacio.
    ============================================================ */
 
 /* ---------- Capa raíz de la aplicación ---------- */
@@ -22,14 +21,11 @@
 /* ============================================================
    EL VISOR (marco de la "máquina arcade")
    ------------------------------------------------------------
-   IMPORTANTE — el marco NO usa `border`.
-   Con `box-sizing: border-box` (global.css), un borde de 4px se come
-   parte del contenido: el canvas mide el 100% del CONTENIDO y hereda
-   una proporción deformada (medido: 165x314 = 0.525 en vez de 9:16 =
-   0.563). Eso estira los sprites, que es justo lo que NO queremos.
-
-   Se usa `outline` (no ocupa espacio) + `box-shadow` para el grosor
-   y la sombra de la madera. Así el contenido conserva el 9:16 exacto.
+   El viewport escala proporcionalmente al espacio disponible,
+   manteniendo siempre la proporción 9:16.
+   - PC: crece hasta ocupar el espacio disponible máximo.
+   - Móvil: llena la pantalla respetando la proporción.
+   - Nunca se estiran los sprites ni se deforman.
    ============================================================ */
 .game-viewport {
   position: relative;
@@ -37,23 +33,14 @@
   align-items: center;
   justify-content: center;
 
-  /* Tamaño: el mayor rectángulo 9:16 que cabe en la pantalla. */
-  width: min(
-    100vw,
-    calc(100dvh * 9 / 16),
-    calc(var(--arcade-max-w) * 1.4)
-  );
-  height: min(
-    100dvh,
-    calc(100vw * 16 / 9),
-    calc(var(--arcade-max-h) * 1.4)
-  );
+  /* Tamaño: el mayor rectángulo 9:16 que cabe en la pantalla.
+     En PC esto significa que crece con el viewport.
+     En móvil llena el espacio disponible. */
+  width: min(100vw, calc(100dvh * 9 / 16));
+  height: min(100dvh, calc(100vw * 16 / 9));
 
-  max-width: 480px;
-  max-height: 854px;
-
-  /* El visor mantiene la proporción 9/16 exacta (sin bordes que la
-     alteren). El canvas, a su vez, impone la misma proporción. */
+  /* Ya no hay max-width/max-height fijos: el viewport escala
+     naturalmente con el tamaño de la pantalla. */
   aspect-ratio: 9 / 16;
 
   /* Marco de madera dibujado SIN ocupar espacio de layout */
@@ -66,6 +53,52 @@
     0 0 0 2px var(--c-wood),
     0 12px 40px rgba(0, 0, 0, 0.6);
   overflow: hidden;
+}
+
+/* Escritorio: en pantallas muy grandes, el viewport tiene un límite
+   suave para que no ocupe toda la pantalla, pero sí crece ragionevolmente. */
+@media (min-width: 1440px) {
+  .game-viewport {
+    width: min(90vw, 800px);
+    height: auto;
+    max-height: none;
+  }
+}
+
+/* Móvil en vertical: el viewport llena la pantalla */
+@media (max-width: 768px) and (orientation: portrait) {
+  .game-viewport {
+    width: min(100vw, calc(100dvh * 9 / 16));
+    height: min(100dvh, calc(100vw * 16 / 9));
+    max-width: 100vw;
+    max-height: 100dvh;
+    outline: none;
+    border-radius: 0;
+    box-shadow: none;
+    aspect-ratio: 9 / 16;
+  }
+}
+
+/* Móvil en horizontal: el juego se adapta a la altura disponible */
+@media (max-height: 560px) and (orientation: landscape) {
+  .game-viewport {
+    width: min(100vw, calc(100dvh * 9 / 16));
+    height: min(100dvh, calc(100vw * 16 / 9));
+    max-width: none;
+    max-height: 100dvh;
+    outline: none;
+    border-radius: 0;
+    box-shadow: none;
+    aspect-ratio: 9 / 16;
+  }
+}
+
+/* Tablet: tamaño cómodo con el marco visible */
+@media (min-width: 768px) and (max-width: 1439px) {
+  .game-viewport {
+    max-width: 440px;
+    max-height: 782px;
+  }
 }
 
 /* ---------- El canvas ocupa el visor completo ---------- */
