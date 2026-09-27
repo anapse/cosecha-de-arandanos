@@ -4,8 +4,16 @@
    src/styles/responsive.css (regla visual más importante, §45).
    ============================================================ */
 
+/* ---------- Capa raíz de la aplicación ---------- */
+/* NOTA: responsive.css define el flex layout completo.
+   Este archivo solo añade comportamiento adicional. */
 .app {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: 100%;
+  width: 100%;
 }
 
 /* ---------- Botón de sonido: flota fuera del visor ---------- */
