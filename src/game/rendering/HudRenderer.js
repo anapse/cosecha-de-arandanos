@@ -382,91 +382,11 @@ export class HudRenderer {
     });
   }
 
-  /* ============================================================
-     HUD INFERIOR (§7)
-     ============================================================ */
+    /* ============================================================
+       PANEL DE CANASTA (§5)
+       ============================================================ */
 
-  /**
-   * Tres paneles: VIDAS · PUNTUACIÓN · SIGUIENTE REVISIÓN.
-   */
-  drawBottom(hud) {
-    const { ctx } = this.sprites;
-    const W = this.width;
-    const H = this.height;
-    const barH = this.bottomHeight;
-    const top = H - barH;
-
-    // ---- Fondo ----
-    ctx.save();
-    ctx.fillStyle = HUD_COLORS.panelDark;
-    ctx.fillRect(0, top, W, barH);
-    ctx.fillStyle = withAlpha('#000000', 0.35);
-    ctx.fillRect(0, top, W, 2);
-    ctx.restore();
-
-    const pad = 4;
-    const panelTop = top + 4;
-    const panelH = barH - 8;
-
-    /* ---------- VIDAS ---------- */
-    const lifeW = 84;
-    this.panel(pad, panelTop, lifeW, panelH);
-
-    this.text('VIDAS:', pad + 4, panelTop + 3, { size: 6, color: HUD_COLORS.textDim });
-
-    const heartSize = 13;
-    for (let i = 0; i < hud.maxLives; i += 1) {
-      const key = i < hud.lives ? 'ui.heartFull'
-        : i < hud.maxLives ? 'ui.heartMedium' : 'ui.heartEmpty';
-      this.sprite(key, pad + 5 + i * (heartSize + 3), panelTop + 12, {
-        frameSize: 16, w: heartSize, h: heartSize,
-      });
-    }
-
-    /* ---------- PUNTUACIÓN ---------- */
-    const scoreX = pad + lifeW + 4;
-    const scoreW = 106;
-    this.panel(scoreX, panelTop, scoreW, panelH, {
-      fill: '#1a3350',
-    });
-
-    this.text('PUNTUACIÓN:', scoreX + scoreW / 2, panelTop + 3, {
-      size: 6, color: HUD_COLORS.textDim, align: 'center',
-    });
-    this.text(`${hud.score}`, scoreX + scoreW / 2, panelTop + 13, {
-      size: 10, color: HUD_COLORS.gold, align: 'center',
-    });
-
-    /* ---------- SIGUIENTE REVISIÓN ---------- */
-    const revX = scoreX + scoreW + 4;
-    const revW = W - revX - pad;
-    this.panel(revX, panelTop, revW, panelH);
-
-    this.text('SIGUIENTE REVISIÓN:', revX + 4, panelTop + 3, {
-      size: 5, color: HUD_COLORS.textDim,
-    });
-
-    const active = hud.supervisorActive;
-    const revRatio = active
-      ? 1
-      : Math.max(0, Math.min(1, 1 - hud.supervisorTimer / Math.max(1, hud.supervisorInterval)));
-
-    this.bar(revX + 4, panelTop + 13, revW - 8, 8, revRatio,
-      active ? HUD_COLORS.red : HUD_COLORS.green);
-
-    this.text(
-      active ? 'REVISANDO' : formatTime(hud.supervisorTimer),
-      revX + revW - 6,
-      panelTop + 14,
-      { size: 6, color: active ? HUD_COLORS.red : HUD_COLORS.text, align: 'right' }
-    );
-  }
-
-  /* ============================================================
-     PANEL DE CANASTA (§5)
-     ============================================================ */
-
-  /**
+    /**
    * Contador flotante sobre la canasta (o en pantalla), como el
    * "28 / 50" de la referencia.
    *

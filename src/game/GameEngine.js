@@ -1230,18 +1230,15 @@ export class GameEngine {
     ctx.restore();
 
     /* ---------- HUD (coordenadas lógicas, sin cámara) ---------- */
-    if (status !== GAME_STATES.MENU && status !== GAME_STATES.TUTORIAL) {
-      const hudData = this.#hudData();
+        if (status !== GAME_STATES.MENU && status !== GAME_STATES.TUTORIAL) {
+          const hudData = this.#hudData();
 
-      // HUD superior: logo, stats, objetivo y calidad (§2)
-      this.hud.drawTop(hudData);
+          // HUD superior: logo, stats, objetivo y calidad (§2)
+          this.hud.drawTop(hudData);
 
-      // Leyenda de frutos, flotando sobre la esquina derecha del campo (§3)
-      this.hud.drawLegend(this.logicalWidth - 88, GAME_CONFIG.hudHeight + 4);
-
-      // HUD inferior: vidas, puntuación y siguiente revisión (§7)
-      this.hud.drawBottom(hudData);
-    }
+          // Leyenda de frutos, flotando sobre la esquina derecha del campo (§3)
+          this.hud.drawLegend(this.logicalWidth - 88, GAME_CONFIG.hudHeight + 4);
+        }
 
     /* ---------- Efectos de pantalla ---------- */
     this.effects.drawScreen(this.sprites);
