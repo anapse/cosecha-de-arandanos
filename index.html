@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!--
+      Rutas RELATIVAS (sin '/' inicial).
+
+      El juego puede abrirse desde distintos sitios:
+        - http://localhost:5173/            (la propia PC)
+        - http://192.168.X.X:5173/          (otra PC o teléfono en la LAN)
+        - http://192.168.X.X/mi-juego/      (servido en subcarpeta)
+
+      Con rutas absolutas ('/favicon/...') el navegador las pediría a la
+      raíz del dominio y fallarían en la subcarpeta. Con rutas relativas
+      se resuelven contra la URL actual y funcionan en todos los casos.
+
+      El script del juego lo inyecta Vite; aquí solo va el favicon.
+    -->
+    <link rel="icon" type="image/svg+xml" href="./favicon/blueberry.svg" />
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#1d3a1f" />
+    <meta
+      name="description"
+      content="Cosecha de Arándanos - Microjuego web pixel art: recolecta, selecciona y entrega los arándanos antes de que llegue el supervisor."
+    />
+
+    <!-- Instalable en el móvil y a pantalla completa -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <title>Cosecha de Arándanos</title>
+    <script type="module" crossorigin src="/cosecha-de-arandanos/assets/index-sL_YvRIB.js"></script>
+    <link rel="stylesheet" crossorigin href="/cosecha-de-arandanos/assets/index-BY7NzDgX.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
