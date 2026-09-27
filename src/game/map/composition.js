@@ -94,7 +94,7 @@ export const VIEW_HEIGHT = 800;
    FRANJAS VERTICALES
    ============================================================ */
 /** Alto del HUD superior. */
-export const HUD_HEIGHT = 144;
+export const HUD_HEIGHT = 200;
 
 /** Y donde empieza la franja de cielo/paisaje. */
 export const SKY_Y = HUD_HEIGHT;
@@ -110,7 +110,7 @@ export const SKY_Y = HUD_HEIGHT;
  *
  *   HUD 144 + SKY 48 = 192 = 4 tiles exactos
  */
-export const SKY_HEIGHT = 48;
+export const SKY_HEIGHT = 40;
 
 /** Y donde empieza el campo de cultivo. */
 export const FIELD_Y = SKY_Y + SKY_HEIGHT; // 147
