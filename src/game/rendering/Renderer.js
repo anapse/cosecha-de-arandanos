@@ -365,11 +365,13 @@ export class Renderer {
 
       if (!camera.isVisible(rect, 16)) continue;
 
-      // El sprite de planta se escala uniformemente para que sea visible
-      // sin deformar el pixel art (scaleX == scaleY).
-      const plantDrawSize = Math.round(TILE_SIZE * 1.4);
+      // El sprite de planta mide 32x32 y se escala uniformemente
+      // (scaleX == scaleY == 2) para que sea prominente sin deformar el
+      // pixel art. 64x64 world px ensures las plantas se ven grandes y
+      // reconocibles.
+      const plantDrawSize = 64;
       this.sprites.draw(plant.spriteKey, plant.x, plant.y, {
-        frameSize: TILE_SIZE,
+        frameSize: 32,
         width: plantDrawSize,
         height: plantDrawSize,
       });
@@ -404,9 +406,9 @@ export class Renderer {
         const pos = plant.fruitPosition(fruit);
         const key = fruit.type === 'RIPE' ? 'fruit.ripe' : 'fruit.unripe';
         // Fruto visible con tamaño uniforme, sin deformar (scaleX == scaleY).
-        // 16px de ancho es lo suficientemente grande para ser distinguible
+        // 20px de ancho es lo suficientemente grande para ser distinguible
         // sin distorsionar el sprite.
-        const fruitDrawSize = 16;
+        const fruitDrawSize = 20;
 
         this.sprites.draw(key, pos.x - fruitDrawSize / 2, pos.y - fruitDrawSize / 2, {
           frameSize: fruitDrawSize,

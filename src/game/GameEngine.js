@@ -1397,8 +1397,8 @@ export class GameEngine {
 
         case 'player':
           this.renderer.drawEntity(item.ref, this.camera, {
-            width: 32,
-            height: 32,
+            width: 48,
+            height: 48,
             frameSize: 32,
             tint: item.ref.errorFlash > 0 ? '#e2453c' : null,
           });
