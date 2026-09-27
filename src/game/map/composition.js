@@ -93,7 +93,7 @@ import { TILE_SIZE } from '../config/constants.js';
    VIEWPORT LÓGICO (no cambiar sin cambiar gameConfig)
    ============================================================ */
 export const VIEW_WIDTH = 480;
-export const VIEW_HEIGHT = 800;
+export const VIEW_HEIGHT = 896;
 
 /* ============================================================
    FRANJAS VERTICALES — HUD ES OVERLAY, NO EMPUJA CONTENIDO
