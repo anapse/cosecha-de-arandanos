@@ -97,6 +97,11 @@ export default function MainMenu({ onPlay, onTutorial, onSelectLevel }) {
 
         {/* ---------- Récord ---------- */}
         <footer className="main-menu__footer">
+          <div className="main-menu__version">
+            v{GAME_VERSION}
+            <br />
+            build:6f32dad
+          </div>
           <div className="main-menu__record">
             <span className="main-menu__record-label">RÉCORD</span>
             <span className="main-menu__record-value">{bestScore}</span>

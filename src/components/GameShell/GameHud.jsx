@@ -151,6 +151,9 @@ export default function GameHud({ hud, onPause }) {
           </div>
           <div className="game-hud__detail-line">
             <span>Pintones</span>
+            <div className="game-hud__detail-line game-hud__detail-version">
+              v
+            </div>
             <strong>{hud.unripeCollected}</strong>
           </div>
         </div>
