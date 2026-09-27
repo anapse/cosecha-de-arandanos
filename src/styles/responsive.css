@@ -59,7 +59,7 @@
    suave para que no ocupe toda la pantalla, pero sí crece ragionevolmente. */
 @media (min-width: 1440px) {
   .game-viewport {
-    width: min(90vw, 800px);
+    width: min(95vw, calc(100dvh * 9 / 16));
     height: auto;
     max-height: none;
   }

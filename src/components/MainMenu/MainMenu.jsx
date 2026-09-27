@@ -14,6 +14,7 @@
 import { useEffect, useState } from 'react';
 import { storage } from '../../utils/storage.js';
 import { TOTAL_LEVELS } from '../../data/levels.js';
+import { GAME_VERSION } from '../../config/version.js';
 import './MainMenu.css';
 
 export default function MainMenu({ onPlay, onTutorial, onSelectLevel }) {

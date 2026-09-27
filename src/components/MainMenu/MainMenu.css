@@ -20,7 +20,7 @@
 
 .main-menu__inner {
   width: 100%;
-  max-width: 320px;
+  /* max-width removed - scales proportionally with viewport */
   display: flex;
   flex-direction: column;
   align-items: center;

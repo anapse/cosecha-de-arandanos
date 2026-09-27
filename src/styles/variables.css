@@ -64,7 +64,7 @@
 
   /* Altura/cuadre máximo en escritorio: máquina arcade vertical */
   --arcade-max-h: 92vh;
-  --arcade-max-w: 430px;
+  --arcade-max-w: auto;  /* removed - scales proportionally from responsive.css */
 
   /* ---------- Tipografía ---------- */
   --font-pixel: 'Press Start 2P', 'Courier New', ui-monospace, monospace;
