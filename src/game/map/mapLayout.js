@@ -65,8 +65,12 @@ export const CORRIDOR_ROWS = 1;
  */
 export const MIN_FIELD_ROWS = 5;
 
-/** Máximo de hileras de cultivo: el campo debe quedar COMPACTO. */
-export const MAX_FIELD_ROWS = 5;
+/** Máximo de hileras de cultivo: debe cubrir la franja útil completa.
+ *  Con tiles de 48px y un viewport lógico de 800px hacen falta 9 filas
+ *  (2 césped + 9 cultivo + 1 pasillo + 3 entrega = 15 filas = 720px).
+ *  Con el tope anterior de 5 el mundo medía 528px y sobraban 272px
+ *  vacíos bajo el campo. */
+export const MAX_FIELD_ROWS = 9;
 
 /**
  * Número de filas de CULTIVO necesarias para cubrir el área útil.
