@@ -96,15 +96,18 @@ export class Renderer {
         break;
 
       case TILE_TYPES.PATH:
-        sprites.draw('terrain.path', x, y, { frameSize: size, width: size, height: size });
+        // Suelo uniforme: mismo tono de tierra que el resto del campo.
+        // Antes se dibujaba el sprite 'terrain.path', que marcaba los
+        // bordes de cada baldosa y hacía que el piso se viera a cuadros.
+        this.#drawFlatGround(x, y, size);
         break;
 
       case TILE_TYPES.PATH_H:
-        sprites.draw('terrain.pathH', x, y, { frameSize: size, width: size, height: size });
+        this.#drawFlatGround(x, y, size);
         break;
 
       case TILE_TYPES.CROSS:
-        sprites.draw('terrain.cross', x, y, { frameSize: size, width: size, height: size });
+        this.#drawFlatGround(x, y, size);
         break;
 
       case TILE_TYPES.GRASS:
@@ -185,6 +188,29 @@ export class Renderer {
     ctx.fillStyle = withAlpha(PALETTE.soilLight ?? '#7a5a3a', 0.35);
     ctx.fillRect(left, top, 1, size);
     ctx.fillRect(left + size - 1, top, 1, size);
+  }
+
+  /**
+   * Suelo plano uniforme.
+   *
+   * Rellena la celda con un color sólido de tierra, sin bordes ni
+   * variaciones. Se usa para caminos y cruces, de modo que todo el
+   * piso del campo comparta el mismo tono y no se vean baldosas ni
+   * huecos oscuros entre celdas.
+   *
+   * @param {number} x posición x en el mundo
+   * @param {number} y posición y en el mundo
+   * @param {number} size lado del tile
+   */
+  #drawFlatGround(x, y, size) {
+    const ctx = this.ctx;
+    const left = Math.round(x);
+    const top = Math.round(y);
+
+    // Se dibuja 1px de más para que celdas contiguas no dejen una
+    // costura visible por el redondeo de píxeles.
+    ctx.fillStyle = PALETTE.soil ?? '#6b4a2f';
+    ctx.fillRect(left, top, size + 1, size + 1);
   }
 
   /* ============================================================

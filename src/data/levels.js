@@ -34,7 +34,7 @@ export const LEVELS = [
   {
    id: 1,
    name: 'Primera jornada',
-   rows: 5,
+   rows: 4,
    plantsPerRow: 5,
    ripeChance: 0.8,
    unripeChance: 0.08,
@@ -51,7 +51,7 @@ export const LEVELS = [
   {
    id: 2,
    name: 'Más plantas',
-   rows: 5,
+   rows: 4,
    plantsPerRow: 5,
    ripeChance: 0.78,
    unripeChance: 0.12,
@@ -68,7 +68,7 @@ export const LEVELS = [
   {
    id: 3,
    name: 'Ojo con los pintones',
-   rows: 5,
+   rows: 4,
    plantsPerRow: 5,
    ripeChance: 0.72,
    unripeChance: 0.2,
@@ -85,7 +85,7 @@ export const LEVELS = [
   {
    id: 4,
    name: 'Tiempo justo',
-   rows: 5,
+   rows: 4,
    plantsPerRow: 5,
    ripeChance: 0.72,
    unripeChance: 0.2,
@@ -102,7 +102,7 @@ export const LEVELS = [
   {
    id: 5,
    name: 'Supervisión frecuente',
-   rows: 5,
+   rows: 4,
    plantsPerRow: 5,
    ripeChance: 0.7,
    unripeChance: 0.22,
@@ -119,7 +119,7 @@ export const LEVELS = [
   {
    id: 6,
    name: 'Campo grande',
-   rows: 5,
+   rows: 4,
    plantsPerRow: 5,
    ripeChance: 0.7,
    unripeChance: 0.22,
@@ -136,7 +136,7 @@ export const LEVELS = [
   {
    id: 7,
    name: 'Cosecha larga',
-   rows: 5,
+   rows: 4,
    plantsPerRow: 5,
    ripeChance: 0.7,
    unripeChance: 0.24,
@@ -153,7 +153,7 @@ export const LEVELS = [
   {
    id: 8,
    name: 'Frutos mezclados',
-   rows: 5,
+   rows: 4,
    plantsPerRow: 5,
    ripeChance: 0.66,
    unripeChance: 0.3,
@@ -170,7 +170,7 @@ export const LEVELS = [
   {
    id: 9,
    name: 'Contrarreloj',
-   rows: 5,
+   rows: 4,
    plantsPerRow: 5,
    ripeChance: 0.66,
    unripeChance: 0.3,
@@ -187,7 +187,7 @@ export const LEVELS = [
   {
    id: 10,
    name: 'Sin margen de error',
-   rows: 5,
+   rows: 4,
    plantsPerRow: 5,
    ripeChance: 0.64,
    unripeChance: 0.32,
@@ -204,7 +204,7 @@ export const LEVELS = [
   {
    id: 11,
    name: 'Alta dificultad',
-   rows: 5,
+   rows: 4,
    plantsPerRow: 5,
    ripeChance: 0.62,
    unripeChance: 0.34,
@@ -221,7 +221,7 @@ export const LEVELS = [
   {
    id: 12,
    name: 'Gran cosecha',
-   rows: 5,
+   rows: 4,
    plantsPerRow: 5,
    ripeChance: 0.62,
    unripeChance: 0.36,

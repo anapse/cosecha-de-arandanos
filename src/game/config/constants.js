@@ -19,7 +19,7 @@
  * deformar, y las proporciones entre personajes, plantas y frutos no
  * cambian.
  */
-export const TILE_SIZE = 48;
+export const TILE_SIZE = 52;
 export const FRUIT_SIZE = 8;
 export const SPRITE_SIZE = 32;
 

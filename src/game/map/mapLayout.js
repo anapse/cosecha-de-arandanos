@@ -109,14 +109,16 @@ export function TILE_ROWS_FOR(plantsPerRow) {
 
 /**
  * Columnas mínimas para cubrir el ancho de la pantalla.
- * Si las líneas del nivel no llenan los 360 px, se añaden líneas
- * extra de cultivo para que el campo no se vea vacío.
+ *
+ * Se limita al layout de 4 hileras (9 columnas) para que el campo
+ * muestre exactamente 4 hileras de cultivo. Antes forzaba
+ * ceil(480/48)+2 = 12 columnas, lo que añadía una quinta hilera.
  *
  * @param {number} rows líneas definidas por el nivel
- * @returns {number} columnas finales (siempre >= las necesarias)
+ * @returns {number} columnas finales
  */
 export function TILE_COLUMNS_FOR_VIEW(rows) {
   const needed = TILE_COLUMNS(rows);
-  const minCols = Math.ceil(VIEW_WIDTH / TILE_SIZE) + 2; // +2 pasillos laterales
+  const minCols = TILE_COLUMNS(4); // 9 columnas = 4 hileras de cultivo
   return Math.max(needed, minCols);
 }
