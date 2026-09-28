@@ -1,7 +1,7 @@
 /* ===========================================================
-   responsive.css — Visor vertical tipo máquina arcade
-   El juego mantiene viewport lógico 9:16 y escala proporcionalmente
-   al espacio disponible. En PC crece, en móvil aprovecha el espacio.
+   responsive.css — Visor a pantalla completa
+   El visor llena todo el ancho y alto disponibles. El canvas se
+   escala al tamaño del contenedor sin conservar la proporción 9:16.
    =========================================================== */
 
 /* ---------- Capa raíz de la aplicación ---------- */
@@ -55,24 +55,24 @@
   }
 }
 
-/* Móvil en vertical: el viewport llena la pantalla */
+/* Móvil en vertical: el viewport llena TODA la pantalla (100% ancho y alto) */
 @media (max-width: 768px) and (orientation: portrait) {
   .game-viewport {
     height: 100%;
-    width: auto;
-    aspect-ratio: 9 / 16;
+    width: 100%;
+    aspect-ratio: auto;
     outline: none;
     border-radius: 0;
     box-shadow: none;
   }
 }
 
-/* Móvil en horizontal: el juego se adapta a la altura disponible */
+/* Móvil en horizontal: el viewport llena TODA la pantalla (100% ancho y alto) */
 @media (max-height: 560px) and (orientation: landscape) {
   .game-viewport {
     height: 100%;
-    width: auto;
-    aspect-ratio: 9 / 16;
+    width: 100%;
+    aspect-ratio: auto;
     outline: none;
     border-radius: 0;
     box-shadow: none;
@@ -97,20 +97,6 @@
   image-rendering: crisp-edges;
   -ms-interpolation-mode: nearest-neighbor;
   outline: none;
-}
-
-/* Teléfono en horizontal: el juego se reduce a la altura
-   disponible y queda centrado, sin deformar y sin ocupar todo
-   el ancho. */
-@media (max-height: 560px) and (orientation: landscape) {
-  .game-viewport {
-    height: 100%;
-    width: auto;
-    aspect-ratio: 9 / 16;
-    outline: none;
-    border-radius: 0;
-    box-shadow: none;
-  }
 }
 
 /* Tablet */
