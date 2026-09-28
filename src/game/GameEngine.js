@@ -1157,10 +1157,11 @@ export class GameEngine {
     canvas.style.height = `${displayHeight}px`;
 
     // Escala = cuánto hay que ampliar el mundo lógico para llenar el
-    // canvas. Se usa la MENOR para no deformar nunca (§11).
+    // canvas. Se usa la MAYOR para que el mundo cubra todo el área
+    // disponible y no queden franjas vacías.
     const scaleX = canvas.width / this.logicalWidth;
     const scaleY = canvas.height / this.logicalHeight;
-    this.scale = Math.min(scaleX, scaleY);
+    this.scale = Math.max(scaleX, scaleY);
 
     this.ctx.imageSmoothingEnabled = false;
     this.renderer.resize(this.logicalWidth, this.logicalHeight);
