@@ -1,0 +1,301 @@
+/* ============================================================
+   GameHud.css — HUD HTML/CSS superpuesto sobre el canvas (§34)
+   ============================================================ */
+
+.game-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  pointer-events: none;
+  font-family: var(--font-ui);
+  color: var(--c-text);
+  user-select: none;
+}
+
+/* Filas del HUD */
+.game-hud__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-2);
+}
+
+.game-hud__row--top {
+  background: var(--c-panel);
+  border-bottom: 2px solid var(--c-wood);
+}
+
+.game-hud__row--stats {
+  background: var(--c-panel-2);
+  border-bottom: 1px solid var(--c-panel-border);
+}
+
+.game-hud__row--quality {
+  background: var(--c-panel);
+  border-top: 1px solid var(--c-panel-border);
+}
+
+/* Nivel */
+.game-hud__level {
+  font-size: var(--fs-hud);
+  font-weight: 700;
+  color: var(--c-accent-2);
+}
+
+/* Tiempo */
+.game-hud__time {
+  font-size: var(--fs-hud-big);
+  font-weight: 700;
+  font-family: var(--font-pixel);
+  margin-left: auto;
+}
+
+.game-hud__time.is-warning {
+  color: var(--c-danger);
+  animation: pulse 1s infinite;
+}
+
+/* Botón de pausa (interactivo) */
+.game-hud__pause {
+  pointer-events: auto;
+  background: var(--c-wood);
+  border: none;
+  color: var(--c-text);
+  font-size: var(--fs-hud);
+  font-weight: 700;
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  min-width: 36px;
+  text-align: center;
+}
+
+.game-hud__pause:hover {
+  background: var(--c-wood-light);
+}
+
+/* Estadísticas */
+.game-hud__stat {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: var(--fs-hud);
+  font-weight: 700;
+}
+
+.game-hud__stat-icon {
+  font-size: var(--fs-hud-big);
+}
+
+.game-hud__stat-value {
+  font-family: var(--font-pixel);
+}
+
+.game-hud__stat.is-danger {
+  color: var(--c-danger);
+}
+
+/* Vidas */
+.game-hud__lives {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.game-hud__life {
+  font-size: var(--fs-hud);
+}
+
+.game-hud__life.is-full {
+  color: var(--c-danger);
+}
+
+.game-hud__life.is-empty {
+  color: var(--c-text-dim);
+}
+
+/* Calidad */
+.game-hud__quality-label {
+  font-size: var(--fs-hud);
+  font-weight: 700;
+  color: var(--c-text-dim);
+}
+
+.game-hud__quality-track {
+  flex: 1;
+  height: 14px;
+  background: var(--c-bg-outer);
+  border: 1px solid var(--c-panel-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin: 0 var(--sp-2);
+}
+
+.game-hud__quality-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.game-hud__quality-fill.is-ok {
+  background: var(--c-ok);
+}
+
+.game-hud__quality-fill.is-warn {
+  background: var(--c-warn);
+}
+
+.game-hud__quality-fill.is-danger {
+  background: var(--c-danger);
+}
+
+.game-hud__quality-value {
+  font-size: var(--fs-hud);
+  font-weight: 700;
+  font-family: var(--font-pixel);
+}
+
+.game-hud__quality-value.is-ok { color: var(--c-ok); }
+.game-hud__quality-value.is-warn { color: var(--c-warn); }
+.game-hud__quality-value.is-danger { color: var(--c-danger); }
+
+/* Alerta de canasta llena */
+.game-hud__alert {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--c-danger);
+  color: var(--c-text);
+  padding: var(--sp-2) var(--sp-4);
+  font-size: var(--fs-hud);
+  font-weight: 700;
+  text-align: center;
+  animation: pulse 1s infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* Temporizador del supervisor */
+.game-hud__supervisor {
+  position: absolute;
+  bottom: var(--sp-4);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-3);
+  background: var(--c-panel-2);
+  border: 1px solid var(--c-panel-border);
+  border-radius: var(--radius-sm);
+}
+
+.game-hud__supervisor-label {
+  font-size: var(--fs-hud);
+  font-weight: 700;
+  color: var(--c-text-dim);
+}
+
+.game-hud__supervisor-bar {
+  width: 120px;
+  height: 10px;
+  background: var(--c-bg-outer);
+  border: 1px solid var(--c-panel-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.game-hud__supervisor-fill {
+  height: 100%;
+  background: var(--c-ok);
+  transition: width 0.3s ease;
+}
+
+.game-hud__supervisor-time {
+  font-size: var(--fs-hud);
+  font-weight: 700;
+  font-family: var(--font-pixel);
+  color: var(--c-warn);
+  min-width: 48px;
+  text-align: right;
+}
+
+/* Botón de detalle (interactivo) */
+.game-hud__toggle {
+  pointer-events: auto;
+  position: absolute;
+  bottom: var(--sp-2);
+  right: var(--sp-2);
+  background: var(--c-wood);
+  border: none;
+  color: var(--c-text);
+  font-size: var(--fs-hud);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+/* Detalle desplegable */
+.game-hud__detail {
+  position: absolute;
+  bottom: 40px;
+  right: var(--sp-2);
+  background: var(--c-panel);
+  border: 1px solid var(--c-panel-border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-2);
+  font-size: var(--fs-hud);
+}
+
+.game-hud__detail-line {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: var(--sp-1) 0;
+  border-bottom: 1px solid var(--c-panel-border);
+}
+
+.game-hud__detail-line:last-child {
+  border-bottom: none;
+}
+
+/* Leyenda de frutos (overlay sobre el campo) */
+.game-hud__legend {
+  position: absolute;
+  top: 100%;
+  right: var(--sp-2);
+  background: var(--c-panel);
+  border: 1px solid var(--c-panel-border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-1) var(--sp-2);
+  font-size: var(--fs-hud);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.game-hud__legend-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 2px 0;
+}
+
+.game-hud__legend-icon {
+  font-size: var(--fs-hud-big);
+}
+
+.game-hud__legend-label {
+  font-weight: 700;
+}
+
+.game-hud__legend-sub {
+  color: var(--c-text-dim);
+  font-size: var(--fs-hud);
+}
+
+/* Animaciones */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}

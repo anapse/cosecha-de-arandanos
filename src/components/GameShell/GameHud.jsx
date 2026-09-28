@@ -14,9 +14,12 @@
 
 import { useState } from 'react';
 import { formatTime } from '../../utils/math.js';
+import './GameHud.css';
 
 export default function GameHud({ hud, onPause }) {
   const [expanded, setExpanded] = useState(false);
+
+  if (!hud) return null;
 
   const qualityColor =
     hud.quality >= 90 ? 'ok' : hud.quality >= 75 ? 'warn' : 'danger';
@@ -150,12 +153,9 @@ export default function GameHud({ hud, onPause }) {
             </strong>
           </div>
           <div className="game-hud__detail-line">
-            <span>Pintones</span>
-            <div className="game-hud__detail-line game-hud__detail-version">
-              v
-            </div>
-            <strong>{hud.unripeCollected}</strong>
-          </div>
+                      <span>Pintones</span>
+                      <strong>{hud.unripeCollected}</strong>
+                    </div>
         </div>
       )}
     </div>
