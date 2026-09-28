@@ -123,27 +123,22 @@ export class Renderer {
         break;
 
       case TILE_TYPES.DELIVERY:
-        sprites.draw('terrain.delivery', x, y, { frameSize: size, width: size, height: size });
+        // Suelo uniforme, igual que el resto del campo.
+        this.#drawFlatGround(x, y, size);
         break;
 
       case TILE_TYPES.SOIL_LIGHT:
-        sprites.draw('terrain.soilLight', x, y, { frameSize: size, width: size, height: size });
+        this.#drawFlatGround(x, y, size);
         break;
 
       case TILE_TYPES.SOIL:
       default:
-        // Tierra del campo, en franjas continuas.
+        // Suelo uniforme en todo el campo.
         //
-        // Antes se alternaba soil/soilLight con (col+row) % 2, lo que
-        // producía un TABLERO DE AJEDREZ: el campo entero se veía como
-        // una cuadrícula de cuadrados claros y oscuros. Ahora la
-        // variación es por COLUMNA, así que se lee como surcos
-        // verticales de tierra, no como casillas.
-        sprites.draw(col % 2 === 0 ? 'terrain.soil' : 'terrain.soilLight', x, y, {
-          frameSize: size,
-          width: size,
-          height: size,
-        });
+        // Antes se alternaba soil/soilLight por columna, lo que marcaba
+        // franjas verticales de dos tonos. Ahora todo el piso comparte
+        // el mismo color liso.
+        this.#drawFlatGround(x, y, size);
         break;
     }
   }
@@ -168,26 +163,21 @@ export class Renderer {
     const left = Math.round(x);
     const top = Math.round(y);
 
-    // Base de tierra arada, algo más oscura que el suelo del campo
-    // para que la hilera se distinga como zona de cultivo.
-    ctx.fillStyle = PALETTE.soilDark ?? '#5b3f28';
+    // Base de tierra arada, del mismo tono que el resto del suelo para
+    // que el campo se lea como una superficie continua.
+    ctx.fillStyle = PALETTE.soil ?? '#8a5a34';
     ctx.fillRect(left, top, size, size);
 
-    // Surcos verticales: tres por celda, siempre en las mismas
-    // posiciones relativas, de modo que siguen alineados entre celdas
-    // contiguas y forman líneas largas.
-    ctx.fillStyle = withAlpha(PALETTE.soilShadow ?? '#3d2a1a', 0.45);
+    // Surcos verticales muy suaves: solo insinúan las hileras sin
+    // marcar bordes de celda. Con más contraste el suelo volvía a
+    // verse a franjas.
+    ctx.fillStyle = withAlpha(PALETTE.soilShadow ?? '#553417', 0.14);
 
     const groove = Math.max(2, Math.round(size / 16));
     for (let i = 1; i <= 3; i += 1) {
       const gx = left + Math.round((size * i) / 4);
       ctx.fillRect(gx, top, groove, size);
     }
-
-    // Un borde interior a cada lado, para dar volumen al lecho.
-    ctx.fillStyle = withAlpha(PALETTE.soilLight ?? '#7a5a3a', 0.35);
-    ctx.fillRect(left, top, 1, size);
-    ctx.fillRect(left + size - 1, top, 1, size);
   }
 
   /**
