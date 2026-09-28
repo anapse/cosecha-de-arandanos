@@ -42,83 +42,54 @@ export function TILE_COLUMNS(rows) {
   return 1 + safeRows + (safeRows - 1) + 1;
 }
 
-/** Filas de la franja de césped superior. */
-export const GRASS_ROWS = 2;
+/** Filas de la franja de paisaje superior (cielo, montañas nevadas, árboles, cerca). */
+export const GRASS_ROWS = 3;
 
-/** Filas de la zona de entrega inferior (§4). */
-export const DELIVERY_ROWS = 3;
+/** Filas del pasillo horizontal superior para cruzar entre hileras. */
+export const TOP_CORRIDOR_ROWS = 1;
+
+/** Filas de CULTIVO (hileras más cortas para dar espacio al paisaje y la entrega). */
+export const CROP_ROWS = 6;
 
 /** Filas del pasillo horizontal que cierra el campo por abajo. */
 export const CORRIDOR_ROWS = 1;
 
-/**
- * Filas de CULTIVO objetivo.
- *
- * El campo NO debe ser un mapa enorme con muchas hileras finas: eso
- * hacía que todo se viera diminuto. Con pocas hileras y plantas
- * grandes, el campo se lee de un vistazo y el jugador no tiene que
- * recorrer una distancia enorme para una acción sencilla.
- *
- * El mínimo debe además CUBRIR el área útil de la cámara: si el mundo
- * fuese más bajo que la franja entre los dos HUD, la cámara dejaría
- * una banda sin campo. Con tiles de 48px hacen falta 9 filas.
- */
-export const MIN_FIELD_ROWS = 5;
+/** Filas de la zona de entrega inferior amplia (camión, cajas, cesta, supervisor). */
+export const DELIVERY_ROWS = 5;
 
-/** Máximo de hileras de cultivo: debe cubrir la franja útil completa.
- *  Con tiles de 48px y un viewport lógico de 800px hacen falta 9 filas
- *  (2 césped + 9 cultivo + 1 pasillo + 3 entrega = 15 filas = 720px).
- *  Con el tope anterior de 5 el mundo medía 528px y sobraban 272px
- *  vacíos bajo el campo. */
-export const MAX_FIELD_ROWS = 9;
+/** Filas de cultivo objetivo (6 filas de arbustos bien proporcionadas). */
+export const MIN_FIELD_ROWS = 6;
+export const MAX_FIELD_ROWS = 6;
 
 /**
- * Número de filas de CULTIVO necesarias para cubrir el área útil.
- *
- * Las plantas se reparten a lo largo de estas filas, así que el nivel
- * sigue teniendo exactamente `plantsPerRow` plantas por línea (§20),
- * pero vistas como una hilera continua y tupida.
- *
- * @param {number} plantsPerRow plantas por línea (define la densidad)
- * @returns {number} filas de cultivo
+ * Número de filas de CULTIVO.
+ * @param {number} plantsPerRow
+ * @returns {number}
  */
 export function FIELD_ROWS_FOR(plantsPerRow) {
-  const p = Math.max(1, Math.floor(plantsPerRow));
-
-  // Filas fijas: césped + pasillo inferior + zona de entrega.
-  const fixedRows = GRASS_ROWS + CORRIDOR_ROWS + DELIVERY_ROWS;
-  const availablePx = PLAY_HEIGHT - fixedRows * TILE_SIZE;
-
-  // Se cubre el área útil pero con un TOPE: un campo más alto que esto
-  // deja de aportar y solo hace que el jugador camine de más.
-  const needed = Math.ceil(availablePx / TILE_SIZE);
-  const rows = Math.min(MAX_FIELD_ROWS, Math.max(MIN_FIELD_ROWS, needed));
-
-  return Math.max(p, rows);
+  return 6;
 }
 
 /**
  * Número total de filas del mapa:
- * césped + filas de cultivo + pasillo inferior + zona de entrega
+ * paisaje (3) + pasillo superior (1) + cultivo (6) + pasillo inferior (1) + entrega (5) = 16 filas (768px).
+ * Proporción exacta 9:16 (432x768).
  * @param {number} plantsPerRow
  * @returns {number}
  */
 export function TILE_ROWS_FOR(plantsPerRow) {
-  return GRASS_ROWS + FIELD_ROWS_FOR(plantsPerRow) + CORRIDOR_ROWS + DELIVERY_ROWS;
+  return GRASS_ROWS + TOP_CORRIDOR_ROWS + FIELD_ROWS_FOR(plantsPerRow) + CORRIDOR_ROWS + DELIVERY_ROWS;
 }
 
 /**
- * Columnas mínimas para cubrir el ancho de la pantalla.
- *
- * Se limita al layout de 4 hileras (9 columnas) para que el campo
- * muestre exactamente 4 hileras de cultivo. Antes forzaba
- * ceil(480/48)+2 = 12 columnas, lo que añadía una quinta hilera.
+ * Columnas para el campo de cultivo.
+ * Se fija al layout de 4 hileras de cultivo (9 columnas: pasillo,
+ * hilera 1, camino, hilera 2, camino, hilera 3, camino, hilera 4, pasillo)
+ * idéntico al ancho del juego (432px = 9 * 48px) para que la cámara NO se mueva horizontalmente.
  *
  * @param {number} rows líneas definidas por el nivel
- * @returns {number} columnas finales
+ * @returns {number} columnas finales (9)
  */
 export function TILE_COLUMNS_FOR_VIEW(rows) {
-  const needed = TILE_COLUMNS(rows);
-  const minCols = TILE_COLUMNS(4); // 9 columnas = 4 hileras de cultivo
-  return Math.max(needed, minCols);
+  return 9; // 9 columnas exactas = 4 hileras de cultivo y ancho total de 432px
 }

@@ -21,7 +21,16 @@
  */
 
 import { TILE_SIZE, TILE_TYPES, FRUIT_TYPES } from '../config/constants.js';
-import { TILE_COLUMNS_FOR_VIEW, TILE_ROWS_FOR, GRASS_ROWS, DELIVERY_ROWS, CORRIDOR_ROWS, FIELD_ROWS_FOR } from './mapLayout.js';
+import {
+  TILE_COLUMNS_FOR_VIEW,
+  TILE_ROWS_FOR,
+  GRASS_ROWS,
+  TOP_CORRIDOR_ROWS,
+  CROP_ROWS,
+  CORRIDOR_ROWS,
+  DELIVERY_ROWS,
+  FIELD_ROWS_FOR,
+} from './mapLayout.js';
 import { TileMap } from './TileMap.js';
 import { CollisionMap } from './CollisionMap.js';
 import { randInt, weightedPick, createRng } from '../../utils/math.js';
@@ -52,30 +61,36 @@ export class MapGenerator {
     const seed = options.seed ?? Math.floor(Math.random() * 1e9);
     const rng = createRng(seed);
 
-    const rows = levelConfig.rows ?? 6;
-    const plantsPerRow = levelConfig.plantsPerRow ?? 7;
+    const rows = levelConfig.rows ?? 4;
+    const plantsPerRow = levelConfig.plantsPerRow ?? 5;
 
-    // Dimensiones del mapa en tiles.
+    // Dimensiones del mapa en tiles: 9 columnas x 16 filas (432x768)
     const cols = TILE_COLUMNS_FOR_VIEW(rows);
     const totalRows = TILE_ROWS_FOR(plantsPerRow);
 
     const tileMap = new TileMap(cols, totalRows, TILE_SIZE);
 
     // ---------- Reparto vertical ----------
-    const fieldRows = FIELD_ROWS_FOR(plantsPerRow);  // filas de cultivo
-    const fieldStartRow = GRASS_ROWS;
-    const fieldEndRow = fieldStartRow + fieldRows - 1;
-    const bottomCorridorRow = fieldEndRow + 1;
-    const deliveryStartRow = fieldEndRow + 1;
+    const sceneryRows = GRASS_ROWS; // 3 filas de paisaje (cielo, montañas nevadas, árboles, cerca)
+    const topCorridorRow = sceneryRows; // fila 3: pasillo horizontal superior
+    const fieldStartRow = topCorridorRow + 1; // fila 4: inicio de cultivo
+    const fieldEndRow = fieldStartRow + CROP_ROWS - 1; // fila 9: fin de cultivo (hileras más cortas)
+    const bottomCorridorRow = fieldEndRow + 1; // fila 10: pasillo horizontal inferior
+    const deliveryStartRow = bottomCorridorRow + 1; // fila 11: inicio zona de entrega amplia
 
     // ---------- Base: tierra ----------
     tileMap.fill(0, 0, cols - 1, totalRows - 1, TILE_TYPES.SOIL);
 
-    // ---------- Césped superior ----------
-    tileMap.fill(0, 0, cols - 1, GRASS_ROWS - 1, TILE_TYPES.GRASS);
+    // ---------- Paisaje superior ----------
+    tileMap.fill(0, 0, cols - 1, sceneryRows - 1, TILE_TYPES.GRASS);
+
+    // Cerca bloqueante en la franja de paisaje
+    tileMap.fillRow(0, TILE_TYPES.FENCE, 0, cols - 1);
+    tileMap.fillRow(1, TILE_TYPES.FENCE, 0, cols - 1);
+    tileMap.fillRow(2, TILE_TYPES.FENCE, 0, cols - 1);
 
     // ---------- Columnas: plantas y caminos ----------
-    // Layout: [césped][PLANTA][CAMINO][PLANTA][CAMINO]...[PLANTA][césped]
+    // Layout: [pasillo][PLANTA][CAMINO][PLANTA][CAMINO][PLANTA][CAMINO][PLANTA][pasillo]
     const plantColumns = [];
     const pathColumns = [];
 
@@ -84,45 +99,33 @@ export class MapGenerator {
       else pathColumns.push(col);
     }
 
-    // Columnas de cultivo
+    // Columnas de cultivo (filas 4 a 9)
     plantColumns.forEach((col) => {
-      tileMap.fillCol(col, TILE_TYPES.PLANT_ROW, GRASS_ROWS, fieldEndRow);
+      tileMap.fillCol(col, TILE_TYPES.PLANT_ROW, fieldStartRow, fieldEndRow);
     });
 
-    // Caminos verticales (incluye el borde transitable a los lados)
+    // Caminos verticales (filas 3 a 10)
     pathColumns.forEach((col) => {
-      tileMap.fillCol(col, TILE_TYPES.PATH, GRASS_ROWS, fieldEndRow);
+      tileMap.fillCol(col, TILE_TYPES.PATH, topCorridorRow, bottomCorridorRow);
     });
 
-    // Pasillo exterior transitable izquierda y derecha
+    // Pasillos exteriores transitables izquierda y derecha
     const leftPathCol = 0;
     const rightPathCol = cols - 1;
-    tileMap.fillCol(leftPathCol, TILE_TYPES.PATH, GRASS_ROWS, fieldEndRow);
-    tileMap.fillCol(rightPathCol, TILE_TYPES.PATH, GRASS_ROWS, fieldEndRow);
+    tileMap.fillCol(leftPathCol, TILE_TYPES.PATH, topCorridorRow, bottomCorridorRow);
+    tileMap.fillCol(rightPathCol, TILE_TYPES.PATH, topCorridorRow, bottomCorridorRow);
 
-    // ---------- Pasillo horizontal superior e inferior del campo ----------
-    // Permite cambiar de línea por arriba y por abajo.
-    const topCorridorRow = GRASS_ROWS - 1;
-
+    // Pasillos horizontales superior e inferior
     tileMap.fillRow(topCorridorRow, TILE_TYPES.PATH_H, leftPathCol, rightPathCol);
     tileMap.fillRow(bottomCorridorRow, TILE_TYPES.PATH_H, leftPathCol, rightPathCol);
 
-    // Intersecciones donde el camino horizontal cruza un camino vertical
+    // Intersecciones
     pathColumns.forEach((col) => {
       tileMap.set(col, topCorridorRow, TILE_TYPES.CROSS);
       tileMap.set(col, bottomCorridorRow, TILE_TYPES.CROSS);
     });
 
-    // ---------- Cerca perimetral (bloqueante, §39) ----------
-    tileMap.fillRow(0, TILE_TYPES.FENCE, 0, cols - 1);
-    tileMap.set(0, 0, TILE_TYPES.BORDER);
-    tileMap.set(cols - 1, 0, TILE_TYPES.BORDER);
-
-    // Cercas laterales en las filas altas (deja hueco para los pasillos)
-    tileMap.set(0, 1, TILE_TYPES.FENCE);
-    tileMap.set(cols - 1, 1, TILE_TYPES.FENCE);
-
-    // ---------- Zona de entrega inferior ----------
+    // Zona de entrega amplia (filas 11 a 15)
     tileMap.fill(0, deliveryStartRow, cols - 1, totalRows - 1, TILE_TYPES.DELIVERY);
 
     // ---------- Generación de plantas y frutos ----------
@@ -136,32 +139,18 @@ export class MapGenerator {
     } = levelConfig;
 
     plantColumns.forEach((col) => {
-      // HILERA CONTINUA (§3).
-      //
-      // Antes se repartían solo `plantsPerRow` plantas a lo largo de la
-      // línea, dejando filas vacías: en pantalla se veía "planta, hueco,
-      // planta, hueco" en vez de una línea de cultivo tupida.
-      //
-      // Ahora se coloca una planta en CADA fila del campo, así que la
-      // hilera se ve continua de arriba abajo. La dificultad del nivel
-      // NO depende del número de matas (el objetivo es `targetHarvest`,
-      // una cantidad de frutos), así que llenar el campo no la altera.
-      //
-      // `plantsPerRow` se conserva como densidad: define cuántos de
-      // esos huecos de cultivo llevan frutos.
-      const plantRows = [];
-      for (let row = fieldStartRow; row <= fieldEndRow; row += 1) {
-        plantRows.push(row);
-      }
+      // HILERA DE ARBUSTOS BIEN ESPACIADOS:
+      // Arbustos anchos y frondosos con paso vertical cómodo (38px)
+      // para que NO se sobrepongan ni se amontonen verticalmente.
+      const startY = fieldStartRow * TILE_SIZE + 8;
+      const endY = (fieldEndRow + 1) * TILE_SIZE - 24;
+      const stepY = 38; // Espaciado vertical natural sin amontonamiento
+      const bushCount = Math.floor((endY - startY) / stepY);
 
-      // Filas que llevan frutos: las que marca el nivel, repartidas
-      // uniformemente para que la cosecha quede bien distribuida.
-      const fruitRows = new Set(distributeRows(plantsPerRow, fieldStartRow, fieldEndRow));
-
-      plantRows.forEach((row) => {
-        // La planta vive en el tile; los frutos se colocan a sus lados
-        // accesibles desde los caminos contiguos.
-        const hasFruit = fruitRows.has(row) && rng() < fruitChance;
+      for (let i = 0; i <= bushCount; i += 1) {
+        const posY = startY + i * stepY;
+        const approxRow = Math.round(posY / TILE_SIZE);
+        const hasFruit = rng() < Math.min(0.96, fruitChance + 0.15);
         const fruits = [];
 
         if (hasFruit) {
@@ -169,27 +158,21 @@ export class MapGenerator {
             FRUITS_PER_PLANT_WEIGHTS.map((w) => ({ value: w.count, weight: w.weight })),
             rng
           );
-          const capped = Math.min(count, maxFruitsPerPlant);
+          const capped = Math.max(1, Math.min(count, maxFruitsPerPlant));
 
-          for (let i = 0; i < capped; i += 1) {
+          for (let f = 0; f < capped; f += 1) {
             const isRipe = rng() < ripeChance;
-            const isUnripe = !isRipe && rng() < unripeChance + 0.18;
+            const isUnripe = !isRipe && rng() < unripeChance + 0.22;
             const type = isRipe ? FRUIT_TYPES.RIPE : FRUIT_TYPES.UNRIPE;
-
-            // Lado de recolección: la planta es alcanzable desde el
-            // camino de su izquierda y el de su derecha.
             const side = rng() < 0.5 ? 'left' : 'right';
-
-            // Altura relativa dentro de la planta (0 = arriba).
-            const slot = capped === 1 ? 0.5 : i / (capped - 1 || 1);
+            const slot = capped === 1 ? 0.5 : f / (capped - 1 || 1);
 
             fruits.push({
-              id: `${col}-${row}-${i}`,
+              id: `${col}-${i}-${f}`,
               type,
               side,
               slot,
-              // Desplazamiento para que no queden todos alineados (§11)
-              jitter: (rng() - 0.5) * 6,
+              jitter: (rng() - 0.5) * 5,
               variant:
                 type === FRUIT_TYPES.UNRIPE
                   ? randInt(0, UNRIPE_VARIANTS.length - 1, rng)
@@ -200,24 +183,21 @@ export class MapGenerator {
         }
 
         plants.push({
-          id: `p-${col}-${row}`,
+          id: `p-${col}-${i}`,
           col,
-          row,
+          row: approxRow,
           x: col * TILE_SIZE,
-          y: (row - 0.55) * TILE_SIZE, // se dibuja algo más alta que su tile
+          y: posY,
+          width: TILE_SIZE,
+          height: 36,
           fruits,
           harvested: false,
-          // Variación visual para que el campo no sea monótono
-          visualVariant: randInt(0, 3, rng),
+          visualVariant: 0, // Solo follaje verde saludable y frondoso
         });
-      });
+      }
     });
 
     // ---------- Zona de entrega y puntos de interés ----------
-    //
-    // La zona de entrega cubre TODO el fondo transitable del mapa: desde
-    // el pasillo inferior hasta la última fila. Si terminara antes, el
-    // jugador podría bajar más allá y perder el aviso de "ENTREGAR" (§15).
     const deliveryZone = {
       x: 0,
       y: bottomCorridorRow * TILE_SIZE,
@@ -225,57 +205,40 @@ export class MapGenerator {
       h: (totalRows - bottomCorridorRow) * TILE_SIZE,
     };
 
-    // La canasta se centra horizontalmente en la zona de entrega.
-    //
-    // IMPORTANTE: la columna de la canasta DEBE ser una columna de
-    // CAMINO. Si cayera en una línea de cultivo, el jugador aparecería
-    // dentro de las plantas y quedaría atascado sin poder moverse
-    // (las plantas bloquean el paso, §39).
-    //
-    // En el layout las columnas IMPARES son cultivo y las PARES camino,
-    // así que se busca la columna de camino más cercana al centro.
-    const basketCol = nearestPathColumn(Math.floor(cols / 2), cols);
+    // Canasta en el centro exacto (columna 4)
+    const basketCol = 4;
 
     const basketSpot = {
       x: basketCol * TILE_SIZE,
-      y: (deliveryStartRow + 0.35) * TILE_SIZE,
+      y: (deliveryStartRow + 0.8) * TILE_SIZE,
       w: TILE_SIZE,
       h: TILE_SIZE,
     };
 
-    // El jugador aparece en el pasillo inferior, sobre la misma columna
-    // de camino que la canasta, listo para subir.
+    // El jugador aparece en el pasillo inferior, sobre la columna central
     const spawn = {
       x: (basketCol + 0.5) * TILE_SIZE,
-      y: (bottomCorridorRow + 0.6) * TILE_SIZE,
+      y: (bottomCorridorRow + 0.5) * TILE_SIZE,
     };
 
-    // Cajas apiladas junto a la canasta (decorativas, §37)
+    // Cajas apiladas a la izquierda en la zona de entrega
     const crateSpots = [];
     for (let i = 0; i < 3; i += 1) {
       crateSpots.push({
-        x: (basketCol - 2 - i * 1.1) * TILE_SIZE,
-        y: (deliveryStartRow + 0.4) * TILE_SIZE,
+        x: (1.2 + i * 0.95) * TILE_SIZE,
+        y: (deliveryStartRow + 0.8) * TILE_SIZE,
       });
     }
 
+    // Supervisor a la derecha en la zona de entrega con amplio espacio
     const supervisorSpawn = {
-      x: (cols - 2.5) * TILE_SIZE,
-      y: (deliveryStartRow + 0.5) * TILE_SIZE,
+      x: (cols - 2.2) * TILE_SIZE,
+      y: (deliveryStartRow + 0.9) * TILE_SIZE,
     };
 
-    // Límites transitables en px lógicos.
-    //
-    // Se CALCULAN a partir de la primera y la última fila realmente
-    // transitables, en lugar de fijarse a mano. Así los límites y el
-    // terreno nunca se contradicen: un jugador centrado en un tile
-    // transitable siempre cabe dentro del área válida.
-    //
-    // (Antes se usaba `TILE_SIZE * 1.5` como tope superior, que dejaba
-    // fuera al jugador situado en el pasillo horizontal superior: sus
-    // pies empezaban en y=46.8 con el límite en y=48.)
-    const firstWalkableRow = GRASS_ROWS - 1;          // pasillo superior
-    const lastRow = totalRows - 1;                    // última fila de entrega
+    // Límites transitables: desde el pasillo superior (fila 3) hasta el final (fila 15)
+    const firstWalkableRow = topCorridorRow;
+    const lastRow = totalRows - 1;
 
     const bounds = {
       x: 0,

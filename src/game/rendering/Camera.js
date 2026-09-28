@@ -100,83 +100,40 @@ export class Camera {
    * @param {number} dt
    */
   follow(targetX, targetY, dt) {
-    let desiredX = targetX;
-    let desiredY = targetY;
-
-    // Zona muerta vertical: la cámara no se mueve por micro-ajustes.
-    // En un juego vertical esto hace el seguimiento más agradable.
-    const dz = this.deadZone;
-    const dyFromCenter = targetY - this.y;
-
-    if (Math.abs(dyFromCenter) < dz) {
-      desiredY = this.y;
-    } else {
-      desiredY = targetY - Math.sign(dyFromCenter) * dz;
-    }
-
-    const target = this.#clampTarget(desiredX, desiredY);
-
-    this.x = damp(this.x, target.x, this.lerp, dt);
-    this.y = damp(this.y, target.y, this.lerp, dt);
-
+    // La cámara es completamente fija: el mapa completo (paisaje superior,
+    // 4 hileras de cultivo y zona de entrega amplia) se ve en una sola
+    // pantalla arcade estática sin ningún desplazamiento horizontal ni vertical.
+    this.x = this.viewWidth / 2;
+    this.y = this.viewHeight / 2;
     return this;
   }
 
   #clampTarget(x, y) {
-    // La cámara trabaja SOLO en unidades del mundo.
-    //
-    // En horizontal la franja visible mide viewWidth; en vertical mide
-    // playHeight (el viewport menos los dos HUD). El desplazamiento del
-    // HUD se aplica al dibujar (worldOffsetY), no aquí.
-    //
-    //   franja visible del mundo = [originY, originY + playHeight]
-    //   restricción: 0 <= originY  y  originY + playHeight <= worldHeight
-    //   con originY = camera.y - playHeight / 2
-    //
-    //   =>  camera.y en [playHeight/2, worldHeight - playHeight/2]
-    const halfW = this.viewWidth / 2;
-    const playH = this.playHeight;
-    const halfPlay = playH / 2;
-
-    const clampedX =
-      this.worldWidth <= this.viewWidth
-        ? this.worldWidth / 2
-        : clamp(x, halfW, this.worldWidth - halfW);
-
-    const clampedY =
-      this.worldHeight <= playH
-        // El mundo cabe entero: se centra en la franja.
-        ? this.worldHeight / 2
-        : clamp(y, halfPlay, this.worldHeight - halfPlay);
-
-    return { x: clampedX, y: clampedY };
+    return {
+      x: this.worldWidth / 2,
+      y: this.worldHeight / 2,
+    };
   }
 
   /**
    * Origen del mundo para aplicar en el contexto del canvas.
-   *
-   * En Y se usa playHeight, porque la franja visible del campo es el
-   * viewport menos los dos HUD. El desplazamiento del HUD superior se
-   * aplica aparte con worldOffsetY.
+   * Totalmente fijo en 0 (solo vibra durante el shake de error).
    */
   get originX() {
-    const raw = Math.round(this.x - this.viewWidth / 2 + this.offsetX);
-    return Math.max(0, raw);
+    return Math.round(this.offsetX);
   }
 
   get originY() {
-    const raw = Math.round(this.y - this.playHeight / 2 + this.offsetY);
-    return Math.max(0, raw);
+    return Math.round(this.offsetY);
   }
 
   /**
    * Desplazamiento vertical del mundo en pantalla.
-   *
-   * El mundo se dibuja en la franja entre los dos HUD, así que se
-   * traslada hacia abajo por el alto del HUD superior.
+   * En modo arcade estático el mundo empieza en y=0 para que el cielo
+   * y las montañas se vean siempre en la parte superior detrás del HUD.
    */
   get worldOffsetY() {
-    return this.insetTop;
+    return 0;
   }
 
   /** Rectángulo visible del MUNDO (franja útil entre los dos HUD). */

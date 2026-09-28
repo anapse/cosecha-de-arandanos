@@ -975,8 +975,10 @@ export class GameEngine {
     this.levelSystem.reset();
 
     /* ---------- Cámara (§38) ---------- */
-    // Se asegura la reserva del HUD aunque no se haya llamado a resize().
+    // Se asegura la reserva del HUD y sincronización exacta de ancho
     this.#applyHudInsets();
+    this.logicalWidth = this.map.width;
+    this.camera.viewWidth = this.map.width;
     this.camera.setWorldSize(this.map.width, this.map.height);
     this.camera.snapTo(this.player.x, this.player.y);
 
@@ -1206,15 +1208,19 @@ export class GameEngine {
     ctx.translate(0, this.camera.worldOffsetY);
     ctx.translate(-this.camera.originX, -this.camera.originY);
 
-    // Paisaje al fondo: cielo, montañas y árboles (§8). Va primero
-    // para que el campo se dibuje encima.
+    // Paisaje al fondo: cielo, montañas, árboles y cerca superior
     this.renderer.drawLandscape(this.camera, this.landscapeLayout);
 
+    // Terreno continuo y uniforme de arena cálida
     this.renderer.drawTerrain(this.map.tileMap, this.camera);
+
+    // Hileras continuas de arbustos verdes tupidos (exactamente 5 hileras)
+    this.renderer.drawPlants(this.plants, this.camera);
+
+    // Arándanos sobre los arbustos
     this.renderer.drawFruits(this.plants, this.camera);
 
-    // Entidades ordenadas por Y: las de más abajo se dibujan después
-    // para dar sensación de profundidad.
+    // Entidades dinámicas ordenadas por profundidad (cajas, canasta, camión, supervisor, jugador)
     this.#drawEntitiesSorted();
 
     if (this.contextHint && this.contextHint.type !== 'deliver') {
@@ -1325,13 +1331,6 @@ export class GameEngine {
   #drawEntitiesSorted() {
     const drawables = [];
 
-    // Plantas
-    for (let i = 0; i < this.plants.length; i += 1) {
-      const plant = this.plants[i];
-      if (!this.camera.isVisible({ x: plant.x, y: plant.y, w: TILE_SIZE, h: TILE_SIZE })) continue;
-      drawables.push({ y: plant.y, kind: 'plant', ref: plant });
-    }
-
     // Cajas
     for (let i = 0; i < this.boxes.length; i += 1) {
       const box = this.boxes[i];
@@ -1364,14 +1363,6 @@ export class GameEngine {
     for (let i = 0; i < drawables.length; i += 1) {
       const item = drawables[i];
       switch (item.kind) {
-        case 'plant':
-          this.sprites.draw(item.ref.spriteKey, item.ref.x, item.ref.y, {
-            frameSize: TILE_SIZE,
-            width: TILE_SIZE,
-            height: Math.round(TILE_SIZE * 1.1),
-          });
-          break;
-
         case 'basket':
           this.renderer.drawBasket(item.ref);
           break;

@@ -7,24 +7,24 @@
  */
 
 export const PALETTE = {
-  /* Terreno */
-  soil: '#8a5a34',
-  soilLight: '#a9764a',
-  soilDark: '#6b4423',
-  soilShadow: '#553417',
-  path: '#c08d55',
-  pathLight: '#d8a86f',
-  pathDark: '#8f6537',
-  grass: '#4e8f3f',
-  grassDark: '#376b2c',
-  grassLight: '#6cb058',
-  gravel: '#b9a58a',
+  /* Terreno (Arena/tierra cálida como en la muestra) */
+  soil: '#dca364',
+  soilLight: '#ecc48a',
+  soilDark: '#b87e42',
+  soilShadow: '#96612c',
+  path: '#dca364',
+  pathLight: '#ecc48a',
+  pathDark: '#b87e42',
+  grass: '#3b872b',
+  grassDark: '#265e1b',
+  grassLight: '#52aa3e',
+  gravel: '#bfa78a',
 
-  /* Follaje */
-  leaf: '#3f7d3a',
-  leafDark: '#2b5a28',
-  leafLight: '#57a04f',
-  leafHighlight: '#7cc06b',
+  /* Follaje denso y vibrante */
+  leaf: '#2c7a26',
+  leafDark: '#1a4e16',
+  leafLight: '#44a33c',
+  leafHighlight: '#68cc5e',
   stem: '#6b4423',
 
   /* Frutos */

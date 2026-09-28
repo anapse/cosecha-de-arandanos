@@ -37,25 +37,17 @@ export default defineConfig({
       - http://192.168.X.X:5173/
       - una subcarpeta servida a mano
   */
-  base: '/cosecha-de-arandanos/',
+  base: '/',
 
   server: {
-    // Escucha en TODAS las interfaces de red (LAN), no solo localhost.
-    // Sin esto, el teléfono no puede abrir el juego: su "localhost" es
-    // el propio teléfono, no la PC.
-    host: true,
-    port: 5173,
-    // Si el puerto está ocupado, falla en vez de saltar a otro: así la
-    // dirección que se comparte es siempre la misma.
-    strictPort: true,
-    open: false,
+    host: '0.0.0.0',
+    port: 3000,
+    allowedHosts: true,
   },
 
   preview: {
-    // Igual para `npm run preview` (sirve el build de producción).
-    host: true,
-    port: 4173,
-    strictPort: true,
+    host: '0.0.0.0',
+    port: 3000,
   },
 
   build: {

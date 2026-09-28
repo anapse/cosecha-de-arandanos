@@ -71,15 +71,14 @@ export const GAME_CONFIG = {
    PRESENTACIÓN — escala del juego
    ------------------------------------------------------------
    El viewport lógico define cuánto ocupa cada cosa EN PANTALLA.
-   Con 360x640 los personajes de 32px se veían diminutos y el campo
-   tenía demasiadas hileras (aspecto de prototipo técnico).
-
-   Con 480x800 (misma proporción 9:16) cada sprite se dibuja más
-   grande en el móvil y caben menos hileras, así que el campo queda
-   COMPACTO y legible como un juego de 16 bits.
+   432x768 (proporción 9:16 exacta):
+   - 9 columnas de 48px = 432px de ancho exacto (4 hileras de cultivo).
+   - 16 filas de 48px = 768px de alto exacto.
+   El mapa coincide exactamente con el ancho de la pantalla,
+   evitando cualquier movimiento horizontal de la cámara.
    ============================================================ */
-  logicalWidth: 480,
-  logicalHeight: 800,
+  logicalWidth: 432,
+  logicalHeight: 768,
 
   /* ---------- Bucle ---------- */
   fixedTimeStep: 1 / 60,
@@ -91,10 +90,10 @@ export const GAME_CONFIG = {
 
   /* ---------- Presentación (§34) ----------
      Composición vertical, de arriba a abajo:
-       HUD superior · paisaje · campo de cultivo · entrega · HUD inferior
-     Estas alturas definen cuánto ocupa cada franja en px lógicos. */
-  hudHeight: 100,          // alto del HUD superior en px lógicos
-  hudBottomHeight: 0,       // HUD inferior eliminado (Fase previa)
+       Paisaje superior (cielo y montañas tras el HUD) · campo de cultivo · entrega
+     La cámara es estática y el lienzo abarca desde y=0. */
+  hudHeight: 0,            // Sin desplazamiento: el paisaje empieza en y=0
+  hudBottomHeight: 0,
   touchControlsHeight: 132,
   showFps: false,
   debugCollisions: false,

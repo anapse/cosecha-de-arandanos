@@ -33,8 +33,8 @@ export class Supervisor {
   constructor({ x = 0, y = 0, homeSpot = null, inspectionSpot = null } = {}) {
     this.x = x;
     this.y = y;
-    this.width = 22;
-    this.height = 26;
+    this.width = 30;
+    this.height = 36;
 
     this.homeSpot = homeSpot ?? { x, y };
     this.inspectionSpot = inspectionSpot ?? { x, y };

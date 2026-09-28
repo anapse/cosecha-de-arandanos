@@ -59,251 +59,228 @@ export class Renderer {
    * @param {import('../map/TileMap.js').TileMap} tileMap
    * @param {import('./Camera.js').Camera} camera
    */
+  /**
+   * Dibuja el terreno del campo: suelo uniforme de arena cálida,
+   * surcos de cultivo alineados bajo las 5 hileras y bordes de césped limpios.
+   * Sin mosaicos desiguales ni texturas discordantes.
+   * @param {import('../map/TileMap.js').TileMap} tileMap
+   * @param {import('./Camera.js').Camera} camera
+   */
   drawTerrain(tileMap, camera) {
     const ts = tileMap.tileSize;
-    const view = camera.viewRect;
+    const width = tileMap.pixelWidth;
+    const height = tileMap.pixelHeight;
+    const ctx = this.ctx;
+    const fieldTopY = 3 * ts; // Empieza debajo del paisaje superior (144px)
+    const plantTopY = 4 * ts; // Inicio de las plantas (192px)
+    const plantBottomY = 10 * ts; // Fin de hileras de plantas más cortas (480px)
+    const deliveryTopY = 11 * ts; // Inicio zona de entrega amplia (528px)
 
-    const col0 = Math.max(0, Math.floor(view.x / ts));
-    const col1 = Math.min(tileMap.cols - 1, Math.floor((view.x + view.w) / ts));
-    const row0 = Math.max(0, Math.floor(view.y / ts));
-    const row1 = Math.min(tileMap.rows - 1, Math.floor((view.y + view.h) / ts));
+    // 1. Suelo base uniforme y limpio de tierra/arena cálida de Ica
+    ctx.fillStyle = PALETTE.soil;
+    ctx.fillRect(0, fieldTopY, width, height - fieldTopY);
 
-    for (let row = row0; row <= row1; row += 1) {
-      for (let col = col0; col <= col1; col += 1) {
-        const type = tileMap.grid[row][col];
-        this.#drawTile(type, col * ts, row * ts, ts, col, row);
+    // 2. Lechos de cultivo bajo las 4 hileras más cortas (columnas 1, 3, 5, 7)
+    // Se dibujan estrictamente entre plantTopY (192px) y plantBottomY (480px)
+    const plantCols = [1, 3, 5, 7];
+    plantCols.forEach((col) => {
+      const bx = col * ts;
+      // Camellón de cultivo enriquecido más oscuro
+      ctx.fillStyle = '#c58d4e';
+      ctx.fillRect(bx - 4, plantTopY - 4, ts + 8, plantBottomY - plantTopY + 8);
+
+      // Centro más húmedo con línea de riego
+      ctx.fillStyle = '#b3773a';
+      ctx.fillRect(bx + 3, plantTopY, ts - 6, plantBottomY - plantTopY);
+
+      // Surcos suaves de laboreo
+      ctx.fillStyle = withAlpha('#7c4a16', 0.22);
+      ctx.fillRect(bx + Math.round(ts * 0.25), plantTopY, 2, plantBottomY - plantTopY);
+      ctx.fillRect(bx + Math.round(ts * 0.5), plantTopY, 2, plantBottomY - plantTopY);
+      ctx.fillRect(bx + Math.round(ts * 0.75), plantTopY, 2, plantBottomY - plantTopY);
+    });
+
+    // 3. Caminos transitables limpios y anchos (columnas 0, 2, 4, 6, 8)
+    const pathCols = [0, 2, 4, 6, 8];
+    pathCols.forEach((col) => {
+      const px = col * ts;
+      ctx.fillStyle = withAlpha('#ecd1a8', 0.35);
+      for (let y = fieldTopY + 14; y < plantBottomY - 10; y += 36) {
+        const hash = ((col * 37 + y * 23) % 100);
+        if (hash < 42) {
+          ctx.fillRect(px + 10 + (hash % (ts - 20)), y, 4, 2);
+        }
+      }
+    });
+
+    // 4. Pasillos de cabecera horizontales (superior en fila 3, inferior en fila 10)
+    ctx.fillStyle = withAlpha('#ecd1a8', 0.25);
+    ctx.fillRect(0, fieldTopY, width, ts); // Fila 3: conexión superior
+    ctx.fillRect(0, plantBottomY, width, ts); // Fila 10: conexión inferior
+
+    // 5. Zona de entrega amplia e independiente (a partir de fila 11 / 528px)
+    // Patio de acopio y carga espacioso para camión, cajas, canasta y supervisor
+    ctx.fillStyle = '#cb995c';
+    ctx.fillRect(0, deliveryTopY, width, height - deliveryTopY);
+
+    // Viga rústica de madera que delimita el campo agrícola del patio de carga
+    ctx.fillStyle = '#2d1805';
+    ctx.fillRect(0, deliveryTopY - 3, width, 5);
+    ctx.fillStyle = '#6b3c15';
+    ctx.fillRect(0, deliveryTopY - 2, width, 3);
+    ctx.fillStyle = '#a1612a';
+    ctx.fillRect(0, deliveryTopY - 2, width, 1);
+
+    // Textura de patio de carga afirmado
+    ctx.fillStyle = withAlpha('#dfb074', 0.32);
+    for (let x = 16; x < width - 16; x += 36) {
+      for (let y = deliveryTopY + 12; y < height - 12; y += 28) {
+        ctx.fillRect(x + ((y * 7) % 14), y, 5, 2.5);
       }
     }
-  }
 
-  #drawTile(type, x, y, size, col, row) {
-    const sprites = this.sprites;
+    // 6. Cerca perimetral de postes de madera a los costados
+    for (let y = fieldTopY + 12; y < height - 20; y += 48) {
+      // Poste izquierdo
+      ctx.fillStyle = '#3a200a';
+      ctx.fillRect(0, y, 4, 18);
+      ctx.fillStyle = '#784318';
+      ctx.fillRect(1, y, 2.5, 16);
 
-    switch (type) {
-      case TILE_TYPES.PLANT_ROW:
-        // Lecho de la hilera de cultivo: una BANDA CONTINUA, no una
-        // baldosa por celda.
-        //
-        // Antes se dibujaba el mismo cuadro de tierra en cada celda y
-        // encima una línea horizontal en cada tile: eso marcaba una
-        // frontera dura cada 48px y hacía que la hilera pareciera una
-        // cuadrícula de cuadrados de tierra (efecto "hoja de Excel").
-        //
-        // Ahora se rellena con un color plano y solo se añaden surcos
-        // verticales largos, de modo que las celdas contiguas se leen
-        // como una sola franja de tierra arada.
-        this.#drawHedgeBed(x, y, size, col, row);
-        break;
-
-      case TILE_TYPES.PATH:
-        // Suelo uniforme: mismo tono de tierra que el resto del campo.
-        // Antes se dibujaba el sprite 'terrain.path', que marcaba los
-        // bordes de cada baldosa y hacía que el piso se viera a cuadros.
-        this.#drawFlatGround(x, y, size);
-        break;
-
-      case TILE_TYPES.PATH_H:
-        this.#drawFlatGround(x, y, size);
-        break;
-
-      case TILE_TYPES.CROSS:
-        this.#drawFlatGround(x, y, size);
-        break;
-
-      case TILE_TYPES.GRASS:
-        sprites.draw('terrain.grass', x, y, { frameSize: size, width: size, height: size });
-        break;
-
-      case TILE_TYPES.FENCE:
-        sprites.draw('terrain.fence', x, y, { frameSize: size, width: size, height: size });
-        break;
-
-      case TILE_TYPES.BORDER:
-        sprites.draw('terrain.border', x, y, { frameSize: size, width: size, height: size });
-        break;
-
-      case TILE_TYPES.DELIVERY:
-        // Suelo uniforme, igual que el resto del campo.
-        this.#drawFlatGround(x, y, size);
-        break;
-
-      case TILE_TYPES.SOIL_LIGHT:
-        this.#drawFlatGround(x, y, size);
-        break;
-
-      case TILE_TYPES.SOIL:
-      default:
-        // Suelo uniforme en todo el campo.
-        //
-        // Antes se alternaba soil/soilLight por columna, lo que marcaba
-        // franjas verticales de dos tonos. Ahora todo el piso comparte
-        // el mismo color liso.
-        this.#drawFlatGround(x, y, size);
-        break;
+      // Poste derecho
+      ctx.fillStyle = '#3a200a';
+      ctx.fillRect(width - 4, y, 4, 18);
+      ctx.fillStyle = '#784318';
+      ctx.fillRect(width - 3.5, y, 2.5, 16);
     }
-  }
-
-  /**
-   * Lecho continuo de una hilera de cultivo.
-   *
-   * Las celdas de una misma columna de cultivo deben leerse como UNA
-   * sola franja de tierra arada. Para lograrlo:
-   *
-   *   - no se dibuja ninguna frontera horizontal entre celdas (antes
-   *     había una línea por tile, que marcaba la cuadrícula)
-   *   - los surcos son VERTICALES y atraviesan la celda de arriba
-   *     abajo, así que se continúan de una celda a la siguiente
-   *
-   * @param {number} x posición x en el mundo
-   * @param {number} y posición y en el mundo
-   * @param {number} size lado del tile
-   */
-  #drawHedgeBed(x, y, size) {
-    const ctx = this.ctx;
-    const left = Math.round(x);
-    const top = Math.round(y);
-
-    // Base de tierra arada, del mismo tono que el resto del suelo para
-    // que el campo se lea como una superficie continua.
-    ctx.fillStyle = PALETTE.soil ?? '#8a5a34';
-    ctx.fillRect(left, top, size, size);
-
-    // Surcos verticales muy suaves: solo insinúan las hileras sin
-    // marcar bordes de celda. Con más contraste el suelo volvía a
-    // verse a franjas.
-    ctx.fillStyle = withAlpha(PALETTE.soilShadow ?? '#553417', 0.14);
-
-    const groove = Math.max(2, Math.round(size / 16));
-    for (let i = 1; i <= 3; i += 1) {
-      const gx = left + Math.round((size * i) / 4);
-      ctx.fillRect(gx, top, groove, size);
-    }
-  }
-
-  /**
-   * Suelo plano uniforme.
-   *
-   * Rellena la celda con un color sólido de tierra, sin bordes ni
-   * variaciones. Se usa para caminos y cruces, de modo que todo el
-   * piso del campo comparta el mismo tono y no se vean baldosas ni
-   * huecos oscuros entre celdas.
-   *
-   * @param {number} x posición x en el mundo
-   * @param {number} y posición y en el mundo
-   * @param {number} size lado del tile
-   */
-  #drawFlatGround(x, y, size) {
-    const ctx = this.ctx;
-    const left = Math.round(x);
-    const top = Math.round(y);
-
-    // Se dibuja 1px de más para que celdas contiguas no dejen una
-    // costura visible por el redondeo de píxeles.
-    ctx.fillStyle = PALETTE.soil ?? '#6b4a2f';
-    ctx.fillRect(left, top, size + 1, size + 1);
   }
 
   /* ============================================================
-     PAISAJE (§8)
-     ------------------------------------------------------------
-     La referencia muestra una franja vertical de profundidad:
-
-        CIELO  →  MONTAÑAS  →  ÁRBOLES  →  (campo de cultivo)
-
-     Se dibuja al principio del frame, ANTES del terreno, ocupando las
-     primeras filas del mundo. Como el mundo es más alto que la pantalla
-     y la cámara hace scroll, el paisaje queda arriba del todo y se ve
-     al subir por el campo.
+     PAISAJE DE FONDO (CIELO, MONTAÑAS NEVADAS, ÁRBOLES Y CERCA)
      ============================================================ */
 
   /**
-   * Dibuja la franja de paisaje al inicio del mundo.
-   *
-   * @param {import('./Camera.js').Camera} camera
-   * @param {object} layout { height, skyHeight, mountainHeight, treesY }
+   * Dibuja la franja superior de paisaje (cielo, montañas nevadas, árboles y cerca).
+   * Ocupa 3 filas completas (144px) para ser siempre visible detrás y debajo del HUD.
    */
   drawLandscape(camera, layout = {}) {
-    const {
-      height = 96,
-      skyHeight = 42,
-      mountainHeight = 30,
-      treesY = 62,
-    } = layout;
-
     const ctx = this.ctx;
     const vw = this.viewWidth;
+    const ts = TILE_SIZE;
+    const landscapeHeight = 3 * ts; // Franja superior de 144px
 
-    // Culling: si el paisaje no está en la vista, no se dibuja.
-    if (!camera.isVisible({ x: 0, y: 0, w: vw, h: height }, 8)) return;
+    // 1. Cielo con degradado azul nítido (cielo despejado de Ica)
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, 80);
+    skyGrad.addColorStop(0, '#4da2f5');
+    skyGrad.addColorStop(0.65, '#87c3fc');
+    skyGrad.addColorStop(1, '#bfe1ff');
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, vw, 82);
 
-    // Parallax suave: el paisaje se mueve menos que el campo.
-    const px = camera.originX * 0.35;
+    // 2. Nubes blancas suaves estilo pixel art
+    const cloudPositions = [
+      { x: 18, y: 12, w: 58, h: 14 },
+      { x: 135, y: 10, w: 78, h: 16 },
+      { x: 255, y: 14, w: 68, h: 14 },
+      { x: 355, y: 9, w: 62, h: 14 },
+    ];
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+    cloudPositions.forEach(({ x, y, w, h }) => {
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, h / 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x + w * 0.45, y + 2, h * 0.6, 0, Math.PI * 2);
+      ctx.arc(x + w * 0.65, y + 3, h * 0.48, 0, Math.PI * 2);
+      ctx.fill();
+    });
 
-    /* ---------- 1. Cielo ---------- */
-    // Sprite del catálogo, repetido horizontalmente para cubrir el ancho.
-    const skyW = 128;
-    for (let x = -Math.floor(px) - skyW; x < vw + skyW; x += skyW) {
-      this.sprites.draw('env.sky', x, 0, {
-        frameSize: 128, width: skyW, height: 64,
-      });
+    // 3. Montañas púrpuras con picos nevados (cordillera de los Andes)
+    // Claramente visibles debajo del HUD
+    const mountainPeaks = [
+      { x: -15, w: 110, h: 48, snowH: 16 },
+      { x: 72, w: 130, h: 58, snowH: 20 },
+      { x: 175, w: 120, h: 50, snowH: 17 },
+      { x: 260, w: 135, h: 60, snowH: 22 },
+      { x: 360, w: 105, h: 52, snowH: 18 },
+    ];
+
+    const mountainBaseY = 100;
+
+    mountainPeaks.forEach(({ x, w, h, snowH }) => {
+      const topY = mountainBaseY - h;
+      const midX = x + w / 2;
+
+      // Silueta montaña púrpura/azul
+      ctx.fillStyle = '#5c67a3';
+      ctx.beginPath();
+      ctx.moveTo(x, mountainBaseY);
+      ctx.lineTo(midX, topY);
+      ctx.lineTo(x + w, mountainBaseY);
+      ctx.closePath();
+      ctx.fill();
+
+      // Sombra lado derecho de la montaña
+      ctx.fillStyle = '#434b80';
+      ctx.beginPath();
+      ctx.moveTo(midX, topY);
+      ctx.lineTo(x + w, mountainBaseY);
+      ctx.lineTo(midX, mountainBaseY);
+      ctx.closePath();
+      ctx.fill();
+
+      // Pico nevado blanco
+      const snowBottomY = topY + snowH;
+      const snowLeftX = midX - (w * (snowH / h)) / 2;
+      const snowRightX = midX + (w * (snowH / h)) / 2;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(snowLeftX, snowBottomY);
+      ctx.lineTo(midX, topY);
+      ctx.lineTo(snowRightX, snowBottomY);
+      ctx.lineTo(midX, snowBottomY - 2);
+      ctx.closePath();
+      ctx.fill();
+    });
+
+    // 4. Franja de árboles verdes cortavientos
+    const treesY = 96;
+    ctx.fillStyle = '#14532d';
+    ctx.fillRect(0, treesY + 16, vw, 26);
+
+    for (let x = -8; x < vw + 18; x += 20) {
+      ctx.fillStyle = '#15803d';
+      ctx.beginPath();
+      ctx.arc(x + 10, treesY + 12, 15, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#22c55e';
+      ctx.beginPath();
+      ctx.arc(x + 8, treesY + 9, 10, 0, Math.PI * 2);
+      ctx.fill();
     }
-    // Relleno por si el sprite es más bajo que la franja de cielo
-    if (skyHeight > 64) {
-      ctx.fillStyle = '#5aa8e8';
-      ctx.fillRect(0, 64, vw, skyHeight - 64);
-    }
 
-    /* ---------- 2. Nubes ---------- */
-    // Se desplazan algo más rápido que el cielo, bajo las montañas.
-    const cloudX = camera.originX * 0.5;
-    for (let x = -Math.floor(cloudX) - 128; x < vw + 128; x += 128) {
-      this.sprites.draw('env.clouds', x, 6, {
-        frameSize: 128, width: 128, height: 64, alpha: 0.9,
-      });
-    }
+    // 5. Cerca horizontal rústica de madera (separa el paisaje del campo)
+    const fenceY = landscapeHeight - 8;
+    // Rieles de madera horizontales
+    ctx.fillStyle = '#3a200a';
+    ctx.fillRect(0, fenceY - 1, vw, 7);
+    ctx.fillStyle = '#784318';
+    ctx.fillRect(0, fenceY, vw, 5);
+    ctx.fillStyle = '#a1612a';
+    ctx.fillRect(0, fenceY, vw, 1.5);
 
-    /* ---------- 3. Montañas ---------- */
-    const mtnX = camera.originX * 0.4;
-    const mtnY = skyHeight - 22;
-    for (let x = -Math.floor(mtnX) - 128; x < vw + 128; x += 128) {
-      this.sprites.draw('env.mountains', x, mtnY, {
-        frameSize: 128, width: 128, height: 64,
-      });
-    }
-
-    /* ---------- 4. Franja de césped y árboles ---------- */
-    const grassY = skyHeight + mountainHeight - 6;
-    ctx.fillStyle = '#4a7a3a';
-    ctx.fillRect(0, grassY, vw, height - grassY);
-
-    // Árboles repartidos por la franja (variante determinista)
-    const treeSpacing = 54;
-    const treeOffset = camera.originX * 0.55;
-    const firstTree = Math.floor((treeOffset - treeSpacing) / treeSpacing) * treeSpacing;
-
-    for (let i = 0; i < 14; i += 1) {
-      const wx = firstTree + i * treeSpacing;
-      const sx = wx - treeOffset;
-      if (sx < -64 || sx > vw + 64) continue; // culling
-
-      // Variante estable por posición (no cambia entre frames)
-      const variant = ((wx / treeSpacing) | 0) % 3;
-      const key = `env.treesTree${variant + 1}`;
-
-      this.sprites.draw(key, sx, treesY - 26, {
-        frameSize: 64, width: 44, height: 44,
-      });
-    }
-
-    // Arbustos en el borde con el campo
-    for (let i = 0; i < 10; i += 1) {
-      const wx = firstTree + i * treeSpacing + 26;
-      const sx = wx - treeOffset;
-      if (sx < -32 || sx > vw + 32) continue;
-
-      this.sprites.draw('env.treesBush', sx, grassY + 2, {
-        frameSize: 32, width: 26, height: 26,
-      });
+    // Postes de madera verticales cada 48px
+    for (let px = 24; px < vw; px += 48) {
+      ctx.fillStyle = '#3a200a';
+      ctx.fillRect(px - 1, fenceY - 12, 6, 19);
+      ctx.fillStyle = '#784318';
+      ctx.fillRect(px, fenceY - 11, 4, 17);
+      ctx.fillStyle = '#a1612a';
+      ctx.fillRect(px, fenceY - 11, 1.5, 17);
+      // Clavo metálico
+      ctx.fillStyle = '#d4bb98';
+      ctx.fillRect(px + 1, fenceY + 1, 2, 2);
     }
   }
 
@@ -367,40 +344,132 @@ export class Renderer {
      ============================================================ */
 
   /**
-   * Dibuja las plantas visibles. Solo las que ocupan la vista.
+   * Dibuja las plantas visibles con follaje frondoso continuo,
+   * silueta lobulada y flores blancas idénticas a la muestra de referencia.
    * @param {Array<import('../entities/Plant.js').Plant>} plants
    * @param {import('./Camera.js').Camera} camera
    * @param {object} highlight info sobre la planta resaltada
    */
   drawPlants(plants, camera, highlight = null) {
     const ts = TILE_SIZE;
+    const ctx = this.ctx;
 
     for (let i = 0; i < plants.length; i += 1) {
       const plant = plants[i];
       const rect = { x: plant.x, y: plant.y, w: ts, h: ts };
 
-      if (!camera.isVisible(rect, 16)) continue;
+      if (!camera.isVisible(rect, 24)) continue;
 
-      const plantDrawSize = 80;
-      this.sprites.draw(plant.spriteKey, plant.x, plant.y, {
-        frameSize: 32,
-        width: plantDrawSize,
-        height: plantDrawSize,
-      });
+      const px = Math.round(plant.x);
+      const py = Math.round(plant.y);
 
-      // Marca sutil en la planta apuntada por el jugador.
+      // Arbusto tupido de alta fidelidad con capas de hojas y flores
+      this.#drawLushHedgeSegment(px, py, ts, plant);
+
+      // Marca sutil en la planta apuntada por el jugador
       if (highlight && highlight.plantId === plant.id) {
-        this.ctx.save();
-        this.ctx.globalAlpha = 0.35;
-        this.ctx.fillStyle = highlight.color ?? PALETTE.warn;
-        this.ctx.fillRect(Math.round(plant.x), Math.round(plant.y), ts, ts);
-        this.ctx.restore();
+        ctx.save();
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = highlight.color ?? PALETTE.warn;
+        ctx.beginPath();
+        ctx.arc(px + ts / 2, py + ts / 2, ts * 0.45, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
       }
     }
   }
 
   /**
-   * Dibuja los frutos que siguen en las plantas.
+   * Dibuja un segmento de seto continuo, frondoso y notablemente ancho.
+   * Con 4 hileras los arbustos se extienden más horizontalmente (ancho ~62px),
+   * con múltiples lóbulos de follaje verde vibrante y flores blancas.
+   */
+  #drawLushHedgeSegment(x, y, size, plant) {
+    const ctx = this.ctx;
+    const cx = x + size / 2;
+    const cy = y + size / 2;
+    // Arbustos más anchos y frondosos: radio horizontal ampliado a ~31px (ancho ~62px)
+    const rx = size * 0.65;
+    const ry = size * 0.50;
+
+    ctx.save();
+
+    // Sombra del follaje sobre el lecho arenoso
+    ctx.fillStyle = 'rgba(50, 25, 8, 0.26)';
+    ctx.beginPath();
+    ctx.ellipse(cx, y + size * 0.88, rx * 0.95, ry * 0.36, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 1. Capa base oscura del arbusto (fondo profundo de hojas verde bosque)
+    ctx.fillStyle = '#113b14';
+    ctx.beginPath();
+    ctx.arc(cx - rx * 0.45, cy - ry * 0.2, rx * 0.48, 0, Math.PI * 2);
+    ctx.arc(cx + rx * 0.45, cy - ry * 0.2, rx * 0.48, 0, Math.PI * 2);
+    ctx.arc(cx, cy + ry * 0.25, rx * 0.52, 0, Math.PI * 2);
+    ctx.arc(cx - rx * 0.55, cy + ry * 0.1, rx * 0.42, 0, Math.PI * 2);
+    ctx.arc(cx + rx * 0.55, cy + ry * 0.1, rx * 0.42, 0, Math.PI * 2);
+    ctx.arc(cx, cy - ry * 0.3, rx * 0.46, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. Capa media: verde esmeralda denso y frondoso
+    ctx.fillStyle = '#1e7021';
+    ctx.beginPath();
+    ctx.arc(cx - rx * 0.36, cy - ry * 0.16, rx * 0.42, 0, Math.PI * 2);
+    ctx.arc(cx + rx * 0.36, cy - ry * 0.16, rx * 0.42, 0, Math.PI * 2);
+    ctx.arc(cx, cy + ry * 0.15, rx * 0.45, 0, Math.PI * 2);
+    ctx.arc(cx - rx * 0.46, cy + ry * 0.05, rx * 0.36, 0, Math.PI * 2);
+    ctx.arc(cx + rx * 0.46, cy + ry * 0.05, rx * 0.36, 0, Math.PI * 2);
+    ctx.arc(cx, cy - ry * 0.22, rx * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 3. Capa de hojas iluminadas (verde hoja vibrante)
+    ctx.fillStyle = '#38a632';
+    ctx.beginPath();
+    ctx.arc(cx - rx * 0.26, cy - ry * 0.26, rx * 0.28, 0, Math.PI * 2);
+    ctx.arc(cx + rx * 0.26, cy - ry * 0.26, rx * 0.28, 0, Math.PI * 2);
+    ctx.arc(cx - rx * 0.06, cy - ry * 0.06, rx * 0.3, 0, Math.PI * 2);
+    ctx.arc(cx + rx * 0.28, cy + ry * 0.08, rx * 0.24, 0, Math.PI * 2);
+    ctx.arc(cx - rx * 0.3, cy + ry * 0.12, rx * 0.24, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 4. Puntas iluminadas por el sol (verde lima fresco)
+    ctx.fillStyle = '#5ed154';
+    ctx.beginPath();
+    ctx.arc(cx - rx * 0.2, cy - ry * 0.32, rx * 0.13, 0, Math.PI * 2);
+    ctx.arc(cx + rx * 0.18, cy - ry * 0.34, rx * 0.12, 0, Math.PI * 2);
+    ctx.arc(cx - rx * 0.02, cy - ry * 0.14, rx * 0.14, 0, Math.PI * 2);
+    ctx.arc(cx - rx * 0.38, cy - ry * 0.05, rx * 0.11, 0, Math.PI * 2);
+    ctx.arc(cx + rx * 0.38, cy - ry * 0.05, rx * 0.11, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 5. Pequeñas flores blancas de 5 pétalos con centro dorado
+    const flowerSeed = (plant.col * 31 + plant.row * 19) % 100;
+    const flowerPositions = [
+      { fx: cx - rx * 0.42, fy: cy - ry * 0.2 },
+      { fx: cx + rx * 0.4, fy: cy + ry * 0.12 },
+      { fx: cx + (flowerSeed % 16 - 8), fy: cy - ry * 0.05 },
+    ];
+
+    flowerPositions.forEach(({ fx, fy }) => {
+      ctx.fillStyle = '#ffffff';
+      for (let a = 0; a < 5; a += 1) {
+        const ang = (a * Math.PI * 2) / 5;
+        ctx.beginPath();
+        ctx.arc(fx + Math.cos(ang) * 2.2, fy + Math.sin(ang) * 2.2, 1.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath();
+      ctx.arc(fx, fy, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    ctx.restore();
+  }
+
+  /**
+   * Dibuja los frutos que siguen en las plantas con acabado de arándano
+   * pixel art realista (azul brillante con cáliz, morados y verdes).
    * @param {Array} plants
    * @param {import('./Camera.js').Camera} camera
    */
@@ -416,19 +485,223 @@ export class Renderer {
         if (fruit.collected) continue;
 
         const pos = plant.fruitPosition(fruit);
-        const key = fruit.type === 'RIPE' ? 'fruit.ripe' : 'fruit.unripe';
-        // Fruto visible con tamaño uniforme, sin deformar (scaleX == scaleY).
-        // 28px de ancho es lo suficientemente grande para ser distinguible
-        // sin distorsionar el sprite.
-        const fruitDrawSize = 28;
+        const fx = Math.round(pos.x);
+        const fy = Math.round(pos.y);
 
-        this.sprites.draw(key, pos.x - fruitDrawSize / 2, pos.y - fruitDrawSize / 2, {
-          frameSize: fruitDrawSize,
-          width: fruitDrawSize,
-          height: fruitDrawSize,
-        });
+        this.#drawBerry(fx, fy, fruit);
       }
     }
+  }
+
+  /**
+   * Dibuja un arándano individual (maduro azul, pintón púrpura o verde inmaduro).
+   */
+  #drawBerry(x, y, fruit) {
+    const ctx = this.ctx;
+    const isRipe = fruit.type === 'RIPE';
+    const isPurple = fruit.type === 'UNRIPE' && (fruit.variant % 2 === 1);
+    const radius = 6.5;
+
+    ctx.save();
+
+    // Sombra del fruto en el follaje
+    ctx.fillStyle = 'rgba(8, 24, 8, 0.4)';
+    ctx.beginPath();
+    ctx.arc(x + 1, y + 2, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (isRipe) {
+      // Arándano maduro: azul zafiro/marino profundo con corona y reflejo
+      ctx.fillStyle = '#0a1428';
+      ctx.beginPath();
+      ctx.arc(x, y, radius + 0.8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Degradado azul
+      const grad = ctx.createRadialGradient(x - 2, y - 2, 1, x, y, radius);
+      grad.addColorStop(0, '#60a5fa');
+      grad.addColorStop(0.35, '#2563eb');
+      grad.addColorStop(0.85, '#1e3a8a');
+      grad.addColorStop(1, '#172554');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cáliz / corona central oscuro característico
+      ctx.fillStyle = '#081024';
+      ctx.beginPath();
+      ctx.arc(x, y, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#1e3a8a';
+      ctx.fillRect(x - 2, y - 0.6, 4, 1.2);
+      ctx.fillRect(x - 0.6, y - 2, 1.2, 4);
+
+      // Brillo especular blanco en luna creciente superior izquierda
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.beginPath();
+      ctx.arc(x - 2.5, y - 2.5, 1.4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(191, 219, 254, 0.55)';
+      ctx.beginPath();
+      ctx.arc(x - 1.2, y - 3.2, 1, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (isPurple) {
+      // Arándano pintón violeta/púrpura
+      ctx.fillStyle = '#2e1065';
+      ctx.beginPath();
+      ctx.arc(x, y, radius + 0.8, 0, Math.PI * 2);
+      ctx.fill();
+
+      const grad = ctx.createRadialGradient(x - 2, y - 2, 1, x, y, radius);
+      grad.addColorStop(0, '#f0abfc');
+      grad.addColorStop(0.45, '#a855f7');
+      grad.addColorStop(1, '#581c87');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#2e1065';
+      ctx.beginPath();
+      ctx.arc(x, y, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.beginPath();
+      ctx.arc(x - 2, y - 2, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Arándano verde inmaduro
+      ctx.fillStyle = '#14532d';
+      ctx.beginPath();
+      ctx.arc(x, y, radius + 0.8, 0, Math.PI * 2);
+      ctx.fill();
+
+      const grad = ctx.createRadialGradient(x - 2, y - 2, 1, x, y, radius);
+      grad.addColorStop(0, '#bef264');
+      grad.addColorStop(0.45, '#84cc16');
+      grad.addColorStop(1, '#3f6212');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#14532d';
+      ctx.beginPath();
+      ctx.arc(x, y, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+      ctx.beginPath();
+      ctx.arc(x - 2, y - 2, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  /**
+   * Cartel rústico de madera sobre poste (CESTA, SUPERVISOR, CAMIÓN).
+   */
+  drawWoodenSign(x, y, text) {
+    const ctx = this.ctx;
+    ctx.save();
+
+    // Poste de madera
+    ctx.fillStyle = '#3a200a';
+    ctx.fillRect(Math.round(x - 2), Math.round(y), 4, 14);
+
+    // Tablón de madera
+    const paddingX = 8;
+    ctx.font = 'bold 9px "Outfit", "Segoe UI", sans-serif';
+    const textMetrics = ctx.measureText(text);
+    const w = Math.max(46, Math.round(textMetrics.width + paddingX * 2));
+    const h = 17;
+    const bx = Math.round(x - w / 2);
+    const by = Math.round(y - h);
+
+    // Borde oscuro
+    ctx.fillStyle = '#1d0f04';
+    ctx.fillRect(bx - 1, by - 1, w + 2, h + 2);
+
+    // Cuerpo de madera
+    ctx.fillStyle = '#784318';
+    ctx.fillRect(bx, by, w, h);
+
+    // Bisel superior iluminado
+    ctx.fillStyle = '#a1612a';
+    ctx.fillRect(bx, by, w, 2);
+
+    // Bisel inferior en sombra
+    ctx.fillStyle = '#45250b';
+    ctx.fillRect(bx, by + h - 2, w, 2);
+
+    // Clavos de esquina
+    ctx.fillStyle = '#d4bb98';
+    ctx.fillRect(bx + 2, by + 2, 2, 2);
+    ctx.fillRect(bx + w - 4, by + 2, 2, 2);
+    ctx.fillRect(bx + 2, by + h - 4, 2, 2);
+    ctx.fillRect(bx + w - 4, by + h - 4, 2, 2);
+
+    // Texto con contorno negro
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#000000';
+    for (let ox = -1; ox <= 1; ox += 1) {
+      for (let oy = -1; oy <= 1; oy += 1) {
+        if (ox !== 0 || oy !== 0) {
+          ctx.fillText(text, x + ox, by + h / 2 + oy);
+        }
+      }
+    }
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(text, x, by + h / 2);
+
+    ctx.restore();
+  }
+
+  /**
+   * Burbuja de exclamación blanca con '!' rojo sobre el supervisor.
+   */
+  drawExclamationBubble(x, y) {
+    const ctx = this.ctx;
+    ctx.save();
+    const w = 18;
+    const h = 16;
+    const bx = Math.round(x - w / 2);
+    const by = Math.round(y - h);
+
+    // Borde exterior oscuro
+    ctx.fillStyle = '#1c1007';
+    ctx.fillRect(bx - 1, by - 1, w + 2, h + 2);
+
+    // Cuerpo blanco de la burbuja
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(bx, by, w, h);
+
+    // Rabito inferior
+    ctx.fillStyle = '#1c1007';
+    ctx.beginPath();
+    ctx.moveTo(x - 3, by + h);
+    ctx.lineTo(x, by + h + 5);
+    ctx.lineTo(x + 3, by + h);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.moveTo(x - 2, by + h - 1);
+    ctx.lineTo(x, by + h + 4);
+    ctx.lineTo(x + 2, by + h - 1);
+    ctx.fill();
+
+    // Signo de exclamación rojo
+    ctx.fillStyle = '#dc2626';
+    ctx.fillRect(Math.round(x - 1.5), by + 2, 3, 7);
+    ctx.fillRect(Math.round(x - 1.5), by + 11, 3, 3);
+
+    ctx.restore();
   }
 
   /**
@@ -438,9 +711,18 @@ export class Renderer {
    * @param {object} [options]
    */
   drawEntity(entity, camera, options = {}) {
+    const isSupervisor = entity.isSupervisor || entity.spriteKey?.includes('supervisor');
     const size = entity.width ?? 32;
-    const drawW = options.width ?? size;
-    const drawH = options.height ?? size;
+    // Si la entidad es el supervisor, aumentamos su tamaño significativamente
+    // para que se vea imponente, nítido y bien proporcionado
+    const drawW = isSupervisor ? 46 : (options.width ?? size);
+    const drawH = isSupervisor ? 50 : (options.height ?? size);
+
+    // Si la entidad es el supervisor, dibujamos cartel y burbuja con '!'
+    if (isSupervisor) {
+      this.drawWoodenSign(entity.x, entity.y - 44, 'SUPERVISOR');
+      this.drawExclamationBubble(entity.x, entity.y - 20);
+    }
 
     // Sombra bajo el personaje
     this.sprites.drawShadow(
@@ -464,8 +746,11 @@ export class Renderer {
     });
   }
 
-  /** Canasta/caja de cosecha (§14). */
+  /** Canasta de cosecha (§14) con su cartel de madera "CESTA". */
   drawBasket(basket) {
+    // Cartel "CESTA" sobre la canasta
+    this.drawWoodenSign(basket.centerX, basket.y - 12, 'CESTA');
+
     this.sprites.drawShadow(
       Math.round(basket.centerX),
       Math.round(basket.y + basket.height * 0.85),
@@ -502,9 +787,10 @@ export class Renderer {
     }
   }
 
-  /** Camión (§16). */
+  /** Camión (§16) con su cartel "CAMIÓN". */
   drawTruck(truck) {
     if (!truck.isVisible) return;
+    this.drawWoodenSign(truck.x + truck.width * 0.5, truck.y - 14, 'CAMIÓN');
     this.sprites.draw(truck.spriteKey, truck.x, truck.y, {
       frame: truck.animationFrame,
       frameSize: 64,
