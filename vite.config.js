@@ -27,17 +27,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
 
-  /*
-    Rutas RELATIVAS.
-
-    Con base '/', el index pide los assets desde la raíz del dominio, lo
-    que falla si el juego se sirve desde una subcarpeta. Con base './'
-    el HTML pide './assets/...' y funciona igual en:
-      - http://localhost:5173/
-      - http://192.168.X.X:5173/
-      - una subcarpeta servida a mano
-  */
-  base: '/',
+  base: './',
 
   server: {
     host: '0.0.0.0',
@@ -53,8 +43,6 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
-    // Los assets pixel art deben copiarse tal cual, sin optimizaciones
-    // que los reescalen o suavicen.
     assetsInlineLimit: 0,
   },
 
