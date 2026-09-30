@@ -1,13 +1,14 @@
 /**
  * GameHud.jsx
  * ---------------------------------------------------------------
- * HUD arcade compacto y estilizado de 3 paneles con acabado de madera y metal.
- * Proporciones armoniosas y tipografía refinada para máxima nitidez y confort.
+ * HUD arcade de 4 paneles estilizados con acabado azul acero y acentos dorados
+ * idéntico al diseño de referencia (image.png):
  *
- *   [ PANEL VIDAS ]   [ PANEL PUNTUACIÓN & NIVEL ]   [ PANEL TIEMPO ]
- *   - 3 corazones     - Puntuación en 6 dígitos       - Icono reloj
- *   - "VIDAS 3"       - Nivel en píldora verde        - "02:35"
- *                     - Remaches dorados              - Botón de pausa
+ *   [ VIDAS ]   [ ESTADÍSTICAS ]   [ PUNTUACIÓN ]   [ SIGUIENTE REVISIÓN EN ]
+ *   - 3 corazones - Nivel 1/12      - Gran número     - Barra verde de progreso
+ *                 - Tiempo mm:ss      dorado          - Cuenta atrás mm:ss
+ *                 - Cosechados 28
+ *                 - Errores 1
  */
 
 import { formatTime } from '../../utils/math.js';
@@ -16,128 +17,129 @@ import './GameHud.css';
 export default function GameHud({ hud, onPause }) {
   if (!hud) return null;
 
-  const scoreFormatted = String(Math.max(0, hud.score ?? 0)).padStart(6, '0');
-  const levelText = `${hud.level ?? 1}-1`;
+  const scoreFormatted = String(Math.max(0, hud.score ?? 0));
+  const levelCurrent = hud.level ?? 1;
+  const levelTotal = hud.totalLevels ?? 12;
   const timeFormatted = formatTime(hud.timeLeft ?? 180);
   const livesCount = Math.max(0, hud.lives ?? 3);
+  const harvestedCount = hud.harvested ?? 0;
+  const errorsCount = hud.errors ?? 0;
+
+  // Temporizador de supervisión
+  const supTimer = Math.max(0, hud.supervisorTimer ?? 25);
+  const supInterval = hud.supervisorInterval ?? 30;
+  const supProgress = Math.max(0, Math.min(100, (supTimer / supInterval) * 100));
+  const supTimeFormatted = formatTime(supTimer);
 
   return (
     <div className="arcade-hud" role="region" aria-label="HUD de juego">
       {/* ============================================================
-          1. PANEL IZQUIERDO: VIDAS (Madera con tornillos y corazones)
+          1. PANEL IZQUIERDO: VIDAS
           ============================================================ */}
-      <div className="hud-panel hud-panel--wood hud-panel--lives">
-        <span className="hud-screw hud-screw--tl" aria-hidden="true" />
-        <span className="hud-screw hud-screw--tr" aria-hidden="true" />
-        <span className="hud-screw hud-screw--bl" aria-hidden="true" />
-        <span className="hud-screw hud-screw--br" aria-hidden="true" />
-
+      <div className="hud-panel hud-panel--arcade hud-panel--lives">
+        <div className="hud-title">VIDAS:</div>
         <div className="hud-lives__hearts" aria-label={`Vidas: ${livesCount}`}>
-          {Array.from({ length: 3 }).map((_, i) => (
-            <span
-              key={i}
-              className={`hud-pixel-heart ${i < livesCount ? 'is-full' : 'is-empty'}`}
-            >
-              <svg viewBox="0 0 16 14" className="hud-heart-svg">
-                <path
-                  d="M2 2 H6 V4 H8 V4 H10 V2 H14 V6 H16 V8 H14 V10 H12 V12 H10 V14 H6 V12 H4 V10 H2 V8 H0 V6 H2 Z"
-                  className="hud-heart-path"
-                />
-                <circle cx="4.5" cy="4.5" r="1.2" className="hud-heart-shine" />
-              </svg>
-            </span>
-          ))}
-        </div>
+          {Array.from({ length: 3 }).map((_, i) => {
+            const heartStatus =
+              livesCount >= i + 1
+                ? 'full'
+                : livesCount >= i + 0.5
+                ? 'half'
+                : 'empty';
 
-        <div className="hud-lives__text-row">
-          <span className="hud-label hud-label--yellow">VIDAS</span>
-          <span className="hud-value hud-value--lives">{livesCount}</span>
-        </div>
-      </div>
+            return (
+              <span
+                key={i}
+                className={`hud-pixel-heart is-${heartStatus}`}
+                title={`Corazón ${i + 1}: ${heartStatus === 'full' ? 'Completo' : heartStatus === 'half' ? 'Medio' : 'Vacío'}`}
+              >
+                <svg viewBox="0 0 16 14" className="hud-heart-svg">
+                  <defs>
+                    <clipPath id={`heart-half-clip-${i}`}>
+                      <rect x="0" y="0" width="8" height="14" />
+                    </clipPath>
+                  </defs>
 
-      {/* ============================================================
-          2. PANEL CENTRAL: PUNTUACIÓN Y NIVEL (Chapa azul con remaches dorados)
-          ============================================================ */}
-      <div className="hud-panel hud-panel--blue hud-panel--center">
-        {/* Remaches metálicos dorados sutiles */}
-        <span className="hud-rivet hud-rivet--tl" aria-hidden="true" />
-        <span className="hud-rivet hud-rivet--tc" aria-hidden="true" />
-        <span className="hud-rivet hud-rivet--tr" aria-hidden="true" />
-        <span className="hud-rivet hud-rivet--bl" aria-hidden="true" />
-        <span className="hud-rivet hud-rivet--bc" aria-hidden="true" />
-        <span className="hud-rivet hud-rivet--br" aria-hidden="true" />
+                  {/* Silueta base oscura de fondo */}
+                  <path
+                    d="M2 2 H6 V4 H8 V4 H10 V2 H14 V6 H16 V8 H14 V10 H12 V12 H10 V14 H6 V12 H4 V10 H2 V8 H0 V6 H2 Z"
+                    className="hud-heart-bg"
+                  />
 
-        {/* Columna PUNTUACIÓN */}
-        <div className="hud-center__score-col">
-          <div className="hud-label hud-label--white">PUNTUACIÓN</div>
-          <div className="hud-value hud-value--score" title={`Puntos: ${hud.score}`}>
-            {scoreFormatted}
-          </div>
-        </div>
+                  {/* Capa roja (completa o recortada a la mitad izquierda) */}
+                  {heartStatus !== 'empty' && (
+                    <g clipPath={heartStatus === 'half' ? `url(#heart-half-clip-${i})` : undefined}>
+                      <path
+                        d="M2 2 H6 V4 H8 V4 H10 V2 H14 V6 H16 V8 H14 V10 H12 V12 H10 V14 H6 V12 H4 V10 H2 V8 H0 V6 H2 Z"
+                        className="hud-heart-red"
+                      />
+                      <circle cx="4.5" cy="4.5" r="1.3" className="hud-heart-shine" />
+                    </g>
+                  )}
 
-        {/* Columna NIVEL */}
-        <div className="hud-center__level-col">
-          <div className="hud-label hud-label--white">NIVEL</div>
-          <div className="hud-level-pill" title={`Nivel ${hud.level}`}>
-            {levelText}
-          </div>
+                  {/* Línea divisoria vertical si está a la mitad */}
+                  {heartStatus === 'half' && (
+                    <line x1="8" y1="2" x2="8" y2="13" stroke="#0f172a" strokeWidth="1" />
+                  )}
+                </svg>
+              </span>
+            );
+          })}
         </div>
       </div>
 
       {/* ============================================================
-          3. PANEL DERECHO: TIEMPO (Madera con reloj analógico y contador)
+          2. PANEL MEDIO-IZQUIERDA: ESTADÍSTICAS (NIVEL, TIEMPO, COSECHADOS, ERRORES)
           ============================================================ */}
-      <div className="hud-panel hud-panel--wood hud-panel--time">
-        <span className="hud-screw hud-screw--tl" aria-hidden="true" />
-        <span className="hud-screw hud-screw--tr" aria-hidden="true" />
-        <span className="hud-screw hud-screw--bl" aria-hidden="true" />
-        <span className="hud-screw hud-screw--br" aria-hidden="true" />
-
-        <div className="hud-label hud-label--white">TIEMPO</div>
-
-        <div className="hud-time__content">
-          <div className="hud-clock-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" className="hud-clock-svg">
-              {/* Campanas */}
-              <circle cx="5" cy="5" r="2.5" fill="#d97706" stroke="#451a03" strokeWidth="1" />
-              <circle cx="19" cy="5" r="2.5" fill="#d97706" stroke="#451a03" strokeWidth="1" />
-              {/* Patitas */}
-              <rect x="4" y="20" width="3" height="3" rx="1" fill="#78350f" stroke="#451a03" strokeWidth="1" />
-              <rect x="17" y="20" width="3" height="3" rx="1" fill="#78350f" stroke="#451a03" strokeWidth="1" />
-              {/* Cuerpo del reloj */}
-              <circle cx="12" cy="13" r="9" fill="#f59e0b" stroke="#451a03" strokeWidth="1.5" />
-              <circle cx="12" cy="13" r="7.5" fill="#ffffff" stroke="#78350f" strokeWidth="1" />
-              {/* Agujas */}
-              <line x1="12" y1="13" x2="12" y2="8" stroke="#1c1917" strokeWidth="1.6" strokeLinecap="round" />
-              <line x1="12" y1="13" x2="15" y2="13" stroke="#1c1917" strokeWidth="1.6" strokeLinecap="round" />
-              <circle cx="12" cy="13" r="1.2" fill="#dc2626" />
-            </svg>
-          </div>
-
-          <div
-            className={`hud-value hud-value--time ${hud.timeWarning ? 'is-warning' : ''}`}
-            title={`Tiempo restante: ${timeFormatted}`}
-          >
-            {timeFormatted}
-          </div>
+      <div className="hud-panel hud-panel--arcade hud-panel--stats">
+        <div className="hud-stat-row">
+          <span className="hud-stat-label">NIVEL:</span>
+          <span className="hud-stat-value hud-stat-value--white">{levelCurrent} / {levelTotal}</span>
         </div>
+        <div className="hud-stat-row">
+          <span className="hud-stat-label">TIEMPO:</span>
+          <span className="hud-stat-value hud-stat-value--gold">{timeFormatted}</span>
+        </div>
+        <div className="hud-stat-row">
+          <span className="hud-stat-label">COSECHADOS:</span>
+          <span className="hud-stat-value hud-stat-value--gold">{harvestedCount}</span>
+        </div>
+        <div className="hud-stat-row">
+          <span className="hud-stat-label">ERRORES:</span>
+          <span className="hud-stat-value hud-stat-value--red">{errorsCount}</span>
+        </div>
+      </div>
 
-        {/* Botón de pausa discreto */}
-        <button
-          type="button"
-          className="hud-pause-button"
-          onClick={onPause}
-          aria-label="Pausa"
-          title="Pausar juego"
-        >
-          II
-        </button>
+      {/* ============================================================
+          3. PANEL MEDIO-DERECHA: PUNTUACIÓN
+          ============================================================ */}
+      <div className="hud-panel hud-panel--arcade hud-panel--score">
+        <div className="hud-title">PUNTUACIÓN:</div>
+        <div className="hud-score-number" title={`Puntos: ${hud.score}`}>
+          {scoreFormatted}
+        </div>
+      </div>
+
+      {/* ============================================================
+          4. PANEL DERECHO: SIGUIENTE REVISIÓN EN
+          ============================================================ */}
+      <div className="hud-panel hud-panel--arcade hud-panel--review">
+        <div className="hud-title">SIGUIENTE REVISIÓN EN:</div>
+        <div className="hud-review-row">
+          <div className="hud-progress-track">
+            <div
+              className="hud-progress-fill"
+              style={{ width: `${supProgress}%` }}
+            />
+          </div>
+          <span className="hud-review-time">{supTimeFormatted}</span>
+        </div>
       </div>
 
       {/* ---------- Aviso Canasta Llena ---------- */}
       {hud.basketFull && (
         <div className="hud-banner-alert hud-banner-alert--full">
-          🧺 CANASTA LLENA — ENTREGA EN LA CESTA
+          🧺 CANASTA LLENA — ENTREGA EN EL BIN CENTRAL
         </div>
       )}
     </div>

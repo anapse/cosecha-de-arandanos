@@ -57,20 +57,24 @@ export class HarvestSystem {
     let best = null;
     let bestDistance = Infinity;
 
+    // Si el jugador extiende la mano a su DERECHA, busca frutos en el lado izquierdo
+    // de la planta situada a su derecha. Si extiende la mano a su IZQUIERDA, busca
+    // frutos en el lado derecho de la planta situada a su izquierda.
+    const targetFruitSide = side === HARVEST_SIDES.RIGHT ? 'left' : 'right';
+
     for (let i = 0; i < plants.length; i += 1) {
       const plant = plants[i];
       if (!plant.hasFruits) continue;
 
-      // El lado de la planta debe coincidir con la dirección pedida.
-      const candidates = plant.fruitsOnSide(side);
-      if (candidates.length === 0) continue;
-
-      // El jugador debe estar a ese lado de la planta (§7).
+      // El jugador debe estar en el pasillo correspondiente para alcanzar el fruto
       const isPlayerOnSide =
-        side === HARVEST_SIDES.LEFT
+        side === HARVEST_SIDES.RIGHT
           ? player.x <= plant.centerX + 6
           : player.x >= plant.centerX - 6;
       if (!isPlayerOnSide) continue;
+
+      const candidates = plant.fruitsOnSide(targetFruitSide);
+      if (candidates.length === 0) continue;
 
       for (let f = 0; f < candidates.length; f += 1) {
         const fruit = candidates[f];
@@ -94,9 +98,11 @@ export class HarvestSystem {
    * el arándano y en móvil se toca encima. Cada fruto es una unidad
    * individual, así que cada uno requiere su propio toque (§6).
    *
-   * A diferencia de `findTarget`, aquí NO se filtra por lado: el
-   * jugador señala el fruto concreto que quiere. Sí se exige que esté
-   * dentro del alcance, para que no se pueda cosechar a distancia.
+   * Exigencia física estricta de lado (§7):
+   * - Si el arándano sale por el lado IZQUIERDO de la planta, el jugador
+   *   debe estar en el camino izquierdo.
+   * - Si sale por el lado DERECHO de la planta, el jugador debe rodear
+   *   la planta e ir al camino derecho para alcanzarlo.
    *
    * @param {import('../entities/Player.js').Player} player
    * @param {number} worldX x del punto pulsado, en coordenadas del mundo
@@ -117,17 +123,19 @@ export class HarvestSystem {
         const fruit = plant.fruits[f];
         if (fruit.collected) continue;
 
+        // Exigencia de lado: si el fruto está al lado izquierdo, el jugador
+        // debe estar a la izquierda de la planta. Si está al derecho, a la derecha.
+        if (fruit.side === 'left' && player.x > plant.centerX + 6) continue;
+        if (fruit.side === 'right' && player.x < plant.centerX - 6) continue;
+
         const pos = plant.fruitPosition(fruit);
 
-        // Distancia del punto pulsado al centro del fruto. El radio
-        // perdona la imprecisión del dedo: el fruto mide pocos píxeles
-        // y en un teléfono es difícil acertar al píxel.
+        // Distancia del punto pulsado al centro del fruto.
         const hitDistance = distance(worldX, worldY, pos.x, pos.y);
         const hitRadius = FRUIT_SIZE / 2 + radius;
         if (hitDistance > hitRadius) continue;
 
-        // Debe estar dentro del alcance del jugador (§6): no se puede
-        // recolectar desde el otro extremo del campo.
+        // Debe estar dentro del alcance del jugador (§6)
         const reachDistance = distance(player.x, player.y, pos.x, pos.y);
         if (reachDistance > this.reach) continue;
 

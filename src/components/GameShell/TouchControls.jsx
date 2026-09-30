@@ -1,33 +1,27 @@
 /**
  * TouchControls.jsx
  * ---------------------------------------------------------------
- * Controles táctiles (§26, §37).
+ * Controles móviles transparentes y control por deslizamiento (swipe).
  *
- * CRUCETA + BOTONES GRANDES:
- *
- *        ↑
- *   ←    ↓    →
- *
- *   [RECOGER IZQUIERDA] [RECOGER DERECHA]  [ENTREGAR]
- *
- * Capa HTML/CSS sobre el canvas: se puede rediseñar sin tocar el
- * motor. Solo escribe en TouchInput; no sabe nada de reglas del juego.
- *
- * Se muestra automáticamente en dispositivos táctiles y también en
- * PC si se activa desde los ajustes (§9: aparecen cuando son
- * necesarios).
+ * Características:
+ *   1. Deslizamiento en cualquier parte de la pantalla (swipe / drag continuo)
+ *      para mover al jugador en cualquier dirección con total fluidez.
+ *   2. Botones de dirección transparentes (50% de tamaño) situados en los bordes:
+ *      - Arriba (centro superior)
+ *      - Abajo (centro inferior)
+ *      - Izquierda (mitad izquierda)
+ *      - Derecha (mitad derecha)
+ *   3. Botones de acción compactos y translúcidos en la parte inferior:
+ *      - [🫐 COSECHAR] (cosecha inteligente hacia el fruto más cercano)
+ *      - [🧺 ENTREGAR] (entrega en la cesta central)
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import './TouchControls.css';
 
-const DIRECTIONS = ['up', 'down', 'left', 'right'];
-
 export default function TouchControls({ engine, visible = true, onDeliver }) {
-  // Se detecta el soporte táctil una sola vez al montar.
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [pressed, setPressed] = useState({});
-  const pointersRef = useRef(new Map());
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   useEffect(() => {
     const hasTouch =
@@ -36,81 +30,186 @@ export default function TouchControls({ engine, visible = true, onDeliver }) {
     setIsTouchDevice(hasTouch);
   }, []);
 
+  const touchStateRef = useRef({
+    activePointerId: null,
+    startX: 0,
+    startY: 0,
+    currentDir: null,
+    isDragging: false,
+    startTime: 0,
+  });
+
   const touch = engine?.touchInput ?? null;
 
-  /** Marca visualmente un botón mientras está pulsado. */
   const setPressedState = useCallback((key, value) => {
     setPressed((prev) => (prev[key] === value ? prev : { ...prev, [key]: value }));
   }, []);
 
   /* ============================================================
-     Direcciones — soportan arrastrar el dedo entre botones
+     1. Manejadores de Botones de Dirección Específicos
      ============================================================ */
-  const handleDirectionDown = useCallback(
-    (direction) => (event) => {
-      event.preventDefault();
-      const el = event.currentTarget;
-      // Guarda el puntero para poder soltarlo aunque el dedo salga
-      // del botón.
-      if (el.setPointerCapture && event.pointerId != null) {
-        try {
-          el.setPointerCapture(event.pointerId);
-        } catch {
-          // Algunos navegadores no lo permiten: no es crítico.
+  const handleDirDown = useCallback(
+    (dir) => (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      touch?.setDirection(dir, true);
+      setPressedState(`dir-${dir}`, true);
+    },
+    [touch, setPressedState]
+  );
+
+  const handleDirUp = useCallback(
+    (dir) => (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      touch?.setDirection(dir, false);
+      setPressedState(`dir-${dir}`, false);
+    },
+    [touch, setPressedState]
+  );
+
+  /* ============================================================
+     2. Control por Deslizamiento / Swipe en Cualquier Parte de la Pantalla
+     ============================================================ */
+  const handleSurfacePointerDown = useCallback(
+    (e) => {
+      // Solo capturamos si no fue en un botón interactivo
+      if (e.target.closest('button')) return;
+
+      const state = touchStateRef.current;
+      state.activePointerId = e.pointerId;
+      state.startX = e.clientX;
+      state.startY = e.clientY;
+      state.startTime = Date.now();
+      state.isDragging = false;
+      state.currentDir = null;
+
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        // Ignorar si no soporta pointer capture
+      }
+    },
+    []
+  );
+
+  const handleSurfacePointerMove = useCallback(
+    (e) => {
+      const state = touchStateRef.current;
+      if (state.activePointerId !== e.pointerId) return;
+
+      const dx = e.clientX - state.startX;
+      const dy = e.clientY - state.startY;
+      const dist = Math.hypot(dx, dy);
+
+      // Si se mueve más de 8px, activamos el deslizamiento
+      if (dist > 8) {
+        state.isDragging = true;
+        let newDir = null;
+
+        if (Math.abs(dx) > Math.abs(dy)) {
+          newDir = dx > 0 ? 'right' : 'left';
+        } else {
+          newDir = dy > 0 ? 'down' : 'up';
+        }
+
+        if (state.currentDir !== newDir) {
+          // Soltamos la dirección previa
+          if (state.currentDir) {
+            touch?.setDirection(state.currentDir, false);
+            setPressedState(`dir-${state.currentDir}`, false);
+          }
+          // Activamos la nueva
+          if (newDir) {
+            touch?.setDirection(newDir, true);
+            setPressedState(`dir-${newDir}`, true);
+          }
+          state.currentDir = newDir;
         }
       }
-      pointersRef.current.set(event.pointerId, direction);
-      touch?.setDirection(direction, true);
-      setPressedState(`dir-${direction}`, true);
     },
     [touch, setPressedState]
   );
 
-  const handleDirectionUp = useCallback(
-    (direction) => (event) => {
-      event.preventDefault();
-      pointersRef.current.delete(event.pointerId);
-      touch?.setDirection(direction, false);
-      setPressedState(`dir-${direction}`, false);
+  const handleSurfacePointerUp = useCallback(
+    (e) => {
+      const state = touchStateRef.current;
+      if (state.activePointerId !== e.pointerId) return;
+
+      if (state.currentDir) {
+        touch?.setDirection(state.currentDir, false);
+        setPressedState(`dir-${state.currentDir}`, false);
+      }
+
+      // Si fue un toque rápido sin arrastre, intentar cosechar en ese punto del canvas
+      const elapsed = Date.now() - state.startTime;
+      if (!state.isDragging && elapsed < 350 && engine) {
+        const canvas = engine.canvas;
+        if (canvas) {
+          const rect = canvas.getBoundingClientRect();
+          const cssX = e.clientX - rect.left;
+          const cssY = e.clientY - rect.top;
+          engine.harvestAtScreen(cssX, cssY);
+        }
+      }
+
+      state.activePointerId = null;
+      state.isDragging = false;
+      state.currentDir = null;
+      touch?.releaseAllDirections();
     },
-    [touch, setPressedState]
+    [engine, touch, setPressedState]
   );
 
   /* ============================================================
-     Acciones
+     3. Botones de Acción: Cosechar y Entregar
      ============================================================ */
-  const handleHarvest = useCallback(
-    (side) => (event) => {
-      event.preventDefault();
-      touch?.pressHarvest(side);
-      setPressedState(`harvest-${side}`, true);
-      // El botón se suelta solo: la acción ya quedó registrada.
+  const handleActionHarvest = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      // Acción contextual inteligente
+      if (engine) {
+        const side = engine.harvestSystem?.findBestSide?.(engine.player) || 'right';
+        touch?.pressHarvest(side);
+      } else {
+        touch?.pressHarvest('right');
+      }
+      setPressedState('action-harvest', true);
       window.setTimeout(() => {
-        setPressedState(`harvest-${side}`, false);
-        touch?.releaseHarvest(side);
-      }, 140);
+        setPressedState('action-harvest', false);
+        touch?.releaseHarvest('left');
+        touch?.releaseHarvest('right');
+      }, 160);
     },
-    [touch, setPressedState]
+    [engine, touch, setPressedState]
   );
 
-  const handleDeliver = useCallback(
-    (event) => {
-      event.preventDefault();
+  const handleActionDeliver = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       onDeliver?.();
-      setPressedState('deliver', true);
-      window.setTimeout(() => setPressedState('deliver', false), 140);
+      touch?.pressDeliver();
+      setPressedState('action-deliver', true);
+      window.setTimeout(() => {
+        setPressedState('action-deliver', false);
+        touch?.releaseDeliver();
+      }, 160);
     },
-    [onDeliver, setPressedState]
+    [onDeliver, touch, setPressedState]
   );
 
   /* ============================================================
-     Seguridad: si se pierde el foco, se sueltan todas las teclas
+     Seguridad: Liberar todo al perder foco o cancelar
      ============================================================ */
   useEffect(() => {
     const releaseAll = () => {
       touch?.releaseAllDirections();
       setPressed({});
-      pointersRef.current.clear();
+      touchStateRef.current.activePointerId = null;
+      touchStateRef.current.isDragging = false;
+      touchStateRef.current.currentDir = null;
     };
 
     window.addEventListener('blur', releaseAll);
@@ -123,111 +222,100 @@ export default function TouchControls({ engine, visible = true, onDeliver }) {
     };
   }, [touch]);
 
-  // En PC sin táctil no se muestran (el teclado es mejor).
-  if (!isTouchDevice || !visible) return null;
+  if (!visible) return null;
 
   return (
-    <div className="touch-controls" aria-hidden="false">
-      {/* ---------- Cruceta ---------- */}
-      <div className="touch-dpad" role="group" aria-label="Movimiento">
-        <button
-          type="button"
-          className={`touch-btn touch-btn--up ${pressed['dir-up'] ? 'is-active' : ''}`}
-          onPointerDown={handleDirectionDown('up')}
-          onPointerUp={handleDirectionUp('up')}
-          onPointerLeave={handleDirectionUp('up')}
-          onContextMenu={(e) => e.preventDefault()}
-          aria-label="Subir"
-        >
-          ▲
-        </button>
+    <div
+      className="touch-overlay"
+      onPointerDown={handleSurfacePointerDown}
+      onPointerMove={handleSurfacePointerMove}
+      onPointerUp={handleSurfacePointerUp}
+      onPointerCancel={handleSurfacePointerUp}
+      aria-label="Superficie de control táctil"
+    >
+      {/* ---------- Botones de Dirección (solo en dispositivos táctiles / móvil) ---------- */}
+      {isTouchDevice && (
+        <>
+          {/* Botón Superior (Arriba) */}
+          <button
+            type="button"
+            className={`touch-dir-btn touch-dir-btn--up ${pressed['dir-up'] ? 'is-active' : ''}`}
+            onPointerDown={handleDirDown('up')}
+            onPointerUp={handleDirUp('up')}
+            onPointerLeave={handleDirUp('up')}
+            onContextMenu={(e) => e.preventDefault()}
+            aria-label="Subir"
+          >
+            ▲
+          </button>
 
-        <button
-          type="button"
-          className={`touch-btn touch-btn--left ${pressed['dir-left'] ? 'is-active' : ''}`}
-          onPointerDown={handleDirectionDown('left')}
-          onPointerUp={handleDirectionUp('left')}
-          onPointerLeave={handleDirectionUp('left')}
-          onContextMenu={(e) => e.preventDefault()}
-          aria-label="Izquierda"
-        >
-          ◀
-        </button>
+          {/* Botón Izquierdo (Mitad Izquierda) */}
+          <button
+            type="button"
+            className={`touch-dir-btn touch-dir-btn--left ${pressed['dir-left'] ? 'is-active' : ''}`}
+            onPointerDown={handleDirDown('left')}
+            onPointerUp={handleDirUp('left')}
+            onPointerLeave={handleDirUp('left')}
+            onContextMenu={(e) => e.preventDefault()}
+            aria-label="Izquierda"
+          >
+            ◀
+          </button>
 
-        <button
-          type="button"
-          className={`touch-btn touch-btn--down ${pressed['dir-down'] ? 'is-active' : ''}`}
-          onPointerDown={handleDirectionDown('down')}
-          onPointerUp={handleDirectionUp('down')}
-          onPointerLeave={handleDirectionUp('down')}
-          onContextMenu={(e) => e.preventDefault()}
-          aria-label="Bajar"
-        >
-          ▼
-        </button>
+          {/* Botón Derecho (Mitad Derecha) */}
+          <button
+            type="button"
+            className={`touch-dir-btn touch-dir-btn--right ${pressed['dir-right'] ? 'is-active' : ''}`}
+            onPointerDown={handleDirDown('right')}
+            onPointerUp={handleDirUp('right')}
+            onPointerLeave={handleDirUp('right')}
+            onContextMenu={(e) => e.preventDefault()}
+            aria-label="Derecha"
+          >
+            ▶
+          </button>
 
-        <button
-          type="button"
-          className={`touch-btn touch-btn--right ${pressed['dir-right'] ? 'is-active' : ''}`}
-          onPointerDown={handleDirectionDown('right')}
-          onPointerUp={handleDirectionUp('right')}
-          onPointerLeave={handleDirectionUp('right')}
-          onContextMenu={(e) => e.preventDefault()}
-          aria-label="Derecha"
-        >
-          ▶
-        </button>
-      </div>
+          {/* Botón Inferior (Abajo) */}
+          <button
+            type="button"
+            className={`touch-dir-btn touch-dir-btn--down ${pressed['dir-down'] ? 'is-active' : ''}`}
+            onPointerDown={handleDirDown('down')}
+            onPointerUp={handleDirUp('down')}
+            onPointerLeave={handleDirUp('down')}
+            onContextMenu={(e) => e.preventDefault()}
+            aria-label="Bajar"
+          >
+            ▼
+          </button>
+        </>
+      )}
 
-      {/* ---------- Botones de acción ---------- */}
-      <div className="touch-actions" role="group" aria-label="Acciones">
+      {/* ---------- Botones de Acción Inferiores (Disponibles siempre) ---------- */}
+      <div className="touch-actions-bar" role="group" aria-label="Acciones de juego">
         <button
           type="button"
-          className={`touch-action-btn touch-action-btn--harvest-left ${
-            pressed['harvest-left'] ? 'is-active' : ''
+          className={`touch-action-pill touch-action-pill--harvest ${
+            pressed['action-harvest'] ? 'is-active' : ''
           }`}
-          onPointerDown={handleHarvest('left')}
+          onPointerDown={handleActionHarvest}
           onContextMenu={(e) => e.preventDefault()}
-          aria-label="Recoger izquierda"
+          aria-label="Cosechar arándano"
         >
-          <span className="touch-action-btn__icon">🫐</span>
-          <span className="touch-action-btn__label">
-            RECOGER
-            <br />
-            IZQ
-          </span>
+          <span className="touch-pill__icon">🫐</span>
+          <span className="touch-pill__label">COSECHAR</span>
         </button>
 
         <button
           type="button"
-          className={`touch-action-btn touch-action-btn--deliver ${
-            pressed.deliver ? 'is-active' : ''
+          className={`touch-action-pill touch-action-pill--deliver ${
+            pressed['action-deliver'] ? 'is-active' : ''
           }`}
-          onPointerDown={handleDeliver}
+          onPointerDown={handleActionDeliver}
           onContextMenu={(e) => e.preventDefault()}
-          aria-label="Entregar"
+          aria-label="Entregar en la cesta"
         >
-          <span className="touch-action-btn__icon">🧺</span>
-          <span className="touch-action-btn__label">
-            ENTREGAR
-          </span>
-        </button>
-
-        <button
-          type="button"
-          className={`touch-action-btn touch-action-btn--harvest-right ${
-            pressed['harvest-right'] ? 'is-active' : ''
-          }`}
-          onPointerDown={handleHarvest('right')}
-          onContextMenu={(e) => e.preventDefault()}
-          aria-label="Recoger derecha"
-        >
-          <span className="touch-action-btn__icon">🫐</span>
-          <span className="touch-action-btn__label">
-            RECOGER
-            <br />
-            DER
-          </span>
+          <span className="touch-pill__icon">🧺</span>
+          <span className="touch-pill__label">ENTREGAR</span>
         </button>
       </div>
     </div>

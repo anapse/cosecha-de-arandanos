@@ -52,6 +52,42 @@ export class Plant {
     });
   }
 
+  /**
+   * Actualiza la maduración progresiva de los arándanos verdes/pintones (§10).
+   * Los verdes van madurando con el tiempo mientras el jugador cosecha.
+   * @param {number} dt
+   * @returns {Array<object>} lista de frutos que acaban de madurar a azul
+   */
+  update(dt) {
+    if (this.harvested || !this.hasFruits) return [];
+    const newlyRipened = [];
+
+    for (let i = 0; i < this.fruits.length; i += 1) {
+      const fruit = this.fruits[i];
+      if (fruit.collected) continue;
+
+      if (fruit.type === 'UNRIPE') {
+        if (fruit.ripenTimer === undefined) {
+          // Temporizador aleatorio de maduración entre 8 y 18 segundos
+          fruit.ripenTimer = 8 + (Math.abs(Math.sin((fruit.slot ?? 0.5) * 100)) * 10);
+        }
+
+        fruit.ripenTimer -= dt;
+        if (fruit.ripenTimer <= 0) {
+          fruit.type = 'RIPE';
+          fruit.justRipened = true;
+          newlyRipened.push(fruit);
+        }
+      }
+    }
+
+    if (newlyRipened.length > 0) {
+      this.refreshState();
+    }
+
+    return newlyRipened;
+  }
+
   /** Rectángulo de la planta (bloquea el paso, §39). */
   get rect() {
     return { x: this.x, y: this.y + TILE_SIZE * 0.2, w: this.width, h: this.height * 0.8 };

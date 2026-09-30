@@ -1,58 +1,45 @@
 /* ============================================================
    App.css — estilos de la aplicación exterior
-   El tamaño y la proporción del visor están en
-   src/styles/responsive.css (regla visual más importante, §45).
    ============================================================ */
 
-/* ---------- Capa raíz de la aplicación ---------- */
-/* NOTA: responsive.css define el flex layout completo.
-   Este archivo solo añade comportamiento adicional. */
 .app {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   height: 100%;
   width: 100%;
 }
 
-/* ---------- Botón de sonido: flota fuera del visor ---------- */
+/* ---------- Botón de sonido: contenido dentro del visor en la esquina superior derecha ---------- */
 .app__sound-toggle {
-  position: fixed;
-  top: calc(8px + env(safe-area-inset-top, 0px));
-  right: calc(10px + env(safe-area-inset-right, 0px));
-  z-index: 90;
+  position: absolute;
+  top: 48px;
+  right: 6px;
+  z-index: 50;
 
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
 
-  background: rgba(26, 44, 78, 0.8);
-  border: 2px solid var(--c-panel-border);
-  color: var(--c-text);
-  font-size: 17px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #f8fafc;
+  font-size: 13px;
   line-height: 1;
 
   display: flex;
   align-items: center;
   justify-content: center;
-
-  transition: background var(--t-fast) ease, transform var(--t-fast) ease;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  transition: transform 0.1s ease, background 0.1s ease;
+  backdrop-filter: blur(2px);
 }
 
 .app__sound-toggle:active {
-  transform: scale(var(--tap-scale));
-  background: var(--c-panel-2);
-}
-
-/* En móvil vertical, el botón se aparta del HUD del juego */
-@media (max-width: 600px) and (orientation: portrait) {
-  .app__sound-toggle {
-    top: auto;
-    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
-    right: calc(8px + env(safe-area-inset-right, 0px));
-    opacity: 0.55;
-  }
+  transform: scale(0.92);
+  background: rgba(30, 58, 138, 0.9);
 }
 
 /* ---------- Cargando el primer nivel ---------- */

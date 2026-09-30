@@ -205,35 +205,36 @@ export class MapGenerator {
       h: (totalRows - bottomCorridorRow) * TILE_SIZE,
     };
 
-    // Canasta en el centro exacto (columna 4)
-    const basketCol = 4;
-
+    // Canasta / Bin central (dimensiones 116 x 74, centrado en x=136, y=548)
     const basketSpot = {
-      x: basketCol * TILE_SIZE,
-      y: (deliveryStartRow + 0.8) * TILE_SIZE,
-      w: TILE_SIZE,
-      h: TILE_SIZE,
+      x: 136,
+      y: 548,
+      w: 116,
+      h: 74,
     };
 
-    // El jugador aparece en el pasillo inferior, sobre la columna central
+    // El jugador aparece en el pasillo inferior, sobre el camino central
     const spawn = {
-      x: (basketCol + 0.5) * TILE_SIZE,
-      y: (bottomCorridorRow + 0.5) * TILE_SIZE,
+      x: 216,
+      y: 456,
     };
 
-    // Cajas apiladas a la izquierda en la zona de entrega
-    const crateSpots = [];
-    for (let i = 0; i < 3; i += 1) {
-      crateSpots.push({
-        x: (1.2 + i * 0.95) * TILE_SIZE,
-        y: (deliveryStartRow + 0.8) * TILE_SIZE,
-      });
-    }
+    // Cajas apiladas a la izquierda (cluster escalonado idéntico a image.png)
+    const crateSpots = [
+      { x: 22, y: 598 },
+      { x: 50, y: 574 },
+      { x: 78, y: 550 },
+      { x: 106, y: 574 },
+    ];
 
-    // Supervisor a la derecha en la zona de entrega con amplio espacio
+    // Supervisor de calidad: descansa alejado a la derecha (home) y va al cajón a revisar (inspection)
     const supervisorSpawn = {
-      x: (cols - 2.2) * TILE_SIZE,
-      y: (deliveryStartRow + 0.9) * TILE_SIZE,
+      x: 440,
+      y: 560,
+    };
+    const supervisorInspectionSpot = {
+      x: 260,
+      y: 560,
     };
 
     // Límites transitables: desde el pasillo superior (fila 3) hasta el final (fila 15)
@@ -257,6 +258,7 @@ export class MapGenerator {
       basketSpot,
       spawn,
       supervisorSpawn,
+      supervisorInspectionSpot,
       crateSpots,
       bounds,
       seed,

@@ -1,159 +1,164 @@
 /* ============================================================
-   TouchControls.css — Controles táctiles grandes (§26, §37)
-   Los botones se dimensionan en relación al tamaño del juego para
-   que sean cómodos en cualquier teléfono.
+   TouchControls.css — Controles Móviles Transparentes y Gestos
+   Tamaño reducido al 50%, alta transparencia (no obstaculiza la vista)
+   y botones situados en los bordes de la pantalla.
    ============================================================ */
 
-.touch-controls {
+.touch-overlay {
   position: absolute;
   inset: 0;
-  z-index: 20;
+  z-index: 18;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  pointer-events: auto;
+}
 
-  /* No bloquea el juego: solo los botones capturan el toque. */
-  pointer-events: none;
-
+/* ============================================================
+   1. BOTONES DE DIRECCIÓN EN LOS BORDES (50% tamaño y transparentes)
+   ============================================================ */
+.touch-dir-btn {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.38);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  font-weight: 900;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.12s ease-out;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Posiciones en los 4 bordes */
+.touch-dir-btn--up {
+  top: 58px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.touch-dir-btn--down {
+  bottom: 54px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.touch-dir-btn--left {
+  top: 48%;
+  left: 8px;
+  transform: translateY(-50%);
+}
+
+.touch-dir-btn--right {
+  top: 48%;
+  right: 8px;
+  transform: translateY(-50%);
+}
+
+/* Estado activo / iluminado al pulsar o deslizar */
+.touch-dir-btn.is-active,
+.touch-dir-btn:active {
+  background: rgba(37, 99, 235, 0.75);
+  border-color: #93c5fd;
+  color: #ffffff;
+  box-shadow:
+    0 0 12px rgba(59, 130, 246, 0.8),
+    inset 0 0 6px rgba(255, 255, 255, 0.5);
+  transform: scale(1.12);
+}
+
+.touch-dir-btn--up.is-active {
+  transform: translateX(-50%) scale(1.12);
+}
+
+.touch-dir-btn--down.is-active {
+  transform: translateX(-50%) scale(1.12);
+}
+
+.touch-dir-btn--left.is-active {
+  transform: translateY(-50%) scale(1.12);
+}
+
+.touch-dir-btn--right.is-active {
+  transform: translateY(-50%) scale(1.12);
+}
+
+/* ============================================================
+   2. BOTONES DE ACCIÓN EN LA PARTE INFERIOR
+   ============================================================ */
+.touch-actions-bar {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  display: flex;
   justify-content: space-between;
-  padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
-  gap: 8px;
+  padding: 0 12px;
+  pointer-events: none;
+  box-sizing: border-box;
 }
 
-/* ---------- Cruceta ---------- */
-.touch-dpad {
-  position: relative;
-  width: 43%;
-  max-width: 168px;
-  aspect-ratio: 3 / 2.4;
+.touch-action-pill {
   pointer-events: auto;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  gap: 3px;
-}
-
-.touch-btn {
-  /* Área táctil mínima cómoda (§37) */
-  min-width: var(--touch-min);
-  min-height: var(--touch-min);
-  border-radius: var(--radius-md);
-
-  background: rgba(26, 44, 78, 0.82);
-  border: 2px solid rgba(74, 111, 165, 0.9);
-  color: var(--c-text);
-
-  font-size: clamp(14px, 4.2vmin, 22px);
-  line-height: 1;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.42);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  color: #ffffff;
   display: flex;
   align-items: center;
-  justify-content: center;
-
-  /* Feedback táctil inmediato, sin mover el layout */
-  transition: background var(--t-fast) ease, transform var(--t-fast) ease;
-  touch-action: none;
-  -webkit-user-select: none;
-  user-select: none;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.12s ease-out;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
 
-.touch-btn.is-active {
-  background: rgba(74, 158, 255, 0.9);
-  transform: scale(var(--tap-scale));
-}
-
-.touch-btn--up {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-.touch-btn--left {
-  grid-column: 1;
-  grid-row: 2;
-}
-
-.touch-btn--down {
-  grid-column: 2;
-  grid-row: 2;
-}
-
-.touch-btn--right {
-  grid-column: 3;
-  grid-row: 2;
-}
-
-/* ---------- Botones de acción ---------- */
-.touch-actions {
-  display: flex;
-  align-items: flex-end;
-  gap: 6px;
-  pointer-events: auto;
-}
-
-.touch-action-btn {
-  min-width: 58px;
-  min-height: 58px;
-  padding: 4px 6px;
-  border-radius: var(--radius-md);
-
-  background: rgba(26, 44, 78, 0.85);
-  border: 2px solid rgba(74, 111, 165, 0.9);
-  color: var(--c-text);
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-
-  transition: background var(--t-fast) ease, transform var(--t-fast) ease;
-  touch-action: none;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-.touch-action-btn.is-active {
-  background: rgba(74, 158, 255, 0.95);
-  transform: scale(var(--tap-scale));
-}
-
-.touch-action-btn__icon {
-  font-size: clamp(16px, 4.4vmin, 22px);
+.touch-pill__icon {
+  font-size: 14px;
   line-height: 1;
 }
 
-.touch-action-btn__label {
-  font-size: clamp(7px, 1.8vmin, 10px);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-align: center;
-  line-height: 1.15;
-  color: var(--c-text-soft);
+.touch-pill__label {
+  font-family: monospace;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  color: #e2e8f0;
 }
 
-.touch-action-btn--harvest-left {
-  border-color: rgba(74, 158, 255, 0.9);
+.touch-action-pill--harvest {
+  border-color: rgba(96, 165, 250, 0.5);
 }
 
-.touch-action-btn--harvest-right {
-  border-color: rgba(74, 158, 255, 0.9);
+.touch-action-pill--deliver {
+  border-color: rgba(251, 191, 36, 0.5);
 }
 
-.touch-action-btn--deliver {
-  border-color: rgba(242, 193, 78, 0.95);
-  background: rgba(60, 44, 20, 0.85);
+/* Estado activo / iluminado */
+.touch-action-pill.is-active,
+.touch-action-pill:active {
+  background: rgba(37, 99, 235, 0.85);
+  border-color: #60a5fa;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.85);
+  transform: scale(0.96);
 }
 
-.touch-action-btn--deliver .touch-action-btn__label {
-  color: var(--c-warn);
-}
-
-/* ---------- Móvil apaisado: controles más compactos ---------- */
-@media (max-height: 560px) and (orientation: landscape) {
-  .touch-dpad {
-    max-width: 120px;
-  }
-
-  .touch-action-btn {
-    min-width: 46px;
-    min-height: 46px;
-  }
+.touch-action-pill--deliver.is-active,
+.touch-action-pill--deliver:active {
+  background: rgba(217, 119, 6, 0.85);
+  border-color: #fde047;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.85);
 }

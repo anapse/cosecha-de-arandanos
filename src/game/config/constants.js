@@ -156,7 +156,7 @@ export const KEY_BINDINGS = Object.freeze({
   right: ['KeyD', 'ArrowRight'],
   harvestLeft: ['KeyQ', 'KeyJ'],
   harvestRight: ['KeyE', 'KeyL'],
-  harvestContext: ['KeyE', 'Space'],
+  harvestContext: ['KeyE'],
   deliver: ['Space', 'Enter'],
   pause: ['Escape', 'KeyP'],
 });

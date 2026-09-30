@@ -1,92 +1,94 @@
 /* ===========================================================
-   responsive.css — Visor a pantalla completa
-   El visor llena todo el ancho y alto disponibles. El canvas se
-   escala al tamaño del contenedor sin conservar la proporción 9:16.
+   responsive.css — Visor Arcade 9:16 Unificado y Contenido
+   Aplica exactamente el mismo tamaño, proporción y posición
+   en PC, Tablet, Móvil Portrait y Landscape.
    =========================================================== */
 
 /* ---------- Capa raíz de la aplicación ---------- */
 .app {
-  height: 100%;
-  width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  width: 100vw;
+  max-width: 100vw;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0)
-    env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+  justify-content: center;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  background-color: #050b14;
+  position: relative;
 }
 
 /* ===========================================================
-   EL VISOR (marco de la "máquina arcade")
-   ------------------------------------------------------------
-   El viewport llena toda la altura disponible y escala el ancho
-   según la proporción 9:16. Así el juego llega desde arriba hasta
-   abajo sin espacios vacíos.
+   EL VISOR (marco de la "máquina arcade" 9:16)
    =========================================================== */
 .game-viewport {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 
-  /* Llenar altura completa, ancho por aspect-ratio */
-  height: 100%;
-  width: auto;
+  /* Contenido estrictamente a la proporción 9:16 (480x800) en todos los dispositivos */
+  height: min(100dvh, 800px);
+  width: min(100vw, calc(min(100dvh, 800px) * 9 / 16));
+  max-width: 480px;
+  max-height: 800px;
   aspect-ratio: 9 / 16;
 
-  /* Marco de madera */
-  outline: 4px solid var(--c-wood-dark);
-  outline-offset: -1px;
-  border: none;
-  border-radius: var(--radius-md);
-  background: var(--c-bg-deep);
-  box-shadow:
-    0 0 0 2px var(--c-wood),
-    0 12px 40px rgba(0, 0, 0, 0.6);
+  margin: auto;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: #0d1b10;
+  box-shadow: 0 0 35px rgba(0, 0, 0, 0.85);
+  border-radius: 6px;
+}
+
+/* En pantallas pequeñas, maximizar el uso vertical manteniendo la proporción */
+@media (max-width: 500px) {
+  .game-viewport {
+    height: 100dvh;
+    width: min(100vw, calc(100dvh * 9 / 16));
+    max-height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* En landscape de móvil / tablet, mantener la altura y centrar el visor */
+@media (orientation: landscape) and (max-height: 600px) {
+  .game-viewport {
+    height: 100dvh;
+    width: calc(100dvh * 9 / 16);
+    max-height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* ---------- El contenedor del canvas ocupa el visor completo ---------- */
+.game-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
 }
 
-/* Escritorio: en pantallas muy grandes, el viewport tiene un límite
-   suave para que no ocupe toda la pantalla, pero sí crezca razonablemente. */
-@media (min-width: 1440px) {
-  .game-viewport {
-    width: min(95vw, calc(100dvh * 9 / 16));
-    height: 100%;
-  }
+.game-canvas-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Móvil en vertical: el viewport llena TODA la pantalla (100% ancho y alto) */
-@media (max-width: 768px) and (orientation: portrait) {
-  .game-viewport {
-    height: 100%;
-    width: 100%;
-    aspect-ratio: auto;
-    outline: none;
-    border-radius: 0;
-    box-shadow: none;
-  }
-}
-
-/* Móvil en horizontal: el viewport llena TODA la pantalla (100% ancho y alto) */
-@media (max-height: 560px) and (orientation: landscape) {
-  .game-viewport {
-    height: 100%;
-    width: 100%;
-    aspect-ratio: auto;
-    outline: none;
-    border-radius: 0;
-    box-shadow: none;
-  }
-}
-
-/* Tablet: tamaño cómodo con el marco visible */
-@media (min-width: 768px) and (max-width: 1439px) {
-  .game-viewport {
-    /* Sin restricciones extras: usa las reglas base */
-  }
-}
-
-/* ---------- El canvas ocupa el visor completo ---------- */
 .game-canvas {
   width: 100%;
   height: 100%;
@@ -97,29 +99,4 @@
   image-rendering: crisp-edges;
   -ms-interpolation-mode: nearest-neighbor;
   outline: none;
-}
-
-/* Tablet */
-@media (min-width: 768px) and (max-width: 1439px) {
-  .game-viewport {
-    /* Sin restricciones extras: usa las reglas base */
-  }
-}
-
-/* Monitor grande */
-@media (min-width: 1440px) {
-  .game-viewport {
-    height: 100%;
-    width: auto;
-    aspect-ratio: 9 / 16;
-  }
-}
-
-/* Escritorio con poca altura (portátiles pequeños) */
-@media (max-height: 600px) {
-  .game-viewport {
-    height: 100%;
-    width: auto;
-    aspect-ratio: 9 / 16;
-  }
 }

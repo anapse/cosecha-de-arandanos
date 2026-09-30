@@ -3,13 +3,13 @@
  * ---------------------------------------------------------------
  * Sistema de entrega (§15, §16).
  *
- * Cuando el jugador llega a la zona de entrega con cosecha puede
- * entregar:
+ * Cuando el jugador entrega la cosecha:
  *   - la canasta se vacía;
  *   - los frutos pasan al total de cosecha;
- *   - se suman puntos;
- *   - se actualiza el objetivo;
- *   - una caja se llena (§16).
+ *   - se suman puntos y bonificaciones;
+ *   - se llena la caja correspondiente;
+ *   - el camión llega y recoge la cosecha con animación y sonido;
+ *   - se muestra la felicitación con los puntos obtenidos.
  */
 
 import { CollisionSystem } from '../collision/CollisionSystem.js';
@@ -46,41 +46,42 @@ export class DeliverySystem {
     this.boxes = boxes;
   }
 
-  /** ¿El jugador está en la zona de entrega? (§15) */
+  /** ¿El jugador está en la zona de entrega o cerca del bin central? */
   isPlayerInZone(player) {
-    if (!this.map || !player) return false;
-    const zone = this.map.deliveryZone;
-    if (!zone) return false;
-    return CollisionSystem.overlaps(player.feetRect, zone);
+    if (!player) return false;
+    if (this.basket) {
+      const dist = Math.hypot(player.x - this.basket.centerX, player.y - this.basket.centerY);
+      if (dist < 220) return true;
+    }
+    if (player.y >= 360) return true;
+    const zone = this.map?.deliveryZone;
+    if (zone) return CollisionSystem.overlaps(player.feetRect, zone);
+    return true;
   }
 
   /** ¿Se puede mostrar el aviso "ENTREGAR"? (§54) */
   canDeliver(player) {
-    return this.isPlayerInZone(player) && this.basket && this.basket.current > 0;
+    return this.basket && this.basket.current > 0;
   }
 
   /**
-   * Realiza la entrega.
+   * Realiza la entrega de la cosecha.
    * @param {import('../entities/Player.js').Player} player
    * @returns {object} resultado
    */
   deliver(player) {
-    if (!this.isPlayerInZone(player)) {
-      return { result: DELIVERY_RESULT.NOT_IN_ZONE };
-    }
-
     if (!this.basket || this.basket.current === 0) {
       return { result: DELIVERY_RESULT.EMPTY_BASKET };
     }
 
     const delivered = this.basket.current;
-    const wasFull = this.basket.isFull;
+    const wasFull = this.basket.isFull || this.basket.current >= this.basket.capacity;
     const unripeInBasket = this.basket.totalUnripe;
 
-    // La canasta se vacía (§15)
+    // La canasta se vacía para poder seguir cosechando
     this.basket.empty();
 
-    // Una caja se llena con la cosecha entregada (§16)
+    // Una caja se llena con la cosecha entregada
     const box = this.#nextEmptyBox();
     if (box) box.fill(delivered);
 
@@ -96,10 +97,10 @@ export class DeliverySystem {
 
   /** Devuelve la primera caja vacía disponible. */
   #nextEmptyBox() {
-    return this.boxes.find((box) => box.contents === 0) ?? null;
+    return this.boxes.find((box) => box.contents === 0) ?? (this.boxes[0] || null);
   }
 
-  /** ¿Todas las cajas están llenas? (el camión puede venir, §16) */
+  /** ¿Todas las cajas están llenas? */
   get allBoxesFull() {
     return this.boxes.length > 0 && this.boxes.every((box) => box.contents > 0);
   }
@@ -109,7 +110,7 @@ export class DeliverySystem {
     return this.boxes.filter((box) => box.contents > 0).length;
   }
 
-  /** Vacía las cajas (cuando el camión se las lleva, §16). */
+  /** Vacía las cajas (cuando el camión se las lleva). */
   clearBoxes() {
     this.boxes.forEach((box) => box.reset());
     return this.boxes.length;

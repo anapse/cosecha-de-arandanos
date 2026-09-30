@@ -22,8 +22,8 @@ export class Basket {
   constructor({ x = 0, y = 0, capacity = GAME_CONFIG.basketCapacity } = {}) {
     this.x = x;
     this.y = y;
-    this.width = TILE_SIZE;
-    this.height = TILE_SIZE;
+    this.width = 116;
+    this.height = 74;
 
     this.capacity = capacity;
     this.current = 0;

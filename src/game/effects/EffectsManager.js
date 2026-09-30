@@ -195,27 +195,37 @@ export class EffectsManager {
 
     if (this.banner) {
       const w = GAME_CONFIG.logicalWidth;
-      const y = GAME_CONFIG.logicalHeight * 0.38;
-      const h = this.banner.subtext ? 46 : 30;
+      const cardW = Math.min(w - 60, 360);
+      const cardX = (w - cardW) / 2;
+      const h = this.banner.subtext ? 42 : 30;
+      // Posicionado cómodamente en la parte inferior sobre las acciones
+      const y = GAME_CONFIG.logicalHeight - 105;
 
       ctx.save();
-      ctx.fillStyle = withAlpha('#000000', 0.78);
-      ctx.fillRect(0, Math.round(y), w, h);
-      ctx.fillStyle = this.banner.color;
-      ctx.fillRect(0, Math.round(y), w, 2);
-      ctx.fillRect(0, Math.round(y + h - 2), w, 2);
+      // Fondo de tarjeta oscuro, translúcido y elegante
+      ctx.fillStyle = withAlpha('#090f1d', 0.92);
+      ctx.beginPath();
+      ctx.roundRect(cardX, Math.round(y), cardW, h, 6);
+      ctx.fill();
 
-      sprites.drawText(this.banner.text, w / 2, y + (this.banner.subtext ? 14 : h / 2), {
+      // Borde suave con el color del aviso
+      ctx.strokeStyle = this.banner.color || '#38bdf8';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Texto principal proporcionado y nítido (tamaño 11)
+      sprites.drawText(this.banner.text, w / 2, y + (this.banner.subtext ? 12 : h / 2), {
         size: 11,
-        color: this.banner.color,
+        color: this.banner.color || '#ffffff',
         align: 'center',
         baseline: this.banner.subtext ? 'top' : 'middle',
       });
 
+      // Subtexto explicativo compacto (tamaño 8)
       if (this.banner.subtext) {
-        sprites.drawText(this.banner.subtext, w / 2, y + 30, {
-          size: 7,
-          color: PALETTE.textSoft,
+        sprites.drawText(this.banner.subtext, w / 2, y + 26, {
+          size: 8,
+          color: '#cbd5e1',
           align: 'center',
           baseline: 'top',
         });

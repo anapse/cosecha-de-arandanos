@@ -58,19 +58,19 @@ export default function App() {
 
   return (
     <div className="app">
-      {/* ---------- Botón de sonido: fuera del visor, no estorba ---------- */}
-      <button
-        type="button"
-        className="app__sound-toggle"
-        onClick={handleToggleSound}
-        aria-label={soundEnabled ? 'Silenciar sonido' : 'Activar sonido'}
-        title={soundEnabled ? 'Sonido activado' : 'Sonido desactivado'}
-      >
-        {soundEnabled ? '🔊' : '🔇'}
-      </button>
-
       {/* ---------- Visor vertical centrado (§6, §7, §45) ---------- */}
       <div className="game-viewport">
+        {/* Botón de sonido contenido dentro del marco de juego */}
+        <button
+          type="button"
+          className="app__sound-toggle"
+          onClick={handleToggleSound}
+          aria-label={soundEnabled ? 'Silenciar sonido' : 'Activar sonido'}
+          title={soundEnabled ? 'Sonido activado' : 'Sonido desactivado'}
+        >
+          {soundEnabled ? '🔊' : '🔇'}
+        </button>
+
         {screen === SCREENS.MENU && (
           <MainMenu
             onPlay={handlePlay}
@@ -94,8 +94,6 @@ export default function App() {
           />
         )}
       </div>
-
-
     </div>
   );
 }

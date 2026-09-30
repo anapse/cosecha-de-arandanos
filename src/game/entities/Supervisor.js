@@ -3,68 +3,71 @@
  * ---------------------------------------------------------------
  * Supervisor de calidad (§17, §18, §19, §20).
  *
- * Preparado para los estados:
- *   walk, inspect, write, detectError, approve, talk
- *
- * La INTELIGENCIA completa vendrá en la fase del supervisor.
- * Aquí queda la máquina de estados, el movimiento hacia la zona de
- * revisión y el cálculo del resultado.
+ * Flujo realista:
+ *   1. Está alejado en su puesto de descanso (homeSpot, lateral derecho).
+ *   2. Al llegar la hora de revisión, CAMINA hacia el cajón de cosecha (inspectionSpot).
+ *   3. Realiza la inspección: observa el bin, anota con el portapapeles y dicta veredicto.
+ *   4. Al terminar la revisión, CAMINA DE REGRESO a su puesto de descanso y se retira.
  */
 
 import { SUPERVISOR_STATES, INSPECTION_RESULTS, DIRECTIONS, QUALITY_THRESHOLDS } from '../config/constants.js';
 import { GAME_CONFIG } from '../config/gameConfig.js';
 
-/* ---------- Duraciones de cada fase de la revisión (segundos) ----------
-   Se declaran aquí, en un solo sitio, para poder ajustar el ritmo de la
-   inspección sin buscar números sueltos por el código. */
-const SUPERVISOR_WRITE_DURATION = 1.2;      // anotando en el portapapeles
-const SUPERVISOR_DETECT_DURATION = 1.0;     // revisando/detectando
-const SUPERVISOR_APPROVE_DURATION = 1.4;    // dictaminando
-const SUPERVISOR_TALK_DURATION = 1.6;       // hablando antes de retirarse
+const SUPERVISOR_WRITE_DURATION = 1.2;
+const SUPERVISOR_DETECT_DURATION = 1.0;
+const SUPERVISOR_APPROVE_DURATION = 1.4;
+const SUPERVISOR_TALK_DURATION = 1.8;
 
 export class Supervisor {
   /**
    * @param {object} options
    * @param {number} options.x
    * @param {number} options.y
-   * @param {object} options.homeSpot  posición de descanso (esquina)
-   * @param {object} options.inspectionSpot posición de revisión (junto a la canasta)
+   * @param {object} options.homeSpot  posición de descanso (lejos del cajón)
+   * @param {object} options.inspectionSpot posición de revisión (junto al cajón)
    */
-  constructor({ x = 0, y = 0, homeSpot = null, inspectionSpot = null } = {}) {
-    this.x = x;
-    this.y = y;
-    this.width = 30;
-    this.height = 36;
+  constructor({
+    x = 440,
+    y = 560,
+    homeSpot = { x: 440, y: 560 },
+    inspectionSpot = { x: 260, y: 560 },
+  } = {}) {
+    this.width = 48;
+    this.height = 72;
 
-    this.homeSpot = homeSpot ?? { x, y };
-    this.inspectionSpot = inspectionSpot ?? { x, y };
+    this.homeSpot = homeSpot;
+    this.inspectionSpot = inspectionSpot;
+    this.x = homeSpot.x;
+    this.y = homeSpot.y;
 
-    this.speed = GAME_CONFIG.supervisorWalkSpeed;
+    this.speed = GAME_CONFIG.supervisorWalkSpeed || 85;
 
     this.state = SUPERVISOR_STATES.IDLE;
-    this.facing = DIRECTIONS.DOWN;
+    this.facing = DIRECTIONS.LEFT;
     this.frame = 0;
     this.frameTime = 0;
     this.animationSpeed = 0.16;
 
-    /* ---------- Temporizador de revisión (§19) ---------- */
-    this.interval = GAME_CONFIG.supervisorInterval;
+    this.interval = GAME_CONFIG.supervisorInterval || 30;
     this.timer = this.interval;
-    this.isActive = false;         // true mientras está en el campo
+    this.isActive = false;
+    this.walkingTarget = 'inspection'; // 'inspection' o 'home'
     this.inspectionTimer = 0;
     this.onInspectionComplete = null;
 
-    /* ---------- Resultado de la última revisión (§20) ---------- */
     this.lastResult = null;
-    /** Texto de burbuja que muestra el render. */
     this.bubbleText = '';
     this.bubbleTimer = 0;
-    /** true cuando ya se mostró el veredicto (evita repetir la animación). */
     this.verdictShown = false;
   }
 
   get rect() {
-    return { x: this.x - this.width / 2, y: this.y - this.height / 2, w: this.width, h: this.height };
+    return {
+      x: this.x - this.width / 2,
+      y: this.y - this.height / 2,
+      w: this.width,
+      h: this.height,
+    };
   }
 
   get renderX() {
@@ -75,14 +78,15 @@ export class Supervisor {
     return this.y - this.height / 2;
   }
 
-  /** Reinicia para un nivel nuevo. */
   reset(interval = this.interval) {
     this.interval = interval;
     this.timer = interval;
     this.x = this.homeSpot.x;
     this.y = this.homeSpot.y;
     this.state = SUPERVISOR_STATES.IDLE;
+    this.facing = DIRECTIONS.LEFT;
     this.isActive = false;
+    this.walkingTarget = 'inspection';
     this.inspectionTimer = 0;
     this.lastResult = null;
     this.bubbleText = '';
@@ -91,16 +95,14 @@ export class Supervisor {
     return this;
   }
 
-  /** Cambia los puntos de interés al regenerar el mapa. */
   setSpots(homeSpot, inspectionSpot) {
-    this.homeSpot = homeSpot;
-    this.inspectionSpot = inspectionSpot;
-    this.x = homeSpot.x;
-    this.y = homeSpot.y;
+    this.homeSpot = homeSpot ?? { x: 440, y: 560 };
+    this.inspectionSpot = inspectionSpot ?? { x: 260, y: 560 };
+    this.x = this.homeSpot.x;
+    this.y = this.homeSpot.y;
     return this;
   }
 
-  /** Avanza el temporizador y devuelve true cuando toca revisar (§19). */
   tickTimer(dt) {
     if (this.isActive) return false;
 
@@ -113,73 +115,65 @@ export class Supervisor {
     return false;
   }
 
-  /** El supervisor entra al campo y camina a la zona de revisión. */
+  /** El supervisor sale de su puesto y camina hacia el cajón de cosecha */
   startInspection() {
     this.isActive = true;
+    this.walkingTarget = 'inspection';
     this.state = SUPERVISOR_STATES.WALK;
     this.inspectionTimer = 0;
     this.bubbleText = 'REVISIÓN DE CALIDAD';
-    this.bubbleTimer = 2;
+    this.bubbleTimer = 2.0;
   }
 
-  /** El supervisor abandona el campo. */
+  /** El supervisor regresa caminando a su puesto */
   leave() {
-    this.isActive = false;
-    this.state = SUPERVISOR_STATES.IDLE;
-    this.bubbleText = '';
-    this.bubbleTimer = 0;
-    this.x = this.homeSpot.x;
-    this.y = this.homeSpot.y;
+    this.walkingTarget = 'home';
+    this.state = SUPERVISOR_STATES.WALK;
+    this.inspectionTimer = 0;
   }
 
-  /**
-   * Evalúa la cosecha y produce el resultado (§20).
-   * @param {object} stats { ripe, unripe, errors, quality }
-   * @returns {object} resultado de la revisión
-   */
   evaluate({ ripe = 0, unripe = 0, errors = 0, quality = 100 }) {
     const minimumQuality = this.minimumQuality ?? 85;
     let verdict = INSPECTION_RESULTS.APPROVED;
-    let message = '✅ CALIDAD APROBADA.';
+    let message = '✅ CALIDAD APROBADA';
 
     if (quality < minimumQuality && quality >= QUALITY_THRESHOLDS.DANGER) {
       verdict = INSPECTION_RESULTS.WARNING;
-      message = '⚠️ Cuidado con los pintones.';
+      message = '⚠️ Cuidado con los frutos verdes';
     } else if (quality < QUALITY_THRESHOLDS.DANGER) {
       verdict = INSPECTION_RESULTS.REJECTED;
-      message = '❌ CALIDAD RECHAZADA.';
+      message = '❌ CALIDAD RECHAZADA';
     } else if (unripe > ripe * 0.2) {
       verdict = INSPECTION_RESULTS.WARNING;
-      message = '⚠️ Cuidado con los pintones.';
+      message = '⚠️ Cuidado con los frutos verdes';
     }
 
     this.lastResult = { ripe, unripe, errors, quality, verdict, message };
     return this.lastResult;
   }
 
-  /** Define la calidad mínima exigida por el nivel. */
+  setInterval(val) {
+    this.interval = val;
+    this.timer = val;
+    return this;
+  }
+
   setMinimumQuality(value) {
     this.minimumQuality = value;
     return this;
   }
 
-  /** Muestra una burbuja de diálogo (§54). */
   say(text, duration = 2.5) {
     this.bubbleText = text;
     this.bubbleTimer = duration;
-    this.state = SUPERVISOR_STATES.TALK;
     return this;
   }
 
-  /**
-   * Actualiza la máquina de estados.
-   * @param {number} dt
-   * @returns {object|null} resultado cuando termina una revisión
-   */
   update(dt) {
     if (this.bubbleTimer > 0) this.bubbleTimer -= dt;
+    else this.bubbleText = '';
 
-    // Animación de frames
+    // Avance de frames
     this.frameTime += dt;
     if (this.frameTime >= this.animationSpeed) {
       this.frameTime = 0;
@@ -188,24 +182,33 @@ export class Supervisor {
 
     if (!this.isActive) return null;
 
-    // ---- Caminar hacia la zona de revisión ----
+    // ---- 1. CAMINANDO ----
     if (this.state === SUPERVISOR_STATES.WALK) {
-      const dx = this.inspectionSpot.x - this.x;
-      const dy = this.inspectionSpot.y - this.y;
+      const target = this.walkingTarget === 'inspection' ? this.inspectionSpot : this.homeSpot;
+      const dx = target.x - this.x;
+      const dy = target.y - this.y;
       const dist = Math.hypot(dx, dy);
 
-      // Prioriza el eje horizontal, igual que el jugador (top-down).
       if (Math.abs(dx) > Math.abs(dy)) {
         this.facing = dx > 0 ? DIRECTIONS.RIGHT : DIRECTIONS.LEFT;
       } else {
         this.facing = dy > 0 ? DIRECTIONS.DOWN : DIRECTIONS.UP;
       }
 
-      if (dist < 3) {
-        this.x = this.inspectionSpot.x;
-        this.y = this.inspectionSpot.y;
-        this.state = SUPERVISOR_STATES.INSPECT;
-        this.inspectionTimer = 0;
+      if (dist < 4) {
+        this.x = target.x;
+        this.y = target.y;
+
+        if (this.walkingTarget === 'inspection') {
+          // Llegó al cajón: comienza la revisión
+          this.state = SUPERVISOR_STATES.INSPECT;
+          this.inspectionTimer = 0;
+        } else {
+          // Llegó de vuelta a su puesto: se queda en descanso
+          this.state = SUPERVISOR_STATES.IDLE;
+          this.isActive = false;
+          this.facing = DIRECTIONS.LEFT;
+        }
       } else {
         const step = (this.speed * dt) / dist;
         this.x += dx * step;
@@ -214,7 +217,7 @@ export class Supervisor {
       return null;
     }
 
-    // ---- Revisar → anotar → veredicto → salir ----
+    // ---- 2. INSPECCIONANDO EL CAJÓN ----
     if (this.state === SUPERVISOR_STATES.INSPECT) {
       this.inspectionTimer += dt;
       if (this.inspectionTimer >= GAME_CONFIG.supervisorInspectionDuration) {
@@ -224,46 +227,26 @@ export class Supervisor {
       return null;
     }
 
-    // ---- Anotar (WRITE) ----
+    // ---- 3. ANOTANDO EN EL PORTAPAPELES ----
     if (this.state === SUPERVISOR_STATES.WRITE) {
       this.inspectionTimer += dt;
       if (this.inspectionTimer >= SUPERVISOR_WRITE_DURATION) {
         this.inspectionTimer = 0;
-        this.state = SUPERVISOR_STATES.DETECT_ERROR;
+        this.state = SUPERVISOR_STATES.APPROVE;
       }
       return null;
     }
 
-    // ---- Detectar error (DETECT_ERROR) ----
-    // Antes este estado NO tenía rama: la máquina se quedaba atascada
-    // aquí para siempre y la revisión nunca terminaba.
-    if (this.state === SUPERVISOR_STATES.DETECT_ERROR) {
-      this.inspectionTimer += dt;
-      if (this.inspectionTimer >= SUPERVISOR_DETECT_DURATION) {
-        this.inspectionTimer = 0;
-        // El veredicto decide qué animación mostrar.
-        const verdict = this.lastResult?.verdict;
-        this.state =
-          verdict === INSPECTION_RESULTS.REJECTED
-            ? SUPERVISOR_STATES.DETECT_ERROR
-            : SUPERVISOR_STATES.APPROVE;
-        this.verdictShown = true;
-        // Si es rechazo, se queda un momento más en la animación de
-        // error y luego pasa a aprobar/salir.
-        if (this.state === SUPERVISOR_STATES.DETECT_ERROR) {
-          this.inspectionTimer = -SUPERVISOR_APPROVE_DURATION;
-        }
-      }
-      return null;
-    }
-
-    // ---- Aprobar / dictaminar (APPROVE) ----
+    // ---- 4. DICTAMEN / VEREDICTO ----
     if (this.state === SUPERVISOR_STATES.APPROVE) {
       this.inspectionTimer += dt;
       if (this.inspectionTimer >= SUPERVISOR_APPROVE_DURATION) {
         const result = this.lastResult;
         if (typeof this.onInspectionComplete === 'function') {
           this.onInspectionComplete(result);
+        }
+        if (result?.message) {
+          this.say(result.message, 2.5);
         }
         this.state = SUPERVISOR_STATES.TALK;
         this.inspectionTimer = 0;
@@ -272,11 +255,11 @@ export class Supervisor {
       return null;
     }
 
-    // ---- Hablar y retirarse (TALK) ----
+    // ---- 5. HABLAR Y RETIRARSE ----
     if (this.state === SUPERVISOR_STATES.TALK) {
       this.inspectionTimer += dt;
       if (this.inspectionTimer >= SUPERVISOR_TALK_DURATION) {
-        this.leave();
+        this.leave(); // Inicia caminata de regreso a homeSpot
       }
       return null;
     }
@@ -284,14 +267,13 @@ export class Supervisor {
     return null;
   }
 
-  /** Clave del sprite según el estado actual (§18). */
   get spriteKey() {
     const facingKey = {
       up: 'Up',
       down: 'Down',
       left: 'Left',
       right: 'Right',
-    }[this.facing] ?? 'Down';
+    }[this.facing] ?? 'Left';
 
     switch (this.state) {
       case SUPERVISOR_STATES.INSPECT:
@@ -308,7 +290,6 @@ export class Supervisor {
     }
   }
 
-  /** Segundos que faltan para la siguiente revisión (§19). */
   get nextInspectionIn() {
     return Math.max(0, this.timer);
   }

@@ -74,64 +74,87 @@ export class Renderer {
     const fieldTopY = 3 * ts; // Empieza debajo del paisaje superior (144px)
     const plantTopY = 4 * ts; // Inicio de las plantas (192px)
     const plantBottomY = 10 * ts; // Fin de hileras de plantas más cortas (480px)
+    const fenceBottomY = plantBottomY + 6; // Cerca horizontal que divide el cultivo del acopio (486px)
     const deliveryTopY = 11 * ts; // Inicio zona de entrega amplia (528px)
 
     // 1. Suelo base uniforme y limpio de tierra/arena cálida de Ica
     ctx.fillStyle = PALETTE.soil;
     ctx.fillRect(0, fieldTopY, width, height - fieldTopY);
 
-    // 2. Lechos de cultivo bajo las 4 hileras más cortas (columnas 1, 3, 5, 7)
-    // Se dibujan estrictamente entre plantTopY (192px) y plantBottomY (480px)
+    // 2. Lechos de cultivo de arándanos (columnas 1, 3, 5, 7)
     const plantCols = [1, 3, 5, 7];
     plantCols.forEach((col) => {
       const bx = col * ts;
-      // Camellón de cultivo enriquecido más oscuro
-      ctx.fillStyle = '#c58d4e';
-      ctx.fillRect(bx - 4, plantTopY - 4, ts + 8, plantBottomY - plantTopY + 8);
+      // Camellón de tierra fértil enriquecida para los arándanos
+      ctx.fillStyle = '#b87c3a';
+      ctx.fillRect(bx - 3, plantTopY - 4, ts + 6, plantBottomY - plantTopY + 8);
 
-      // Centro más húmedo con línea de riego
-      ctx.fillStyle = '#b3773a';
-      ctx.fillRect(bx + 3, plantTopY, ts - 6, plantBottomY - plantTopY);
+      // Centro del surco
+      ctx.fillStyle = '#9e6224';
+      ctx.fillRect(bx + 4, plantTopY, ts - 8, plantBottomY - plantTopY);
 
-      // Surcos suaves de laboreo
-      ctx.fillStyle = withAlpha('#7c4a16', 0.22);
-      ctx.fillRect(bx + Math.round(ts * 0.25), plantTopY, 2, plantBottomY - plantTopY);
-      ctx.fillRect(bx + Math.round(ts * 0.5), plantTopY, 2, plantBottomY - plantTopY);
-      ctx.fillRect(bx + Math.round(ts * 0.75), plantTopY, 2, plantBottomY - plantTopY);
+      // Líneas de textura del surco
+      ctx.fillStyle = withAlpha('#6a3d10', 0.25);
+      ctx.fillRect(bx + Math.round(ts * 0.28), plantTopY, 2, plantBottomY - plantTopY);
+      ctx.fillRect(bx + Math.round(ts * 0.72), plantTopY, 2, plantBottomY - plantTopY);
     });
 
-    // 3. Caminos transitables limpios y anchos (columnas 0, 2, 4, 6, 8)
-    const pathCols = [0, 2, 4, 6, 8];
+    // 3. CAMINERÍAS TRANSITABLES DEL JUGADOR (columnas 0, 2, 4, 6, 8, 9)
+    // Suelo firme, limpio y despejado donde camina el recolector
+    const pathCols = [0, 2, 4, 6, 8, 9];
     pathCols.forEach((col) => {
       const px = col * ts;
-      ctx.fillStyle = withAlpha('#ecd1a8', 0.35);
-      for (let y = fieldTopY + 14; y < plantBottomY - 10; y += 36) {
-        const hash = ((col * 37 + y * 23) % 100);
-        if (hash < 42) {
-          ctx.fillRect(px + 10 + (hash % (ts - 20)), y, 4, 2);
-        }
+      // Base de caminería en tono arena cálida clara
+      ctx.fillStyle = '#dfaf72';
+      ctx.fillRect(px, fieldTopY, ts, plantBottomY - fieldTopY + 6);
+
+      // Huellas suaves y textura de pisadas en el camino
+      ctx.fillStyle = withAlpha('#fae3be', 0.4);
+      for (let y = fieldTopY + 12; y < plantBottomY; y += 28) {
+        const hash = ((col * 41 + y * 19) % 100);
+        ctx.fillRect(px + 8 + (hash % 24), y, 8, 3);
       }
+
+      // Bordes de la caminería
+      ctx.fillStyle = withAlpha('#a87034', 0.25);
+      ctx.fillRect(px, fieldTopY, 1.5, plantBottomY - fieldTopY + 6);
+      ctx.fillRect(px + ts - 1.5, fieldTopY, 1.5, plantBottomY - fieldTopY + 6);
     });
 
-    // 4. Pasillos de cabecera horizontales (superior en fila 3, inferior en fila 10)
-    ctx.fillStyle = withAlpha('#ecd1a8', 0.25);
-    ctx.fillRect(0, fieldTopY, width, ts); // Fila 3: conexión superior
-    ctx.fillRect(0, plantBottomY, width, ts); // Fila 10: conexión inferior
+    // 4. Pasillo horizontal superior (fila 3) para cruzar entre caminerías
+    ctx.fillStyle = '#e4b67b';
+    ctx.fillRect(0, fieldTopY, width, ts);
+    ctx.fillStyle = withAlpha('#fae3be', 0.35);
+    for (let x = 12; x < width - 12; x += 32) {
+      ctx.fillRect(x, fieldTopY + 16, 12, 4);
+    }
 
-    // 5. Zona de entrega amplia e independiente (a partir de fila 11 / 528px)
-    // Patio de acopio y carga espacioso para camión, cajas, canasta y supervisor
+    // 5. CERCA DE MADERA HORIZONTAL INFERIOR (idéntica a image.png)
+    // Rieles de madera horizontales
+    ctx.fillStyle = '#3a200a';
+    ctx.fillRect(0, fenceBottomY - 1, width, 7);
+    ctx.fillStyle = '#784318';
+    ctx.fillRect(0, fenceBottomY, width, 5);
+    ctx.fillStyle = '#a1612a';
+    ctx.fillRect(0, fenceBottomY, width, 1.5);
+
+    // Postes de madera verticales cada 48px
+    for (let px = 18; px < width; px += 48) {
+      ctx.fillStyle = '#3a200a';
+      ctx.fillRect(px - 1, fenceBottomY - 12, 6, 20);
+      ctx.fillStyle = '#784318';
+      ctx.fillRect(px, fenceBottomY - 11, 4, 18);
+      ctx.fillStyle = '#a1612a';
+      ctx.fillRect(px, fenceBottomY - 11, 1.5, 18);
+      ctx.fillStyle = '#d4bb98';
+      ctx.fillRect(px + 1, fenceBottomY + 1, 2, 2);
+    }
+
+    // 6. Zona de entrega amplia (a partir de fila 11 / 528px)
     ctx.fillStyle = '#cb995c';
     ctx.fillRect(0, deliveryTopY, width, height - deliveryTopY);
 
-    // Viga rústica de madera que delimita el campo agrícola del patio de carga
-    ctx.fillStyle = '#2d1805';
-    ctx.fillRect(0, deliveryTopY - 3, width, 5);
-    ctx.fillStyle = '#6b3c15';
-    ctx.fillRect(0, deliveryTopY - 2, width, 3);
-    ctx.fillStyle = '#a1612a';
-    ctx.fillRect(0, deliveryTopY - 2, width, 1);
-
-    // Textura de patio de carga afirmado
+    // Textura sutil de patio de carga afirmado
     ctx.fillStyle = withAlpha('#dfb074', 0.32);
     for (let x = 16; x < width - 16; x += 36) {
       for (let y = deliveryTopY + 12; y < height - 12; y += 28) {
@@ -139,15 +162,50 @@ export class Renderer {
       }
     }
 
-    // 6. Cerca perimetral de postes de madera a los costados
-    for (let y = fieldTopY + 12; y < height - 20; y += 48) {
-      // Poste izquierdo
+    // 7. Arbustos decorativos con flores blancas en primer plano (borde inferior)
+    const fgY = height - 44;
+    const fgBushes = [
+      { x: 30, r: 16 },
+      { x: 180, r: 18 },
+      { x: 310, r: 20 },
+      { x: 410, r: 17 }
+    ];
+
+    for (const { x, r } of fgBushes) {
+      ctx.fillStyle = '#14532d';
+      ctx.beginPath();
+      ctx.arc(x, fgY + 10, r + 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#16a34a';
+      ctx.beginPath();
+      ctx.arc(x, fgY + 8, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#22c55e';
+      ctx.beginPath();
+      ctx.arc(x - 2, fgY + 6, r * 0.7, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Flores blancas
+      const flowerOffsets = [[-6, -2], [4, -4], [-2, 6], [7, 4]];
+      for (const [fx, fy] of flowerOffsets) {
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(x + fx, fgY + 8 + fy, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(x + fx - 0.5, fgY + 8 + fy - 0.5, 1, 1);
+      }
+    }
+
+    // Cerca lateral a los costados
+    for (let y = fieldTopY + 12; y < plantBottomY; y += 48) {
       ctx.fillStyle = '#3a200a';
       ctx.fillRect(0, y, 4, 18);
       ctx.fillStyle = '#784318';
       ctx.fillRect(1, y, 2.5, 16);
 
-      // Poste derecho
       ctx.fillStyle = '#3a200a';
       ctx.fillRect(width - 4, y, 4, 18);
       ctx.fillStyle = '#784318';
@@ -388,16 +446,18 @@ export class Renderer {
     const ctx = this.ctx;
     const cx = x + size / 2;
     const cy = y + size / 2;
-    // Arbustos más anchos y frondosos: radio horizontal ampliado a ~31px (ancho ~62px)
-    const rx = size * 0.65;
-    const ry = size * 0.50;
+    // Arbustos esféricos y frondosos centrados (radio 18px / diámetro 36px)
+    // Se mantienen dentro de la hilera dejando los caminos de arena (48px)
+    // 100% despejados para que el jugador camine limpio por el centro sin pisar plantas
+    const rx = 18;
+    const ry = 18;
 
     ctx.save();
 
     // Sombra del follaje sobre el lecho arenoso
-    ctx.fillStyle = 'rgba(50, 25, 8, 0.26)';
+    ctx.fillStyle = 'rgba(50, 25, 8, 0.28)';
     ctx.beginPath();
-    ctx.ellipse(cx, y + size * 0.88, rx * 0.95, ry * 0.36, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx, y + size * 0.82, rx * 0.95, ry * 0.45, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // 1. Capa base oscura del arbusto (fondo profundo de hojas verde bosque)
@@ -712,17 +772,95 @@ export class Renderer {
    */
   drawEntity(entity, camera, options = {}) {
     const isSupervisor = entity.isSupervisor || entity.spriteKey?.includes('supervisor');
-    const size = entity.width ?? 32;
-    // Si la entidad es el supervisor, aumentamos su tamaño significativamente
-    // para que se vea imponente, nítido y bien proporcionado
-    const drawW = isSupervisor ? 46 : (options.width ?? size);
-    const drawH = isSupervisor ? 50 : (options.height ?? size);
+    const ctx = this.ctx;
 
-    // Si la entidad es el supervisor, dibujamos cartel y burbuja con '!'
+    // SUPERVISOR DE CALIDAD (idéntico a image.png: gorra azul, chaleco reflectante amarillo con 'CALIDAD')
+    // Escala grande y proporcionada (46px x 70px) comparada con el player
     if (isSupervisor) {
-      this.drawWoodenSign(entity.x, entity.y - 44, 'SUPERVISOR');
-      this.drawExclamationBubble(entity.x, entity.y - 20);
+      const sx = entity.x;
+      const sy = entity.y;
+      const sw = 46;
+      const sh = 70;
+
+      ctx.save();
+      // Sombra bajo el supervisor
+      this.sprites.drawShadow(sx, sy + sh * 0.38, sw * 0.44, 10, 0.35);
+
+      const top = sy - sh * 0.45;
+
+      // 1. Gorra azul de supervisor
+      ctx.fillStyle = '#1e3a8a';
+      ctx.beginPath();
+      ctx.ellipse(sx, top + 8, 12, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Visera de la gorra
+      ctx.fillStyle = '#172554';
+      ctx.fillRect(sx - 11, top + 9, 22, 4);
+      ctx.fillStyle = '#3b82f6';
+      ctx.fillRect(sx - 8, top + 4, 16, 4);
+
+      // Pelo castaño y cabeza/cuello
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(sx - 9, top + 11, 18, 5);
+      ctx.fillStyle = '#fed7aa';
+      ctx.fillRect(sx - 8, top + 13, 16, 8);
+      ctx.fillStyle = '#ea580c';
+      ctx.fillRect(sx - 10, top + 14, 2.5, 4);
+      ctx.fillRect(sx + 7.5, top + 14, 2.5, 4);
+
+      // 2. Camisa azul y Chaleco Reflectante Amarillo-Lima
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(sx - 17, top + 21, 34, 25);
+
+      // Chaleco fluorescente
+      ctx.fillStyle = '#84cc16';
+      ctx.fillRect(sx - 14, top + 21, 28, 24);
+
+      // Franjas reflectantes plateadas
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(sx - 14, top + 24, 28, 3.5);
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillRect(sx - 14, top + 39, 28, 2.5);
+
+      // LETRAS "CALIDAD" EN EL CHALECO
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 8px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('CALIDAD', sx, top + 32);
+
+      // Brazos con mangas azules y manos
+      ctx.fillStyle = '#1e3a8a';
+      ctx.fillRect(sx - 18, top + 23, 5, 18);
+      ctx.fillRect(sx + 13, top + 23, 5, 18);
+      ctx.fillStyle = '#fed7aa';
+      ctx.fillRect(sx - 18, top + 39, 5, 5);
+      ctx.fillRect(sx + 13, top + 39, 5, 5);
+
+      // 3. Pantalones azul oscuro
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(sx - 12, top + 45, 9, 20);
+      ctx.fillRect(sx + 3, top + 45, 9, 20);
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(sx - 10, top + 46, 7, 18);
+      ctx.fillRect(sx + 4, top + 46, 7, 18);
+
+      // 4. Botas de trabajo marrones
+      ctx.fillStyle = '#451a03';
+      ctx.fillRect(sx - 13, top + 62, 10, 8);
+      ctx.fillRect(sx + 3, top + 62, 10, 8);
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(sx - 12, top + 63, 8, 5);
+      ctx.fillRect(sx + 4, top + 63, 8, 5);
+
+      ctx.restore();
+      return;
     }
+
+    const size = entity.width ?? 32;
+    const drawW = options.width ?? size;
+    const drawH = options.height ?? size;
 
     // Sombra bajo el personaje
     this.sprites.drawShadow(
@@ -746,57 +884,442 @@ export class Renderer {
     });
   }
 
-  /** Canasta de cosecha (§14) con su cartel de madera "CESTA". */
+  /**
+   * Gran Cesta / Bin de Cosecha Central (§14)
+   * Cajón de madera ancho (116 x 74 px) con patas de palet, colmado de arándanos brillantes
+   * y con la placa blanca frontal [🫐 28 / 50] (idéntico a image.png).
+   */
   drawBasket(basket) {
-    // Cartel "CESTA" sobre la canasta
-    this.drawWoodenSign(basket.centerX, basket.y - 12, 'CESTA');
+    const ctx = this.ctx;
+    const x = basket.x ?? 136;
+    const y = basket.y ?? 548;
+    const w = basket.width ?? 116;
+    const h = basket.height ?? 74;
 
+    ctx.save();
+
+    // Sombra ovalada suave bajo el bin
     this.sprites.drawShadow(
-      Math.round(basket.centerX),
-      Math.round(basket.y + basket.height * 0.85),
-      basket.width * 0.4,
-      basket.height * 0.16,
-      0.25
+      Math.round(x + w / 2),
+      Math.round(y + h - 2),
+      w * 0.46,
+      12,
+      0.38
     );
 
-    this.sprites.draw(basket.spriteKey, basket.x, basket.y, {
-      frameSize: TILE_SIZE,
-      width: basket.width,
-      height: basket.height,
-    });
+    // Patas / tacos de palet inferior
+    ctx.fillStyle = '#3a1f0a';
+    ctx.fillRect(x + 6, y + h - 10, 18, 10);
+    ctx.fillRect(x + w / 2 - 9, y + h - 10, 18, 10);
+    ctx.fillRect(x + w - 24, y + h - 10, 18, 10);
+
+    ctx.fillStyle = '#6e3c15';
+    ctx.fillRect(x + 7, y + h - 9, 16, 8);
+    ctx.fillRect(x + w / 2 - 8, y + h - 9, 16, 8);
+    ctx.fillRect(x + w - 23, y + h - 9, 16, 8);
+
+    // Fondo oscuro interior de la cesta
+    ctx.fillStyle = '#150c05';
+    ctx.fillRect(x + 5, y + 2, w - 10, 26);
+
+    // Arándanos cosechados dentro de la cesta (colina de arándanos)
+    const berryCount = Math.max(16, Math.min(42, Math.round((basket.current / (basket.capacity || 50)) * 34) + 16));
+    const berrySeed = [
+      [10, 10], [22, 6], [34, 9], [46, 5], [58, 8], [70, 6], [82, 9], [94, 7], [102, 10],
+      [16, 15], [28, 13], [40, 14], [52, 11], [64, 13], [76, 14], [88, 13], [98, 15],
+      [12, 20], [24, 19], [36, 18], [48, 17], [60, 18], [72, 19], [84, 18], [96, 20],
+      [30, 8], [42, 7], [54, 6], [66, 8], [78, 9], [18, 11], [90, 11],
+      [8, 14], [104, 14], [38, 22], [56, 22], [74, 22], [92, 22]
+    ];
+
+    for (let i = 0; i < Math.min(berryCount, berrySeed.length); i++) {
+      const [bx, by] = berrySeed[i];
+      const px = x + 5 + bx;
+      const py = y + by;
+
+      // Base arándano azul profundo
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.arc(px, py, 5.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#1e40af';
+      ctx.beginPath();
+      ctx.arc(px, py, 4.8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Centro azul vibrante
+      ctx.fillStyle = '#2563eb';
+      ctx.beginPath();
+      ctx.arc(px - 0.6, py - 0.6, 3.8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Brillo celeste
+      ctx.fillStyle = '#60a5fa';
+      ctx.beginPath();
+      ctx.arc(px - 1.5, py - 1.5, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#e0f2fe';
+      ctx.fillRect(px - 2, py - 2, 1.5, 1.5);
+
+      // Estrella / cáliz oscuro
+      ctx.fillStyle = '#091e42';
+      ctx.fillRect(px + 0.8, py + 0.8, 2, 2);
+    }
+
+    // Estructura frontal de madera del bin
+    const woodTop = y + 20;
+    const woodH = h - 28;
+
+    // Planchas horizontales de madera
+    ctx.fillStyle = '#5c3210';
+    ctx.fillRect(x, woodTop, w, woodH);
+
+    ctx.fillStyle = '#9a5822';
+    ctx.fillRect(x + 1, woodTop + 1, w - 2, woodH - 2);
+
+    // Tablones horizontales
+    const plankH = (woodH - 8) / 3;
+    for (let p = 0; p < 3; p++) {
+      const py = woodTop + 2 + p * (plankH + 2);
+      ctx.fillStyle = '#b8742d';
+      ctx.fillRect(x + 2, py, w - 4, plankH);
+      ctx.fillStyle = '#cb873e';
+      ctx.fillRect(x + 2, py, w - 4, 2.5);
+      ctx.fillStyle = '#7a4214';
+      ctx.fillRect(x + 2, py + plankH - 1, w - 4, 1.5);
+    }
+
+    // Postes esquineros verticales de refuerzo
+    ctx.fillStyle = '#4a260b';
+    ctx.fillRect(x, woodTop - 2, 9, woodH + 4);
+    ctx.fillRect(x + w - 9, woodTop - 2, 9, woodH + 4);
+
+    ctx.fillStyle = '#874919';
+    ctx.fillRect(x + 1, woodTop - 1, 7, woodH + 2);
+    ctx.fillRect(x + w - 8, woodTop - 1, 7, woodH + 2);
+
+    ctx.fillStyle = '#c77e38';
+    ctx.fillRect(x + 1, woodTop - 1, 2, woodH + 2);
+    ctx.fillRect(x + w - 8, woodTop - 1, 2, woodH + 2);
+
+    // Tornillos / remaches en las esquinas
+    ctx.fillStyle = '#1c1007';
+    ctx.fillRect(x + 3, woodTop + 3, 3, 3);
+    ctx.fillRect(x + 3, woodTop + woodH - 6, 3, 3);
+    ctx.fillRect(x + w - 6, woodTop + 3, 3, 3);
+    ctx.fillRect(x + w - 6, woodTop + woodH - 6, 3, 3);
+
+    // PLACA BLANCA FRONTAL CON ICONO DE ARÁNDANO Y CONTADOR [🫐 28 / 50] (Grande y Ultra Legible)
+    const badgeW = 98;
+    const badgeH = 29;
+    const badgeX = x + (w - badgeW) / 2;
+    const badgeY = woodTop + (woodH - badgeH) / 2 + 1;
+
+    // Borde oscuro y sombra de la placa
+    ctx.fillStyle = '#1e1005';
+    ctx.fillRect(badgeX - 2, badgeY - 2, badgeW + 4, badgeH + 4);
+
+    // Fondo blanco brillante de alta visibilidad
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
+
+    // Icono pixel de arándano en la placa
+    const iconX = badgeX + 14;
+    const iconY = badgeY + 14.5;
+
+    // Hojita verde
+    ctx.fillStyle = '#16a34a';
+    ctx.fillRect(iconX - 1.5, iconY - 8, 3.5, 3.5);
+    ctx.fillStyle = '#4ade80';
+    ctx.fillRect(iconX - 3, iconY - 7, 3, 2.5);
+
+    // Baya azul
+    ctx.fillStyle = '#1e3a8a';
+    ctx.beginPath();
+    ctx.arc(iconX, iconY, 6.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#2563eb';
+    ctx.beginPath();
+    ctx.arc(iconX - 0.7, iconY - 0.7, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#60a5fa';
+    ctx.fillRect(iconX - 3, iconY - 3, 3, 3);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(iconX - 2.5, iconY - 2.5, 2, 2);
+
+    // Texto de cantidad: "28 / 50" (Grande, negrita y negro puro para máxima legibilidad móvil)
+    const countText = `${basket.current ?? 0} / ${basket.capacity ?? 50}`;
+    ctx.font = 'bold 14px monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#090f1d';
+    ctx.fillText(countText, iconX + 11, badgeY + badgeH / 2 + 1);
 
     // Destello al recibir frutos
     if (basket.flashTimer > 0) {
-      this.ctx.save();
-      this.ctx.globalAlpha = Math.min(0.5, basket.flashTimer * 2);
-      this.ctx.fillStyle = PALETTE.warn;
-      this.ctx.fillRect(basket.x - 2, basket.y - 2, basket.width + 4, basket.height + 4);
-      this.ctx.restore();
+      ctx.globalAlpha = Math.min(0.5, basket.flashTimer * 2);
+      ctx.fillStyle = '#fde047';
+      ctx.fillRect(x - 2, y - 2, w + 4, h + 4);
     }
+
+    ctx.restore();
   }
 
-  /** Cajas de cosecha (§16). */
+  /**
+   * Cajas de cosecha apiladas a la izquierda (§16).
+   * Cluster escalonado amplio y visible idéntico a image.png.
+   */
   drawBoxes(boxes) {
-    for (let i = 0; i < boxes.length; i += 1) {
-      const box = boxes[i];
-      this.sprites.draw(box.spriteKey, box.x, box.y + box.offsetY, {
-        frameSize: TILE_SIZE,
-        width: box.width,
-        height: box.height,
-      });
+    const ctx = this.ctx;
+    const crateStacks = [
+      { x: 22, y: 598 },
+      { x: 50, y: 598 }, { x: 50, y: 574 },
+      { x: 78, y: 598 }, { x: 78, y: 574 }, { x: 78, y: 550 },
+      { x: 106, y: 598 }, { x: 106, y: 574 }
+    ];
+
+    ctx.save();
+    for (const { x, y } of crateStacks) {
+      const cw = 26;
+      const ch = 23;
+
+      // Sombra
+      this.sprites.drawShadow(x + cw / 2, y + ch, cw * 0.46, 6, 0.28);
+
+      // Estructura de la caja de madera
+      ctx.fillStyle = '#4a250a';
+      ctx.fillRect(x, y, cw, ch);
+
+      ctx.fillStyle = '#874919';
+      ctx.fillRect(x + 1, y + 1, cw - 2, ch - 2);
+
+      // Tablones exteriores
+      ctx.fillStyle = '#b8742d';
+      ctx.fillRect(x + 2, y + 2, cw - 4, 5);
+      ctx.fillRect(x + 2, y + 8.5, cw - 4, 5);
+      ctx.fillRect(x + 2, y + 15, cw - 4, 5);
+
+      // Hueco interior oscuro
+      ctx.fillStyle = '#261204';
+      ctx.fillRect(x + 3.5, y + 3.5, cw - 7, 3);
+
+      // Refuerzos esquineros
+      ctx.fillStyle = '#5c3010';
+      ctx.fillRect(x, y, 2.5, ch);
+      ctx.fillRect(x + cw - 2.5, y, 2.5, ch);
+      ctx.fillStyle = '#d48f44';
+      ctx.fillRect(x + 0.5, y + 0.5, 1.2, ch - 1);
     }
+    ctx.restore();
   }
 
-  /** Camión (§16) con su cartel "CAMIÓN". */
+  /**
+   * Camión de reparto blanco (§16)
+   * Gran tamaño y fidelidad (148 x 82 px) con tolva cargada (idéntico a image.png).
+   */
   drawTruck(truck) {
     if (!truck.isVisible) return;
-    this.drawWoodenSign(truck.x + truck.width * 0.5, truck.y - 14, 'CAMIÓN');
-    this.sprites.draw(truck.spriteKey, truck.x, truck.y, {
-      frame: truck.animationFrame,
-      frameSize: 64,
-      width: truck.width,
-      height: truck.height,
-    });
+    const ctx = this.ctx;
+    const x = truck.x ?? 296;
+    const y = truck.y ?? 546;
+    const w = truck.width ?? 148;
+    const h = truck.height ?? 82;
+
+    ctx.save();
+
+    // Sombra del camión
+    this.sprites.drawShadow(x + w / 2, y + h - 5, w * 0.46, 14, 0.38);
+
+    // 1. Cajas de madera con arándanos en la tolva del camión
+    const truckBoxes = [
+      { bx: x + 8, by: y + 10 },
+      { bx: x + 34, by: y - 2 },
+      { bx: x + 62, by: y + 10 }
+    ];
+
+    for (const { bx, by } of truckBoxes) {
+      const cw = 23;
+      const ch = 20;
+      // Caja
+      ctx.fillStyle = '#4a250a';
+      ctx.fillRect(bx, by, cw, ch);
+      ctx.fillStyle = '#9a5822';
+      ctx.fillRect(bx + 1, by + 1, cw - 2, ch - 2);
+      ctx.fillStyle = '#b8742d';
+      ctx.fillRect(bx + 2, by + 2, cw - 4, ch - 4);
+
+      // Arándanos azules en la caja
+      ctx.fillStyle = '#1e3a8a';
+      ctx.beginPath();
+      ctx.arc(bx + 6, by + 5, 4, 0, Math.PI * 2);
+      ctx.arc(bx + 13, by + 4, 4, 0, Math.PI * 2);
+      ctx.arc(bx + 18, by + 6, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(bx + 5, by + 4, 1.5, 1.5);
+      ctx.fillRect(bx + 12, by + 3, 1.5, 1.5);
+      ctx.fillRect(bx + 17, by + 5, 1.5, 1.5);
+    }
+
+    // 2. Plataforma / Tolva de carga blanca/plateada
+    const bedX = x + 2;
+    const bedY = y + 26;
+    const bedW = 90;
+    const bedH = 28;
+
+    // Baranda / piso de la tolva
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(bedX, bedY, bedW, bedH);
+
+    ctx.fillStyle = '#e2e8f0';
+    ctx.fillRect(bedX + 1, bedY + 1, bedW - 2, bedH - 2);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillRect(bedX + 1, bedY + bedH - 5, bedW - 2, 4);
+
+    // Barandas laterales de metal
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(bedX + 2, bedY + 2, bedW - 4, 4);
+    ctx.fillRect(bedX + 2, bedY + 10, bedW - 4, 4);
+
+    // Postes verticales de la tolva
+    for (let px = bedX + 5; px < bedX + bedW - 5; px += 20) {
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(px, bedY, 2.5, bedH);
+    }
+
+    // 3. Cabina Blanca del Camión (Derecha)
+    const cabX = x + 88;
+    const cabY = y + 12;
+    const cabW = 56;
+    const cabH = 44;
+
+    // Sombra de la cabina
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.roundRect(cabX, cabY, cabW, cabH, [10, 5, 3, 0]);
+    ctx.fill();
+
+    // Cuerpo blanco de la cabina
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.roundRect(cabX + 1, cabY + 1, cabW - 2, cabH - 2, [9, 4, 2, 0]);
+    ctx.fill();
+
+    // Sombreado inferior de la cabina
+    ctx.fillStyle = '#e2e8f0';
+    ctx.fillRect(cabX + 1, cabY + 26, cabW - 2, cabH - 27);
+
+    // Ventana / Parabrisas con tinte azul
+    const winX = cabX + 7;
+    const winY = cabY + 5;
+    const winW = 26;
+    const winH = 20;
+
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.roundRect(winX - 1, winY - 1, winW + 2, winH + 2, 4);
+    ctx.fill();
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.roundRect(winX, winY, winW, winH, 3);
+    ctx.fill();
+
+    // Reflejo diagonal blanco en la ventana
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+    ctx.beginPath();
+    ctx.moveTo(winX + 5, winY + 1);
+    ctx.lineTo(winX + 11, winY + 1);
+    ctx.lineTo(winX + 3, winY + winH - 2);
+    ctx.lineTo(winX + 1, winY + winH - 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Espejo retrovisor negro
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(cabX + 3, cabY + 10, 4, 8);
+    ctx.fillRect(cabX + 6, cabY + 13, 2.5, 2.5);
+
+    // Manija de la puerta
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(cabX + 18, cabY + 28, 6, 2.5);
+
+    // Faro delantero (luz halógena)
+    const lightX = cabX + cabW - 8;
+    const lightY = cabY + 24;
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(lightX - 1, lightY - 1, 8, 9);
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(lightX, lightY, 6, 7);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(lightX + 1.5, lightY + 1.5, 3, 3);
+
+    // Intermitente naranja
+    ctx.fillStyle = '#f97316';
+    ctx.fillRect(lightX, lightY + 7, 6, 2.5);
+
+    // Paragolpes delantero plateado
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(cabX + cabW - 5, cabY + 34, 8, 10);
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(cabX + cabW - 4, cabY + 35, 6, 8);
+
+    // 4. Chasis inferior y Ruedas Negras con Llantas Plateadas
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(x + 14, y + 54, w - 22, 8);
+
+    // Rueda Trasera (izquierda)
+    const wheel1X = x + 32;
+    const wheelY = y + 60;
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.arc(wheel1X, wheelY, 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#334155';
+    ctx.beginPath();
+    ctx.arc(wheel1X, wheelY, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#cbd5e1';
+    ctx.beginPath();
+    ctx.arc(wheel1X, wheelY, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#475569';
+    ctx.beginPath();
+    ctx.arc(wheel1X, wheelY, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Rueda Delantera (derecha)
+    const wheel2X = cabX + 32;
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.arc(wheel2X, wheelY, 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#334155';
+    ctx.beginPath();
+    ctx.arc(wheel2X, wheelY, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#cbd5e1';
+    ctx.beginPath();
+    ctx.arc(wheel2X, wheelY, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#475569';
+    ctx.beginPath();
+    ctx.arc(wheel2X, wheelY, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
   }
 
   /** Indicador de "puedes recoger" (§54). */
@@ -820,30 +1343,42 @@ export class Renderer {
     ctx.restore();
   }
 
-  /** Burbuja de diálogo (supervisor, avisos, §54). */
+  /** Burbuja de diálogo (supervisor, avisos, §54) — Grande y Ultra Legible. */
   drawBubble(cx, cy, text, {
-    color = PALETTE.panel,
-    borderColor = PALETTE.panelBorder,
-    textColor = PALETTE.text,
-    fontSize = 7,
+    color = '#090f1d',
+    borderColor = '#38bdf8',
+    textColor = '#ffffff',
+    fontSize = 11,
   } = {}) {
     const ctx = this.ctx;
-    const padding = 6;
+    const padding = 8;
     const textWidth = this.sprites.measureText(text, fontSize);
-    const w = textWidth + padding * 2 + 4;
-    const h = fontSize + padding * 2;
+    const w = textWidth + padding * 2 + 6;
+    const h = fontSize + padding * 2 + 2;
 
     // Se mantiene dentro de la pantalla lógica.
-    const x = Math.round(Math.max(4, Math.min(this.width - w - 4, cx - w / 2)));
-    const y = Math.round(Math.max(4, cy - h));
+    const x = Math.round(Math.max(6, Math.min(this.width - w - 6, cx - w / 2)));
+    const y = Math.round(Math.max(6, cy - h - 6));
 
     ctx.save();
-    // Panel
-    this.sprites.drawRect(x, y, w, h, color, { borderColor, borderWidth: 1 });
+    // Panel oscuro con borde nítido
+    ctx.fillStyle = withAlpha(color, 0.94);
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, 6);
+    ctx.fill();
+
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
 
     // Rabito inferior
     ctx.fillStyle = color;
-    ctx.fillRect(Math.round(cx - 2), y + h, 5, 4);
+    ctx.beginPath();
+    ctx.moveTo(cx - 4, y + h);
+    ctx.lineTo(cx + 4, y + h);
+    ctx.lineTo(cx, y + h + 5);
+    ctx.closePath();
+    ctx.fill();
 
     this.sprites.drawText(text, x + w / 2, y + h / 2, {
       size: fontSize,

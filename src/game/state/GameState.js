@@ -95,7 +95,7 @@ export class GameState {
   }
 
   get isPlaying() {
-    return this.status === GAME_STATES.PLAYING;
+    return this.status === GAME_STATES.PLAYING || this.status === GAME_STATES.INSPECTION;
   }
 
   get isFinished() {
@@ -198,9 +198,9 @@ export class GameState {
     return this.unripeCollected;
   }
 
-  /** Pierde una vida (§21). Devuelve las vidas restantes. */
-  loseLife() {
-    this.lives = Math.max(0, this.lives - 1);
+  /** Pierde vida (por defecto medio corazón = 0.5, o 1 vida). Devuelve las vidas restantes. */
+  loseLife(amount = 0.5) {
+    this.lives = Math.max(0, Math.round((this.lives - amount) * 10) / 10);
     this.dirty = true;
     return this.lives;
   }

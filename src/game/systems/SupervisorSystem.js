@@ -31,10 +31,10 @@ export class SupervisorSystem {
     this.supervisor = supervisor;
   }
 
-  /** Prepara el sistema para un nivel nuevo. */
-  reset({ interval, minimumQuality }) {
-    this.supervisor?.reset(interval);
-    this.supervisor?.setMinimumQuality(minimumQuality);
+  /** Prepara el sistema para un nivel nuevo o reinicia el intervalo. */
+  reset({ interval, minimumQuality } = {}) {
+    if (interval) this.supervisor?.setInterval(interval);
+    if (minimumQuality) this.supervisor?.setMinimumQuality(minimumQuality);
     this.result = null;
     this.pendingInspection = false;
     this.lastInspectionQuality = null;

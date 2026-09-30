@@ -1,6 +1,5 @@
 /* ============================================================
-   GameHud.css — HUD Arcade Rediseñado y Estilizado
-   Proporciones compactas, letras y números equilibrados y elegantes.
+   GameHud.css — HUD Arcade Compacto de 4 Paneles
    ============================================================ */
 
 .arcade-hud {
@@ -13,69 +12,57 @@
   display: flex;
   align-items: stretch;
   gap: 3px;
-  padding: 3px 3px 0 3px;
+  padding: 3px 4px 0 4px;
   box-sizing: border-box;
   user-select: none;
   pointer-events: none;
   font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
 }
 
 /* ============================================================
-   BASE DE LOS PANELES
+   BASE DE LOS PANELES ARCADE AZUL ACERO
    ============================================================ */
-.hud-panel {
+.hud-panel--arcade {
   position: relative;
-  border-radius: 4px;
-  display: flex;
-  box-sizing: border-box;
-  height: 35px;
-  overflow: hidden;
-  min-width: 0;
-}
-
-/* ---------- PANEL DE MADERA (VIDAS y TIEMPO) ---------- */
-.hud-panel--wood {
   background: linear-gradient(
     180deg,
-    #7a4519 0%,
-    #61340f 40%,
-    #4a2707 75%,
-    #3b1e04 100%
+    #0e2a4a 0%,
+    #0a1f38 45%,
+    #061528 100%
   );
-  border: 1.5px solid #1a0c02;
+  border: 1.5px solid #040c17;
+  border-radius: 4px;
   box-shadow:
-    inset 0 1px 0 rgba(255, 210, 160, 0.3),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.65),
-    0 1px 2px rgba(0, 0, 0, 0.4);
-  padding: 1.5px 3px;
-}
-
-/* Tornillos de metal sutiles en las esquinas */
-.hud-screw {
-  position: absolute;
-  width: 2.5px;
-  height: 2.5px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #fff 0%, #cbd5e1 45%, #475569 90%);
-  box-shadow: 0 0.5px 1px rgba(0, 0, 0, 0.8);
-  pointer-events: none;
-  z-index: 2;
-}
-
-.hud-screw--tl { top: 1.5px; left: 1.5px; }
-.hud-screw--tr { top: 1.5px; right: 1.5px; }
-.hud-screw--bl { bottom: 1.5px; left: 1.5px; }
-.hud-screw--br { bottom: 1.5px; right: 1.5px; }
-
-/* ---------- 1. PANEL VIDAS (Izquierda) ---------- */
-.hud-panel--lives {
-  flex: 0 0 23%;
-  max-width: 23%;
+    inset 0 1px 0 rgba(96, 165, 250, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.8),
+    0 1px 3px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+  height: 40px;
+  overflow: hidden;
+  min-width: 0;
+  padding: 2px 4px;
+  display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  gap: 1px;
+}
+
+.hud-title {
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: #93c5fd;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.8);
+  margin-bottom: 1px;
+  line-height: 1;
+}
+
+/* ============================================================
+   1. PANEL VIDAS (Izquierda)
+   ============================================================ */
+.hud-panel--lives {
+  flex: 0 0 19%;
+  align-items: center;
   text-align: center;
 }
 
@@ -83,318 +70,177 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 1.5px;
+  gap: 2px;
+  margin-top: 1px;
 }
 
 .hud-pixel-heart {
   display: inline-flex;
-  width: 8px;
-  height: 7px;
+  width: 10px;
+  height: 9px;
 }
 
 .hud-heart-svg {
   width: 100%;
   height: 100%;
   overflow: visible;
-  filter: drop-shadow(0 0.5px 0.5px rgba(0, 0, 0, 0.8));
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9));
 }
 
-.hud-pixel-heart.is-full .hud-heart-path {
-  fill: #e11d48;
-  stroke: #4c0519;
-  stroke-width: 0.8;
+.hud-heart-bg {
+  fill: #1e293b;
+  stroke: #0f172a;
+  stroke-width: 0.8px;
 }
 
-.hud-pixel-heart.is-full .hud-heart-shine {
-  fill: #ffe4e6;
-  opacity: 0.9;
+.hud-heart-red {
+  fill: #ef4444;
+  stroke: #7f1d1d;
+  stroke-width: 0.8px;
 }
 
-.hud-pixel-heart.is-empty {
-  opacity: 0.28;
-  filter: grayscale(1);
+.hud-heart-shine {
+  fill: #ffffff;
 }
 
-.hud-pixel-heart.is-empty .hud-heart-path {
-  fill: #4b5563;
-  stroke: #111827;
-  stroke-width: 0.8;
+.hud-pixel-heart.is-half .hud-heart-red {
+  fill: #ef4444;
 }
 
-.hud-pixel-heart.is-empty .hud-heart-shine {
-  display: none;
+.hud-pixel-heart.is-empty .hud-heart-bg {
+  fill: #0f172a;
+  stroke: #020617;
 }
 
-.hud-lives__text-row {
+/* ============================================================
+   2. PANEL ESTADÍSTICAS (Nivel, Tiempo, Cosechados, Errores)
+   ============================================================ */
+.hud-panel--stats {
+  flex: 0 0 31%;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  line-height: 1;
+  flex-direction: column;
+  justify-content: space-evenly;
+  padding: 1px 4px;
+  font-family: monospace;
 }
 
-.hud-value--lives {
-  font-size: 11px;
-  font-weight: 900;
-  color: #ffffff;
-  line-height: 1;
-  text-shadow:
-    0.8px 0.8px 0 #000,
-    -0.8px -0.8px 0 #000,
-    0.8px -0.8px 0 #000,
-    -0.8px 0.8px 0 #000,
-    0 1px 0 #000;
-}
-
-/* ---------- 2. PANEL CENTRAL: PUNTUACIÓN Y NIVEL ---------- */
-.hud-panel--blue {
-  flex: 1 1 53%;
-  max-width: 54%;
-  background: linear-gradient(
-    180deg,
-    #134a9b 0%,
-    #0c3778 45%,
-    #072452 80%,
-    #041738 100%
-  );
-  border: 1.5px solid #82581f;
-  box-shadow:
-    inset 0 0 0 0.8px #caa042,
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.55),
-    0 1px 2px rgba(0, 0, 0, 0.4);
-  padding: 1.5px 6px;
-  flex-direction: row;
+.hud-stat-row {
+  display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-/* Remaches dorados */
-.hud-rivet {
-  position: absolute;
-  width: 2.5px;
-  height: 2.5px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #fef08a 0%, #ca8a04 55%, #713f12 100%);
-  box-shadow: 0 0.5px 1px rgba(0, 0, 0, 0.8);
-  pointer-events: none;
-  z-index: 2;
-}
-
-.hud-rivet--tl { top: 1.5px; left: 1.5px; }
-.hud-rivet--tc { top: 1.5px; left: 50%; transform: translateX(-50%); }
-.hud-rivet--tr { top: 1.5px; right: 1.5px; }
-.hud-rivet--bl { bottom: 1.5px; left: 1.5px; }
-.hud-rivet--bc { bottom: 1.5px; left: 50%; transform: translateX(-50%); }
-.hud-rivet--br { bottom: 1.5px; right: 1.5px; }
-
-.hud-center__score-col {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.hud-value--score {
-  font-family: 'Outfit', 'Courier New', monospace;
-  font-size: 12px;
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  letter-spacing: 0.5px;
-  color: #fde047;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-shadow:
-    0.8px 0.8px 0 #000,
-    -0.8px -0.8px 0 #000,
-    0.8px -0.8px 0 #000,
-    -0.8px 0.8px 0 #000,
-    0 1.2px 0 #713f12;
-}
-
-.hud-center__level-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-left: 4px;
-}
-
-.hud-level-pill {
-  background: linear-gradient(180deg, #22c55e 0%, #15803d 70%, #14532d 100%);
-  border: 1px solid #86efac;
-  border-radius: 3px;
-  padding: 1px 4px;
-  font-size: 9.5px;
-  font-weight: 800;
-  line-height: 1;
-  color: #ffffff;
-  text-shadow:
-    0.6px 0.6px 0 #000,
-    -0.6px -0.6px 0 #000,
-    0 0.8px 0 #000;
-  box-shadow:
-    inset 0 0.8px 0 rgba(255, 255, 255, 0.45),
-    0 1px 1.5px rgba(0, 0, 0, 0.35);
-  letter-spacing: 0.2px;
-  white-space: nowrap;
-}
-
-/* ---------- 3. PANEL DERECHO: TIEMPO ---------- */
-.hud-panel--time {
-  flex: 0 0 24%;
-  max-width: 24%;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1px;
-  text-align: center;
-  padding: 1.5px 2px;
-}
-
-.hud-time__content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2.5px;
-  width: 100%;
-}
-
-.hud-clock-icon {
-  width: 10px;
-  height: 10px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.hud-clock-svg {
-  width: 100%;
-  height: 100%;
-}
-
-.hud-value--time {
-  font-family: 'Outfit', 'Courier New', monospace;
-  font-size: 11px;
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
-  color: #ffffff;
-  line-height: 1;
-  white-space: nowrap;
-  letter-spacing: 0.3px;
-  text-shadow:
-    0.8px 0.8px 0 #000,
-    -0.8px -0.8px 0 #000,
-    0.8px -0.8px 0 #000,
-    -0.8px 0.8px 0 #000,
-    0 1px 0 #000;
-}
-
-.hud-value--time.is-warning {
-  color: #ef4444;
-  animation: hud-flash-time 0.8s infinite alternate;
-}
-
-@keyframes hud-flash-time {
-  0% { transform: scale(1); filter: brightness(1); }
-  100% { transform: scale(1.05); filter: brightness(1.25); }
-}
-
-/* Botón de pausa discreto integrado */
-.hud-pause-button {
-  pointer-events: auto;
-  position: absolute;
-  top: 1.5px;
-  right: 1.5px;
-  background: #1e1003;
-  color: #cbd5e1;
-  border: 0.8px solid #78350f;
-  border-radius: 2px;
-  font-size: 6px;
-  font-weight: 900;
-  padding: 0px 2px;
-  cursor: pointer;
   line-height: 1.1;
+  font-size: 6.8px;
+  font-weight: 700;
 }
 
-.hud-pause-button:hover {
-  background: #78350f;
+.hud-stat-label {
+  color: #cbd5e1;
+  letter-spacing: 0.2px;
+}
+
+.hud-stat-value--white {
   color: #ffffff;
 }
 
-/* ---------- ETIQUETAS COMUNES (MÁS FINAS Y ELEGANTES) ---------- */
-.hud-label {
-  font-size: 7px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  line-height: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: 1px;
-}
-
-.hud-label--yellow {
+.hud-stat-value--gold {
   color: #facc15;
-  text-shadow:
-    0.6px 0.6px 0 #000,
-    -0.6px -0.6px 0 #000,
-    0 0.8px 0 #000;
+  text-shadow: 0 0 3px rgba(250, 204, 21, 0.4);
 }
 
-.hud-label--white {
+.hud-stat-value--red {
+  color: #ef4444;
+  font-weight: 800;
+}
+
+/* ============================================================
+   3. PANEL PUNTUACIÓN (Centro-Derecha)
+   ============================================================ */
+.hud-panel--score {
+  flex: 0 0 22%;
+  align-items: center;
+  text-align: center;
+}
+
+.hud-score-number {
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: 900;
+  color: #facc15;
+  letter-spacing: 0.5px;
+  text-shadow:
+    0 1px 0 #854d0e,
+    0 2px 3px rgba(0, 0, 0, 0.9),
+    0 0 6px rgba(250, 204, 21, 0.45);
+  line-height: 1;
+  margin-top: 1px;
+}
+
+/* ============================================================
+   4. PANEL SIGUIENTE REVISIÓN EN (Derecha)
+   ============================================================ */
+.hud-panel--review {
+  flex: 0 0 28%;
+  padding: 1px 4px;
+}
+
+.hud-review-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 1px;
+}
+
+.hud-progress-track {
+  flex: 1;
+  height: 8px;
+  background: #091829;
+  border: 1px solid #1e3a8a;
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.hud-progress-fill {
+  height: 100%;
+  background: linear-gradient(180deg, #4ade80 0%, #22c55e 55%, #15803d 100%);
+  box-shadow: 0 0 4px rgba(74, 222, 128, 0.6);
+  transition: width 0.2s linear;
+}
+
+.hud-review-time {
+  font-family: monospace;
+  font-size: 7.8px;
+  font-weight: 800;
   color: #ffffff;
-  text-shadow:
-    0.6px 0.6px 0 #000,
-    -0.6px -0.6px 0 #000,
-    0 0.8px 0 #000;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
-/* ---------- AVISO CANASTA LLENA ---------- */
+/* ============================================================
+   BANNER DE ALERTA (CANASTA LLENA)
+   ============================================================ */
 .hud-banner-alert {
   position: absolute;
-  top: 100%;
+  top: 46px;
   left: 50%;
   transform: translateX(-50%);
-  margin-top: 3px;
   background: linear-gradient(180deg, #dc2626 0%, #991b1b 100%);
-  border: 1px solid #fecaca;
   color: #ffffff;
-  padding: 2px 7px;
-  border-radius: 3px;
-  font-size: 8.5px;
+  border: 1.5px solid #fef08a;
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.7),
+    0 0 10px rgba(220, 38, 38, 0.5);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 8px;
   font-weight: 800;
+  letter-spacing: 0.3px;
   white-space: nowrap;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
-  animation: hud-pulse 1s infinite alternate;
+  animation: pulseAlert 0.8s infinite alternate ease-in-out;
+  pointer-events: none;
+  z-index: 25;
 }
 
-@keyframes hud-pulse {
-  0% { transform: translateX(-50%) scale(0.98); }
-  100% { transform: translateX(-50%) scale(1.02); }
-}
-
-/* ---------- ADAPTACIÓN PARA PANTALLAS PEQUEÑAS ---------- */
-@media (max-width: 360px) {
-  .hud-panel {
-    height: 32px;
-  }
-  .hud-value--score {
-    font-size: 10.5px;
-  }
-  .hud-value--time,
-  .hud-value--lives {
-    font-size: 10px;
-  }
-  .hud-label {
-    font-size: 6.2px;
-  }
+@keyframes pulseAlert {
+  0% { transform: translateX(-50%) scale(0.98); opacity: 0.92; }
+  100% { transform: translateX(-50%) scale(1.02); opacity: 1; }
 }

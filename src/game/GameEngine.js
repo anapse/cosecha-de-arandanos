@@ -20,7 +20,15 @@
  * re-render. El HUD se emite como instantánea solo cuando cambia.
  */
 
-import { GAME_STATES, ENGINE_EVENTS, HARVEST_SIDES, FRUIT_TYPES, TILE_SIZE } from './config/constants.js';
+import {
+  GAME_STATES,
+  ENGINE_EVENTS,
+  HARVEST_SIDES,
+  FRUIT_TYPES,
+  TILE_SIZE,
+  SUPERVISOR_STATES,
+  INSPECTION_RESULTS,
+} from './config/constants.js';
 import { GAME_CONFIG } from './config/gameConfig.js';
 
 import { Map } from './map/Map.js';
@@ -386,8 +394,14 @@ export class GameEngine {
     this.player?.update(dt);
 
     for (let i = 0; i < this.plants.length; i += 1) {
-      // Las plantas no tienen lógica por frame propia salvo el estado
-      // visual, que ya se recalcula al recoger.
+      const newlyRipened = this.plants[i].update(dt);
+      if (newlyRipened && newlyRipened.length > 0) {
+        for (const fruit of newlyRipened) {
+          const pos = this.plants[i].fruitPosition(fruit);
+          this.effects.particles.emitLeaves(pos.x, pos.y);
+          this.effects.onHarvest(pos.x, pos.y);
+        }
+      }
     }
 
     this.basket?.update(dt);
@@ -446,12 +460,28 @@ export class GameEngine {
     const pending = this.pendingHarvest;
     this.pendingHarvest = null;
 
-    // Sin resultado pendiente: la animación fue "al aire" (el jugador
-    // recogió donde no había nada).
+    // Sin resultado pendiente: la animación fue "al aire"
     if (!pending || !this.basket) return;
 
-    const accepted = this.basket.add(1, { unripe: false });
-    if (accepted <= 0) return;
+    let accepted = this.basket.add(1, { unripe: false });
+    // Si la canasta estaba llena, auto-entregar el lote para que la cosecha nunca se trabe
+    if (accepted <= 0) {
+      const outcome = this.deliverySystem.deliver(this.player);
+      if (outcome.result === DELIVERY_RESULT.DELIVERED) {
+        this.scoreSystem.addDelivery();
+        this.state.registerDelivery({ delivered: outcome.delivered, full: true });
+        if (this.truck) {
+          this.truck.start();
+          this.audio.truck?.();
+        }
+        this.effects.showBanner('¡FELICITACIONES! COSECHA ENTREGADA', {
+          duration: 2.8,
+          color: '#22c55e',
+          subtext: `+200 PTS · Has entregado ${outcome.delivered} arándanos`,
+        });
+      }
+      accepted = this.basket.add(1, { unripe: false });
+    }
 
     this.scoreSystem.addRipe(1);
     this.state.registerHarvest();
@@ -463,11 +493,14 @@ export class GameEngine {
       this.effects.particles.emitLeaves(pending.plant.centerX, pending.plant.centerY);
     }
 
-    // Canasta llena: aviso para que el jugador regrese a entregar (§14).
+    // Canasta llena: aviso grande para entregar (§14)
     if (this.basket.isFull) {
-      this.effects.onBasketFull(this.basket.centerX, this.basket.centerY - 10);
+      this.effects.showBanner('¡CANASTA LLENA!', {
+        duration: 2.0,
+        color: '#facc15',
+        subtext: 'Pulsa ENTREGAR para vaciar y cargar el camión',
+      });
       this.audio.supervisorAlert();
-      this.#toast('CANASTA LLENA - REGRESA A ENTREGAR');
     }
 
     this.#publishHud();
@@ -476,10 +509,15 @@ export class GameEngine {
   #handleHarvestInput() {
     if (!this.player || !this.state.isPlaying) return;
 
+    // Durante la inspección de calidad en el cajón, se pausa la cosecha (§20)
+    if (this.supervisor?.isActive && this.supervisor?.state === SUPERVISOR_STATES.INSPECT) {
+      return;
+    }
+
     const touchLeft = this.touch.consumeHarvestLeft();
     const touchRight = this.touch.consumeHarvestRight();
     const keyLeft = this.keyboard.harvestLeftPressed;
-    const keyContext = this.keyboard.wasPressed(['KeyE', 'Space']);
+    const keyContext = this.keyboard.wasPressed(['KeyE', 'KeyJ', 'KeyL']);
 
     let side = null;
 
@@ -666,6 +704,7 @@ export class GameEngine {
     const outcome = this.deliverySystem.deliver(this.player);
 
     if (outcome.result === DELIVERY_RESULT.DELIVERED) {
+      const bonus = outcome.wasFull ? 200 : 100;
       this.scoreSystem.addDelivery();
       if (outcome.wasFull) this.scoreSystem.addFullDelivery();
 
@@ -677,13 +716,36 @@ export class GameEngine {
       this.qualitySystem.applyDeliveryBonus();
       this.state.quality = this.qualitySystem.value;
 
+      // Liberar al jugador de cualquier bloqueo de recolección previo
+      this.pendingHarvest = null;
+      if (this.player) {
+        this.player.isHarvesting = false;
+        this.player.harvestCooldown = 0;
+      }
+
       this.effects.onDelivery(outcome.position.x, outcome.position.y);
       this.audio.delivery();
 
-      this.#toast(`ENTREGA: ${outcome.delivered} arandanos`);
+      // Arrancar camión de transporte
+      if (this.truck) {
+        this.truck.start();
+        this.audio.truck?.();
+      }
+
+      // Mensaje de felicitaciones limpio y compacto
+      this.effects.showBanner('¡ENTREGA EXITOSA!', {
+        duration: 2.2,
+        color: '#22c55e',
+        subtext: `+${bonus} PTS · ${outcome.delivered} arándanos entregados`,
+      });
+
       this.#publishHud();
     } else if (outcome.result === DELIVERY_RESULT.EMPTY_BASKET) {
-      this.#toast('LA CANASTA ESTA VACIA');
+      this.effects.showBanner('CANASTA VACÍA', {
+        duration: 1.4,
+        color: '#94a3b8',
+        subtext: 'Recolecta frutos antes de entregar',
+      });
     }
   }
 
@@ -734,24 +796,68 @@ export class GameEngine {
 
   /** Datos que el supervisor evalúa (§20). */
   #inspectionStats() {
+    const basketCount = Number(this.basket?.current) || 0;
+    const harvestedCount = Number(this.state.harvested) || 0;
+    const unripeCount = Number(this.state.unripeCollected) || 0;
+    const errorCount = Number(this.state.errors) || 0;
+    const qualityVal = Math.round(Number(this.state.quality) || 100);
+
     return {
-      ripe: this.state.harvested + this.basket?.current ?? 0,
-      unripe: this.state.unripeCollected,
-      errors: this.state.errors,
-      quality: Math.round(this.state.quality),
+      ripe: harvestedCount + basketCount,
+      unripe: unripeCount,
+      errors: errorCount,
+      quality: qualityVal,
     };
   }
 
-  /** Aplica el resultado de la revisión (§20). */
+  /** Aplica el resultado de la revisión del supervisor (§20). */
   #resolveInspection(result) {
-    const effects = this.supervisorSystem.applyResult(result, {
-      onReject: () => {
-        // Rechazo: penalización de puntos y calidad.
-        this.state.registerError({ qualityLoss: 4, pointsLoss: 0 });
-        this.qualitySystem.adjust(-4);
-        this.state.quality = this.qualitySystem.value;
-      },
-    });
+    const currentUnripe = this.state.unripeCollected ?? 0;
+    const lastUnripe = this.lastInspectedUnripe ?? 0;
+    const unripeInPeriod = Math.max(0, currentUnripe - lastUnripe);
+    this.lastInspectedUnripe = currentUnripe;
+
+    const failed = unripeInPeriod > 0 || (result.verdict === INSPECTION_RESULTS.REJECTED);
+
+    if (failed) {
+      // 1. Descuento al puntaje total por frutos verdes
+      const pointsDeduction = Math.max(25, unripeInPeriod * 25);
+      this.scoreSystem.addScore?.(-pointsDeduction, 'Penalización supervisor');
+      this.state.addScore(-pointsDeduction, 'Penalización frutos verdes');
+
+      // 2. Pérdida de MEDIO CORAZÓN (0.5 vidas) por fallo de calidad
+      const remainingLives = this.state.loseLife(0.5);
+
+      const msg = `⚠️ ¡COSECHA FALLANDO! ${unripeInPeriod > 0 ? unripeInPeriod + ' verdes' : 'baja calidad'} (-1/2 VIDA)`;
+      this.supervisor?.say(msg, 3);
+      this.effects.showBanner(`COSECHA FALLANDO: -1/2 CORAZÓN`, {
+        duration: 2.2,
+        color: '#ef4444',
+        subtext: `Pérdida de puntos: -${pointsDeduction} pts`,
+      });
+      this.audio.defeat();
+
+      // Si se agotan todas las vidas (0 corazones), se pierde el juego
+      if (remainingLives <= 0) {
+        this.#handleLevelEnd({
+          finished: true,
+          outcome: 'defeat',
+          reason: 'noLives',
+          message: 'Has perdido todas las vidas por cosechar frutos inmaduros.',
+        });
+        return;
+      }
+    } else {
+      // Calidad aprobada: bonificación
+      this.state.addScore(50, 'Bono calidad aprobada');
+      this.supervisor?.say('✅ ¡EXCELENTE CALIDAD! Sin frutos verdes.', 3);
+      this.effects.showBanner('¡CALIDAD APROBADA!', {
+        duration: 2.0,
+        color: '#22c55e',
+        subtext: '+50 Puntos de bonificación',
+      });
+      this.audio.victory();
+    }
 
     this.state.setInspectionResult(result);
     this.state.supervisorActive = false;
@@ -764,19 +870,7 @@ export class GameEngine {
       minimumQuality: this.state.levelConfig?.minimumQuality ?? 85,
     });
 
-    this.effects.onInspectionResult(effects.approved, this.supervisor.x, this.supervisor.y - 24);
-    this.#toast(result.message);
-
-    if (effects.rejected) {
-      this.audio.defeat();
-    } else {
-      this.audio.victory();
-    }
-
-    // Un rechazo con calidad crítica termina el nivel (§26).
-    const check = this.levelSystem.checkQualityAfterInspection(effects);
-    if (check.finished) this.#handleLevelEnd(check);
-
+    this.effects.onInspectionResult(!failed, this.supervisor.x, this.supervisor.y - 24);
     this.#publishHud();
   }
 
@@ -926,15 +1020,16 @@ export class GameEngine {
     this.deliverySystem.setBoxes(this.boxes);
 
     /* ---------- Supervisor (§17) ---------- */
-    const inspectionSpot = {
-      x: this.basket.centerX + TILE_SIZE * 1.4,
-      y: this.basket.centerY - 4,
+    const homeSpot = world.supervisorSpawn ?? { x: 440, y: 560 };
+    const inspectionSpot = world.supervisorInspectionSpot ?? {
+      x: this.basket.centerX + 70,
+      y: this.basket.centerY,
     };
 
     this.supervisor = new Supervisor({
-      x: world.supervisorSpawn.x,
-      y: world.supervisorSpawn.y,
-      homeSpot: world.supervisorSpawn,
+      x: homeSpot.x,
+      y: homeSpot.y,
+      homeSpot,
       inspectionSpot,
     });
 
@@ -946,16 +1041,15 @@ export class GameEngine {
     });
 
     /* ---------- Camión (§16) ---------- */
-    const truckY = this.map.deliveryZone
-      ? this.map.deliveryZone.y + TILE_SIZE * 0.6
-      : this.logicalHeight - 60;
+    const truckX = 270;
+    const truckY = 548;
     this.truck = new Truck({
-      x: -80,
+      x: truckX,
       y: truckY,
-      entryX: -80,
-      exitX: this.logicalWidth + 100,
+      entryX: 490,
+      exitX: 490,
     });
-    this.truck.setLoadingSpot(this.basket.centerX + TILE_SIZE * 1.6, truckY);
+    this.truck.setLoadingSpot(truckX, truckY);
 
     /* ---------- Sistemas de puntuación y calidad ---------- */
     this.scoreSystem.reset();
