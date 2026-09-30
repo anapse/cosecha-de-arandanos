@@ -41,7 +41,7 @@ export default function MainMenu({ onPlay, onTutorial, onSelectLevel }) {
             <br />
             ARÁNDANOS
           </h1>
-          <p className="main-menu__subtitle">Fundo San Jorge · Ica — Perú</p>
+          <p className="main-menu__subtitle">Ica — Perú</p>
         </header>
 
         {/* ---------- Botones principales ---------- */}

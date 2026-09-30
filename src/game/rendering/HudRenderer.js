@@ -251,7 +251,7 @@ export class HudRenderer {
     this.text('ARÁNDANOS', pad + 30, top + 14, {
       size: 9, color: '#ffffff',
     });
-    this.text('FUNDO SAN JORGE - ICA', pad + 30, top + 24, {
+    this.text('CAMPO DE COSECHA · ICA', pad + 30, top + 24, {
       size: 7, color: '#ffe8b0',
     });
 
