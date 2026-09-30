@@ -1,70 +1,60 @@
 /**
- * Tutorial.jsx — Tutorial corto e interactivo (§36).
- *
- * 8 pasos, uno por pantalla, con avance táctil/clic.
- * Los textos son EXACTAMENTE los de la especificación.
+ * Tutorial.jsx — Tutorial interactivo actualizado con el diseño y mecánicas actuales.
  */
 
 import { useEffect, useState } from 'react';
 import './Tutorial.css';
 
-/** Pasos del tutorial (§36). */
+/** Pasos del tutorial interactivo. */
 export const TUTORIAL_STEPS = [
   {
     id: 1,
     icon: '🚶',
-    title: 'CAMINA POR LOS CAMINOS',
-    text: 'Muévete con W A S D o las flechas. Las plantas bloquean el paso: usa los caminos de tierra.',
-    tip: 'En móvil usa la cruceta.',
+    title: 'CAMINA POR LAS CAMINERÍAS',
+    text: 'Muévete con W A S D o las flechas del teclado en PC. En móvil usa los botones direccionales de los bordes o desliza tu dedo. Camina libremente por los caminos de tierra entre las hileras.',
+    tip: 'Usa los pasillos superior e inferior para cruzar entre caminerías.',
   },
   {
     id: 2,
-    icon: '🔍',
-    title: 'BUSCA LOS FRUTOS',
-    text: 'Los arándanos crecen a los lados de las líneas de cultivo. Acércate para poder alcanzarlos.',
-    tip: 'Aparece un aviso sobre el fruto.',
+    icon: '🫐',
+    title: 'COSECHA SOLO MADUROS (+10)',
+    text: 'Los arándanos maduros son de color AZUL OSCURO. Pulsa E o Q en PC, haz clic sobre el fruto, o pulsa el botón COSECHAR en móvil para recolectar el más cercano.',
+    tip: 'Cada arándano maduro suma +10 puntos a tu marcador.',
   },
   {
     id: 3,
-    icon: '🫐',
-    title: 'RECOGE LOS MADUROS',
-    text: 'Los maduros son AZULES. Pulsa Q para recoger a la izquierda y E para recoger a la derecha.',
-    tip: 'Cada maduro suma +10 puntos.',
+    icon: '⚠️',
+    title: 'EVITA LOS FRUTOS PINTONES',
+    text: 'Los frutos VERDES o ROSADOS aún no maduran. Si cosechas un pintón perderás 25 puntos y acumularás faltas de calidad en tu canasta.',
+    tip: '¡Cuidado! Cosechar pintones arriesga tus vidas ante el supervisor.',
   },
   {
     id: 4,
-    icon: '⚠️',
-    title: 'NO RECOJAS LOS PINTONES',
-    text: 'Los pintones son ROSADOS o VERDOSOS. Si los recoges pierdes puntos y baja la calidad.',
-    tip: 'Cada pintón resta 25 puntos.',
+    icon: '🧺',
+    title: 'LLENA TU CANASTA',
+    text: 'Los frutos van a tu canasta personal. Revisa el contador en el HUD superior para saber cuántos frutos llevas acumulados.',
+    tip: 'Cuando la canasta esté llena, el juego te avisará para que bajes a vaciarla.',
   },
   {
     id: 5,
-    icon: '🧺',
-    title: 'LLENA LA CANASTA',
-    text: 'Los arándanos van a tu canasta. Cuando llegue al tope, baja a entregarla.',
-    tip: 'La canasta del nivel 1 aguanta 30 frutos.',
+    icon: '📦',
+    title: 'ENTREGA EN LA ZONA INFERIOR',
+    text: 'Baja a la zona de acopio y pulsa ESPACIO en PC o el botón ENTREGAR en móvil. Los frutos se guardarán en las cajas de embalaje y el camión.',
+    tip: 'Cada entrega te otorga +100 puntos adicionales.',
   },
   {
     id: 6,
-    icon: '⬇️',
-    title: 'REGRESA ABAJO',
-    text: 'Vuelve caminando hasta la parte inferior del campo. La zona de entrega está al final.',
-    tip: 'Sigue el camino central.',
+    icon: '👨‍💼',
+    title: 'INSPECCIÓN DEL SUPERVISOR',
+    text: 'La barra superior muestra la cuenta regresiva para la llegada del supervisor. Él revisará la calidad de los frutos acopiados.',
+    tip: 'Cosecha perfecta = +50 pts de bono. Frutos verdes = -1/2 corazón (vida).',
   },
   {
     id: 7,
-    icon: '📦',
-    title: 'ENTREGA',
-    text: 'Pulsa ESPACIO en la zona de entrega. Los frutos pasan a tu total y sumas 100 puntos.',
-    tip: 'En móvil usa el botón ENTREGAR.',
-  },
-  {
-    id: 8,
-    icon: '👨\u200d💼',
-    title: 'CUIDADO CON EL SUPERVISOR',
-    text: 'Cada cierto tiempo llega el supervisor a revisar. Si la calidad es baja, rechaza tu cosecha.',
-    tip: 'Mantén la calidad por encima del mínimo del nivel.',
+    icon: '❤️',
+    title: 'VIDAS Y OBJETIVOS',
+    text: 'Empiezas con 3 corazones (vidas). Pierdes medio corazón por cada sanción del supervisor. Si pierdes las vidas o se agota el tiempo, el nivel termina.',
+    tip: 'Cosecha los arándanos maduros requeridos para superar los 12 niveles.',
   },
 ];
 
@@ -82,7 +72,7 @@ export default function Tutorial({ onFinish, onBackToMenu }) {
     setStepIndex((index) => Math.max(0, index - 1));
   };
 
-  /* Navegación por teclado: flechas y espacio (§25). */
+  /* Navegación por teclado: flechas y espacio */
   useEffect(() => {
     const onKeyDown = (event) => {
       if (event.code === 'ArrowRight' || event.code === 'Space' || event.code === 'Enter') {
@@ -131,7 +121,7 @@ export default function Tutorial({ onFinish, onBackToMenu }) {
           ))}
         </div>
 
-        {/* ---------- Contenido (altura estable) ---------- */}
+        {/* ---------- Contenido ---------- */}
         <div className="tutorial__card">
           <div className="tutorial__icon" aria-hidden="true">
             {step.icon}

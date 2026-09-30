@@ -22,8 +22,8 @@ export const END_REASONS = Object.freeze({
   TOO_MANY_UNRIPE: 'tooManyUnripe',
 });
 
-/** Umbral de pintones que provoca el rechazo directo. */
-export const MAX_UNRIPE_BEFORE_REJECT = 8;
+/** Umbral de pintones antes de rechazo directo. */
+export const MAX_UNRIPE_BEFORE_REJECT = 40;
 
 export class LevelSystem {
   /**

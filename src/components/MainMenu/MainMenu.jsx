@@ -107,7 +107,7 @@ export default function MainMenu({ onPlay, onTutorial, onSelectLevel }) {
             <span className="main-menu__record-label">RÉCORD</span>
             <span className="main-menu__record-value">{bestScore}</span>
           </div>
-          <p className="main-menu__hint">W A S D / flechas · E recoger · ESPACIO entregar</p>
+          <p className="main-menu__hint">W A S D / Flechas · E / Clic Cosechar · ESPACIO Entregar · Táctil en Móvil</p>
         </footer>
       </div>
     </div>

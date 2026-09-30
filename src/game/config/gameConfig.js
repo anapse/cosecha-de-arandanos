@@ -26,19 +26,18 @@ export const GAME_CONFIG = {
   scoreDelivery: 100,     // entrega
   scoreFullDelivery: 100, // bonus por entregar canasta llena
   perfectHarvestScore: 250,
-  scoreUnripe: -25,       // pintón recogido
-  errorScore: -50,        // error de recolección
+  scoreUnripe: -10,       // fruto verde recogido (penalización suave)
+  errorScore: -15,        // error de recolección
 
   /* ---------- Calidad (§13) ---------- */
   initialQuality: 100,
-  qualityLossPerUnripe: 6,
-  qualityLossPerError: 8,
-  qualityGainPerDelivery: 1.5,
+  qualityLossPerUnripe: 3,
+  qualityLossPerError: 4,
+  qualityGainPerDelivery: 2,
 
   /* ---------- Vidas (§21) ---------- */
   initialLives: 3,
-  // Un error "grave" es alcanzar este nº de errores acumulados sin entregar.
-  graveErrorThreshold: 3,
+  graveErrorThreshold: 8,
 
   /* ---------- Cosecha (§6) ---------- */
   // Distancia máxima (px lógicos) a la que se detecta un fruto.

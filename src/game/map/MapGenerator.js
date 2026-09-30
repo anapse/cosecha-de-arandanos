@@ -167,6 +167,7 @@ export class MapGenerator {
             const side = rng() < 0.5 ? 'left' : 'right';
             const slot = capped === 1 ? 0.5 : f / (capped - 1 || 1);
 
+            const ripenTimer = type === FRUIT_TYPES.UNRIPE ? 6 + rng() * 8 : null;
             fruits.push({
               id: `${col}-${i}-${f}`,
               type,
@@ -177,6 +178,7 @@ export class MapGenerator {
                 type === FRUIT_TYPES.UNRIPE
                   ? randInt(0, UNRIPE_VARIANTS.length - 1, rng)
                   : 0,
+              ripenTimer,
               collected: false,
             });
           }

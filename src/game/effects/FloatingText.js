@@ -87,10 +87,10 @@ export const FloatingTextFactory = {
     });
   },
 
-  /** -25 por pintón, con mensaje de aviso (§12). */
-  unripeError(x, y, points = -25) {
+  /** Fruto verde/inmaduro recogido con aviso suave. */
+  unripeError(x, y, points = -10) {
     return new FloatingText({
-      text: `PINTON ${points}`,
+      text: `¡VERDE! ${points}`,
       x,
       y,
       color: PALETTE.danger,

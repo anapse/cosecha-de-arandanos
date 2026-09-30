@@ -31,9 +31,9 @@ export const PALETTE = {
   ripe: '#3a5fcd',
   ripeLight: '#6f8ff0',
   ripeDark: '#24409a',
-  unripe: '#e8a0b4',
-  unripeLight: '#f6c6d4',
-  unripeDark: '#b9718a',
+  unripe: '#16a34a',
+  unripeLight: '#4ade80',
+  unripeDark: '#064e3b',
 
   /* Personajes */
   skin: '#e8b088',

@@ -50,12 +50,12 @@ export class EffectsManager {
     this.addText(FloatingTextFactory.harvest(x, y, points));
   }
 
-  /** Pintón recogido: error (§12). */
+  /** Fruto verde recogido con feedback suave. */
   onUnripeError(x, y, points = GAME_CONFIG.scoreUnripe) {
     this.particles.emitError(x, y);
     this.addText(FloatingTextFactory.unripeError(x, y, points));
-    this.flash(PALETTE.danger, 0.35);
-    this.camera?.shake(5, 0.28);
+    this.flash(PALETTE.danger, 0.12);
+    this.camera?.shake(2.5, 0.14);
   }
 
   /** Error grave / penalización (§12). */

@@ -3,15 +3,12 @@
  * ---------------------------------------------------------------
  * Planta de arándano (§15, §9).
  *
- * Soporta los 8 estados de la especificación:
- *   empty, few, medium, abundant, ripe, unripe, mixed, harvested
- *
- * La planta es reutilizable: contiene sus frutos y sabe en qué
- * variante visual está, pero no se dibuja a sí misma (eso es del
- * SpriteRenderer).
+ * Maneja los frutos en sus hileras, maduración dinámica con el tiempo,
+ * y rebrote progresivo de frutos verdes a medida que el jugador avanza
+ * y acumula puntaje.
  */
 
-import { PLANT_STATES, TILE_SIZE } from '../config/constants.js';
+import { PLANT_STATES, TILE_SIZE, FRUIT_TYPES } from '../config/constants.js';
 import { resolvePlantState, getPlantDef } from '../../data/plants.js';
 
 export class Plant {
@@ -23,26 +20,22 @@ export class Plant {
     this.col = def.col;
     this.row = def.row;
 
-    // Posición en px lógicos (esquina superior izquierda del tile)
+    // Posición en px lógicos
     this.x = def.x;
     this.y = def.y;
     this.width = TILE_SIZE;
-    // Tamaño lógico: EXACTAMENTE el del tile y del sprite (32x32).
-    // Debe coincidir con el PNG para no deformar el pixel art (§18).
     this.height = TILE_SIZE;
 
-    /** @type {Array<{type:string,collected:boolean}>} */
-    this.fruits = def.fruits ?? [];
+    /** @type {Array<{id:string, type:string, side:string, slot:number, collected:boolean, ripenTimer?:number, jitter?:number, variant?:number}>} */
+    this.fruits = def.fruits ? def.fruits.map((f) => ({ ...f })) : [];
 
     this.harvested = def.harvested ?? false;
     this.visualVariant = def.visualVariant ?? 0;
-
-    /**
-     * Variación visual. NO se usa para escalar el sprite (eso
-     * deformaría el pixel art): sirve para elegir variante de dibujo
-     * y para pequeños desplazamientos decorativos.
-     */
     this.visualScale = 1;
+
+    // Temporizador para hacer brotar nuevos frutos de forma natural
+    this.sproutTimer = 3 + Math.random() * 5;
+    this.maxFruits = Math.max(3, def.fruits?.length ?? 3);
 
     this.state = resolvePlantState({
       totalFruits: this.remainingFruits,
@@ -53,31 +46,49 @@ export class Plant {
   }
 
   /**
-   * Actualiza la maduración progresiva de los arándanos verdes/pintones (§10).
-   * Los verdes van madurando con el tiempo mientras el jugador cosecha.
+   * Actualiza la maduración progresiva de los arándanos verdes/pintones
+   * y hace brotar nuevos frutos según el puntaje acumulado.
+   *
+   * Entre más puntaje, más frutos verdes brotan y menos maduros,
+   * obligando al jugador a esperar a que maduren al azar.
+   *
    * @param {number} dt
+   * @param {number} currentScore puntaje actual del jugador
    * @returns {Array<object>} lista de frutos que acaban de madurar a azul
    */
-  update(dt) {
-    if (this.harvested || !this.hasFruits) return [];
+  update(dt, currentScore = 0) {
     const newlyRipened = [];
 
+    // 1. Maduración en tiempo real de frutos verdes existentes
     for (let i = 0; i < this.fruits.length; i += 1) {
       const fruit = this.fruits[i];
       if (fruit.collected) continue;
 
-      if (fruit.type === 'UNRIPE') {
-        if (fruit.ripenTimer === undefined) {
-          // Temporizador aleatorio de maduración entre 8 y 18 segundos
-          fruit.ripenTimer = 8 + (Math.abs(Math.sin((fruit.slot ?? 0.5) * 100)) * 10);
+      if (fruit.type === FRUIT_TYPES.UNRIPE) {
+        if (fruit.ripenTimer === undefined || fruit.ripenTimer === null) {
+          // Temporizador de maduración dinámico según puntaje
+          const baseTime = 6 + Math.min(8, (currentScore / 250) * 3);
+          fruit.ripenTimer = baseTime + Math.random() * 5;
         }
 
         fruit.ripenTimer -= dt;
         if (fruit.ripenTimer <= 0) {
-          fruit.type = 'RIPE';
+          fruit.type = FRUIT_TYPES.RIPE;
           fruit.justRipened = true;
+          fruit.ripenTimer = null;
           newlyRipened.push(fruit);
         }
+      }
+    }
+
+    // 2. Regeneración progresiva de frutos al azar
+    this.sproutTimer -= dt;
+    if (this.sproutTimer <= 0) {
+      this.sproutTimer = 3.5 + Math.random() * 4.5;
+
+      const activeCount = this.remainingFruits;
+      if (activeCount < this.maxFruits) {
+        this.#sproutNewFruit(currentScore);
       }
     }
 
@@ -88,12 +99,65 @@ export class Plant {
     return newlyRipened;
   }
 
-  /** Rectángulo de la planta (bloquea el paso, §39). */
-  get rect() {
-    return { x: this.x, y: this.y + TILE_SIZE * 0.2, w: this.width, h: this.height * 0.8 };
+  /**
+   * Genera un nuevo fruto en la planta.
+   * La probabilidad de que sea verde (UNRIPE) aumenta considerablemente con el puntaje.
+   */
+  #sproutNewFruit(score) {
+    // A mayor puntaje, los maduros se van acabando y salen casi exclusivamente verdes
+    // Score 0 -> 70% maduros, 30% verdes
+    // Score 200 -> 45% maduros, 55% verdes
+    // Score 500 -> 25% maduros, 75% verdes
+    // Score 800+ -> 10% maduros, 90% verdes
+    const ripeChance = Math.max(0.08, 0.72 - (score / 600) * 0.60);
+    const isRipe = Math.random() < ripeChance;
+    const type = isRipe ? FRUIT_TYPES.RIPE : FRUIT_TYPES.UNRIPE;
+
+    // Elegir lado y altura libre
+    const existingSlots = this.fruits.filter((f) => !f.collected).map((f) => f.slot);
+    let bestSlot = Math.random() * 0.8 + 0.1;
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const candidate = Math.random() * 0.8 + 0.1;
+      const tooClose = existingSlots.some((s) => Math.abs(s - candidate) < 0.22);
+      if (!tooClose) {
+        bestSlot = candidate;
+        break;
+      }
+    }
+
+    const side = Math.random() < 0.5 ? 'left' : 'right';
+    const baseRipen = 6.5 + Math.min(10, (score / 200) * 3.5);
+    const ripenTimer = isRipe ? null : baseRipen + Math.random() * 6;
+
+    const newFruit = {
+      id: `${this.id}-sprout-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      type,
+      side,
+      slot: bestSlot,
+      jitter: (Math.random() - 0.5) * 6,
+      variant: Math.floor(Math.random() * 2),
+      ripenTimer,
+      collected: false,
+    };
+
+    // Reutilizar hueco recogido o añadir nuevo
+    const collectedIndex = this.fruits.findIndex((f) => f.collected);
+    if (collectedIndex >= 0) {
+      this.fruits[collectedIndex] = newFruit;
+    } else {
+      this.fruits.push(newFruit);
+    }
+
+    this.harvested = false;
+    this.refreshState();
   }
 
-  /** Centro de la planta en px lógicos (para ordenar por profundidad). */
+  /** Rectángulo de la planta (bloquea el paso) */
+  get rect() {
+    return { x: this.x, y: this.y + TILE_SIZE * 0.15, w: this.width, h: this.height * 0.85 };
+  }
+
+  /** Centro de la planta en px lógicos */
   get centerX() {
     return this.x + this.width / 2;
   }
@@ -109,11 +173,11 @@ export class Plant {
   }
 
   get ripeFruits() {
-    return this.fruits.filter((f) => !f.collected && f.type === 'RIPE');
+    return this.fruits.filter((f) => !f.collected && f.type === FRUIT_TYPES.RIPE);
   }
 
   get unripeFruits() {
-    return this.fruits.filter((f) => !f.collected && f.type === 'UNRIPE');
+    return this.fruits.filter((f) => !f.collected && f.type === FRUIT_TYPES.UNRIPE);
   }
 
   get ripeCount() {
@@ -129,14 +193,13 @@ export class Plant {
     return this.remainingFruits > 0;
   }
 
-  /** ¿Solo tiene pintones? (feedback de "NO RECOGER") */
+  /** ¿Solo tiene pintones/inmaduros? */
   get isOnlyUnripe() {
     return this.ripeCount === 0 && this.unripeCount > 0;
   }
 
   /**
    * Frutos accesibles desde un lado concreto ('left' | 'right').
-   * El jugador recoge desde el camino contiguo (§7).
    */
   fruitsOnSide(side) {
     return this.fruits.filter((f) => !f.collected && f.side === side);
@@ -144,8 +207,6 @@ export class Plant {
 
   /**
    * Marca un fruto como recogido y recalcula el estado visual.
-   * @param {string} fruitId
-   * @returns {object|null} el fruto recogido, o null si no existía
    */
   collectFruit(fruitId) {
     const fruit = this.fruits.find((f) => f.id === fruitId && !f.collected);
@@ -161,7 +222,7 @@ export class Plant {
     return fruit;
   }
 
-  /** Recalcula la variante visual según los frutos que quedan (§9). */
+  /** Recalcula la variante visual según los frutos que quedan. */
   refreshState() {
     this.state = resolvePlantState({
       totalFruits: this.remainingFruits,
@@ -189,29 +250,19 @@ export class Plant {
 
   /**
    * Posición de un fruto dentro de la planta, en px lógicos.
-   *
-   * El generador asigna a cada fruto:
-   *   - `side` → 'left' | 'right', en qué mitad de la mata cuelga
-   *   - `slot` → 0..1, altura relativa dentro de la planta
-   *
-   * El arte (tools/artPlants.js) pinta los frutos en posiciones que
-   * respetan ese mismo reparto: izquierda/derecha y de arriba abajo.
-   * Así el fruto lógico cae sobre el fruto pintado.
    */
   fruitPosition(fruit) {
     const def = this.definition;
 
-    // Mitad correspondiente (un poco hacia el centro para que quede
-    // dentro del follaje, no en el borde del tile).
-    const sideOffset = fruit.side === 'left' ? 0.3 : 0.7;
+    // Distribuir a los lados del arbusto más ancho
+    const sideOffset = fruit.side === 'left' ? 0.22 : 0.78;
     const x = this.x + this.width * sideOffset + (fruit.jitter ?? 0);
 
-    // Altura: `slot` va de 0 (arriba) a 1 (abajo). Se deja margen
-    // arriba y abajo para que el fruto no se salga de la mata.
+    // Altura dentro de la planta
     const slot = typeof fruit.slot === 'number' ? fruit.slot : 0.5;
-    const y = this.y + 9 + slot * (this.height - 18);
+    const y = this.y + 7 + slot * (this.height - 14);
 
-    return { x, y, size: 9, density: def.foliage };
+    return { x, y, size: 10, density: def.foliage };
   }
 
   /** Resumen para depuración. */

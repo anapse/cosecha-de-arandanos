@@ -439,75 +439,74 @@ export class Renderer {
 
   /**
    * Dibuja un segmento de seto continuo, frondoso y notablemente ancho.
-   * Con 4 hileras los arbustos se extienden más horizontalmente (ancho ~62px),
+   * Con 4 hileras los arbustos se extienden más horizontalmente (ancho ~66px),
    * con múltiples lóbulos de follaje verde vibrante y flores blancas.
    */
   #drawLushHedgeSegment(x, y, size, plant) {
     const ctx = this.ctx;
     const cx = x + size / 2;
     const cy = y + size / 2;
-    // Arbustos esféricos y frondosos centrados (radio 18px / diámetro 36px)
-    // Se mantienen dentro de la hilera dejando los caminos de arena (48px)
-    // 100% despejados para que el jugador camine limpio por el centro sin pisar plantas
-    const rx = 18;
-    const ry = 18;
+    // Arbustos esféricos y frondosos ampliados (radio 23px / diámetro 46px)
+    // Otorgan mayor presencia visual manteniendo las caminerías de 48px despejadas
+    const rx = 23;
+    const ry = 20;
 
     ctx.save();
 
     // Sombra del follaje sobre el lecho arenoso
-    ctx.fillStyle = 'rgba(50, 25, 8, 0.28)';
+    ctx.fillStyle = 'rgba(50, 25, 8, 0.32)';
     ctx.beginPath();
-    ctx.ellipse(cx, y + size * 0.82, rx * 0.95, ry * 0.45, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx, y + size * 0.84, rx * 1.05, ry * 0.5, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // 1. Capa base oscura del arbusto (fondo profundo de hojas verde bosque)
-    ctx.fillStyle = '#113b14';
+    ctx.fillStyle = '#0e3312';
     ctx.beginPath();
-    ctx.arc(cx - rx * 0.45, cy - ry * 0.2, rx * 0.48, 0, Math.PI * 2);
-    ctx.arc(cx + rx * 0.45, cy - ry * 0.2, rx * 0.48, 0, Math.PI * 2);
-    ctx.arc(cx, cy + ry * 0.25, rx * 0.52, 0, Math.PI * 2);
-    ctx.arc(cx - rx * 0.55, cy + ry * 0.1, rx * 0.42, 0, Math.PI * 2);
-    ctx.arc(cx + rx * 0.55, cy + ry * 0.1, rx * 0.42, 0, Math.PI * 2);
-    ctx.arc(cx, cy - ry * 0.3, rx * 0.46, 0, Math.PI * 2);
+    ctx.arc(cx - rx * 0.52, cy - ry * 0.18, rx * 0.52, 0, Math.PI * 2);
+    ctx.arc(cx + rx * 0.52, cy - ry * 0.18, rx * 0.52, 0, Math.PI * 2);
+    ctx.arc(cx, cy + ry * 0.28, rx * 0.56, 0, Math.PI * 2);
+    ctx.arc(cx - rx * 0.62, cy + ry * 0.1, rx * 0.46, 0, Math.PI * 2);
+    ctx.arc(cx + rx * 0.62, cy + ry * 0.1, rx * 0.46, 0, Math.PI * 2);
+    ctx.arc(cx, cy - ry * 0.35, rx * 0.5, 0, Math.PI * 2);
     ctx.fill();
 
     // 2. Capa media: verde esmeralda denso y frondoso
-    ctx.fillStyle = '#1e7021';
+    ctx.fillStyle = '#1b691e';
     ctx.beginPath();
-    ctx.arc(cx - rx * 0.36, cy - ry * 0.16, rx * 0.42, 0, Math.PI * 2);
-    ctx.arc(cx + rx * 0.36, cy - ry * 0.16, rx * 0.42, 0, Math.PI * 2);
-    ctx.arc(cx, cy + ry * 0.15, rx * 0.45, 0, Math.PI * 2);
-    ctx.arc(cx - rx * 0.46, cy + ry * 0.05, rx * 0.36, 0, Math.PI * 2);
-    ctx.arc(cx + rx * 0.46, cy + ry * 0.05, rx * 0.36, 0, Math.PI * 2);
-    ctx.arc(cx, cy - ry * 0.22, rx * 0.4, 0, Math.PI * 2);
+    ctx.arc(cx - rx * 0.4, cy - ry * 0.15, rx * 0.45, 0, Math.PI * 2);
+    ctx.arc(cx + rx * 0.4, cy - ry * 0.15, rx * 0.45, 0, Math.PI * 2);
+    ctx.arc(cx, cy + ry * 0.18, rx * 0.48, 0, Math.PI * 2);
+    ctx.arc(cx - rx * 0.5, cy + ry * 0.05, rx * 0.4, 0, Math.PI * 2);
+    ctx.arc(cx + rx * 0.5, cy + ry * 0.05, rx * 0.4, 0, Math.PI * 2);
+    ctx.arc(cx, cy - ry * 0.25, rx * 0.44, 0, Math.PI * 2);
     ctx.fill();
 
     // 3. Capa de hojas iluminadas (verde hoja vibrante)
-    ctx.fillStyle = '#38a632';
+    ctx.fillStyle = '#329c2c';
     ctx.beginPath();
-    ctx.arc(cx - rx * 0.26, cy - ry * 0.26, rx * 0.28, 0, Math.PI * 2);
-    ctx.arc(cx + rx * 0.26, cy - ry * 0.26, rx * 0.28, 0, Math.PI * 2);
-    ctx.arc(cx - rx * 0.06, cy - ry * 0.06, rx * 0.3, 0, Math.PI * 2);
-    ctx.arc(cx + rx * 0.28, cy + ry * 0.08, rx * 0.24, 0, Math.PI * 2);
-    ctx.arc(cx - rx * 0.3, cy + ry * 0.12, rx * 0.24, 0, Math.PI * 2);
+    ctx.arc(cx - rx * 0.28, cy - ry * 0.26, rx * 0.32, 0, Math.PI * 2);
+    ctx.arc(cx + rx * 0.28, cy - ry * 0.26, rx * 0.32, 0, Math.PI * 2);
+    ctx.arc(cx - rx * 0.06, cy - ry * 0.06, rx * 0.34, 0, Math.PI * 2);
+    ctx.arc(cx + rx * 0.3, cy + ry * 0.08, rx * 0.28, 0, Math.PI * 2);
+    ctx.arc(cx - rx * 0.32, cy + ry * 0.12, rx * 0.28, 0, Math.PI * 2);
     ctx.fill();
 
     // 4. Puntas iluminadas por el sol (verde lima fresco)
-    ctx.fillStyle = '#5ed154';
+    ctx.fillStyle = '#56c64c';
     ctx.beginPath();
-    ctx.arc(cx - rx * 0.2, cy - ry * 0.32, rx * 0.13, 0, Math.PI * 2);
-    ctx.arc(cx + rx * 0.18, cy - ry * 0.34, rx * 0.12, 0, Math.PI * 2);
-    ctx.arc(cx - rx * 0.02, cy - ry * 0.14, rx * 0.14, 0, Math.PI * 2);
-    ctx.arc(cx - rx * 0.38, cy - ry * 0.05, rx * 0.11, 0, Math.PI * 2);
-    ctx.arc(cx + rx * 0.38, cy - ry * 0.05, rx * 0.11, 0, Math.PI * 2);
+    ctx.arc(cx - rx * 0.22, cy - ry * 0.34, rx * 0.15, 0, Math.PI * 2);
+    ctx.arc(cx + rx * 0.2, cy - ry * 0.36, rx * 0.14, 0, Math.PI * 2);
+    ctx.arc(cx - rx * 0.02, cy - ry * 0.16, rx * 0.16, 0, Math.PI * 2);
+    ctx.arc(cx - rx * 0.42, cy - ry * 0.05, rx * 0.13, 0, Math.PI * 2);
+    ctx.arc(cx + rx * 0.42, cy - ry * 0.05, rx * 0.13, 0, Math.PI * 2);
     ctx.fill();
 
     // 5. Pequeñas flores blancas de 5 pétalos con centro dorado
     const flowerSeed = (plant.col * 31 + plant.row * 19) % 100;
     const flowerPositions = [
-      { fx: cx - rx * 0.42, fy: cy - ry * 0.2 },
-      { fx: cx + rx * 0.4, fy: cy + ry * 0.12 },
-      { fx: cx + (flowerSeed % 16 - 8), fy: cy - ry * 0.05 },
+      { fx: cx - rx * 0.45, fy: cy - ry * 0.2 },
+      { fx: cx + rx * 0.44, fy: cy + ry * 0.12 },
+      { fx: cx + (flowerSeed % 18 - 9), fy: cy - ry * 0.06 },
     ];
 
     flowerPositions.forEach(({ fx, fy }) => {
@@ -537,7 +536,7 @@ export class Renderer {
     for (let i = 0; i < plants.length; i += 1) {
       const plant = plants[i];
       if (!plant.hasFruits) continue;
-      if (!camera.isVisible({ x: plant.x - 16, y: plant.y - 16, w: 64, h: 64 })) continue;
+      if (!camera.isVisible({ x: plant.x - 20, y: plant.y - 20, w: 72, h: 72 })) continue;
 
       const fruits = plant.fruits;
       for (let f = 0; f < fruits.length; f += 1) {
@@ -555,6 +554,7 @@ export class Renderer {
 
   /**
    * Dibuja un arándano individual (maduro azul, pintón púrpura o verde inmaduro).
+   * Todos los frutos comparten el mismo tamaño y nítido contraste.
    */
   #drawBerry(x, y, fruit) {
     const ctx = this.ctx;
@@ -565,7 +565,7 @@ export class Renderer {
     ctx.save();
 
     // Sombra del fruto en el follaje
-    ctx.fillStyle = 'rgba(8, 24, 8, 0.4)';
+    ctx.fillStyle = 'rgba(4, 16, 6, 0.45)';
     ctx.beginPath();
     ctx.arc(x + 1, y + 2, radius, 0, Math.PI * 2);
     ctx.fill();
@@ -598,7 +598,7 @@ export class Renderer {
       ctx.fillRect(x - 0.6, y - 2, 1.2, 4);
 
       // Brillo especular blanco en luna creciente superior izquierda
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
       ctx.beginPath();
       ctx.arc(x - 2.5, y - 2.5, 1.4, 0, Math.PI * 2);
       ctx.fill();
@@ -608,16 +608,17 @@ export class Renderer {
       ctx.arc(x - 1.2, y - 3.2, 1, 0, Math.PI * 2);
       ctx.fill();
     } else if (isPurple) {
-      // Arándano pintón violeta/púrpura
+      // Arándano pintón violeta/magenta (mismo tamaño, borde contrastado)
       ctx.fillStyle = '#2e1065';
       ctx.beginPath();
       ctx.arc(x, y, radius + 0.8, 0, Math.PI * 2);
       ctx.fill();
 
       const grad = ctx.createRadialGradient(x - 2, y - 2, 1, x, y, radius);
-      grad.addColorStop(0, '#f0abfc');
-      grad.addColorStop(0.45, '#a855f7');
-      grad.addColorStop(1, '#581c87');
+      grad.addColorStop(0, '#f472b6');
+      grad.addColorStop(0.4, '#c026d3');
+      grad.addColorStop(0.85, '#7e22ce');
+      grad.addColorStop(1, '#4c1d95');
       ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Math.PI * 2);
@@ -625,37 +626,51 @@ export class Renderer {
 
       ctx.fillStyle = '#2e1065';
       ctx.beginPath();
-      ctx.arc(x, y, 1.8, 0, Math.PI * 2);
+      ctx.arc(x, y, 2.0, 0, Math.PI * 2);
       ctx.fill();
+      ctx.fillStyle = '#a855f7';
+      ctx.fillRect(x - 1.8, y - 0.5, 3.6, 1);
+      ctx.fillRect(x - 0.5, y - 1.8, 1, 3.6);
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
       ctx.beginPath();
-      ctx.arc(x - 2, y - 2, 1.2, 0, Math.PI * 2);
+      ctx.arc(x - 2.5, y - 2.5, 1.3, 0, Math.PI * 2);
       ctx.fill();
     } else {
-      // Arándano verde inmaduro
-      ctx.fillStyle = '#14532d';
+      // Arándano verde inmaduro: verde esmeralda puro, saturado y más oscuro con borde definido
+      ctx.fillStyle = '#022c22';
       ctx.beginPath();
-      ctx.arc(x, y, radius + 0.8, 0, Math.PI * 2);
+      ctx.arc(x, y, radius + 0.9, 0, Math.PI * 2);
       ctx.fill();
 
       const grad = ctx.createRadialGradient(x - 2, y - 2, 1, x, y, radius);
-      grad.addColorStop(0, '#bef264');
-      grad.addColorStop(0.45, '#84cc16');
-      grad.addColorStop(1, '#3f6212');
+      grad.addColorStop(0, '#4ade80');
+      grad.addColorStop(0.35, '#16a34a');
+      grad.addColorStop(0.8, '#15803d');
+      grad.addColorStop(1, '#064e3b');
       ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = '#14532d';
+      // Cáliz oscuro central distintivo
+      ctx.fillStyle = '#022c22';
       ctx.beginPath();
-      ctx.arc(x, y, 1.8, 0, Math.PI * 2);
+      ctx.arc(x, y, 2.0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#15803d';
+      ctx.fillRect(x - 1.8, y - 0.5, 3.6, 1);
+      ctx.fillRect(x - 0.5, y - 1.8, 1, 3.6);
+
+      // Brillo especular nítido para máximo contraste sobre el follaje
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
+      ctx.beginPath();
+      ctx.arc(x - 2.5, y - 2.5, 1.4, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+      ctx.fillStyle = 'rgba(187, 247, 208, 0.6)';
       ctx.beginPath();
-      ctx.arc(x - 2, y - 2, 1.2, 0, Math.PI * 2);
+      ctx.arc(x - 1.2, y - 3.2, 1, 0, Math.PI * 2);
       ctx.fill();
     }
 

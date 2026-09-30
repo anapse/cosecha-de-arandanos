@@ -394,12 +394,17 @@ export class GameEngine {
     this.player?.update(dt);
 
     for (let i = 0; i < this.plants.length; i += 1) {
-      const newlyRipened = this.plants[i].update(dt);
+      const newlyRipened = this.plants[i].update(dt, this.state.score);
       if (newlyRipened && newlyRipened.length > 0) {
         for (const fruit of newlyRipened) {
           const pos = this.plants[i].fruitPosition(fruit);
-          this.effects.particles.emitLeaves(pos.x, pos.y);
-          this.effects.onHarvest(pos.x, pos.y);
+          this.effects.particles.emit(pos.x, pos.y, {
+            count: 4,
+            color: '#60a5fa',
+            speed: 24,
+            life: 0.4,
+            size: 1.5,
+          });
         }
       }
     }
@@ -640,8 +645,7 @@ export class GameEngine {
       }
 
       case HARVEST_RESULT.UNRIPE: {
-        // Error de pintón (§12): consecuencias inmediatas, sin esperar
-        // a la animación.
+        // Fruto verde/inmaduro: penalización suave, sin colgar el juego
         this.pendingHarvest = null;
 
         this.scoreSystem.addUnripe();
@@ -653,25 +657,9 @@ export class GameEngine {
         this.qualitySystem.applyUnripePenalty();
         this.state.quality = this.qualitySystem.value;
 
-        this.player.showError(0.55);
+        this.player.showError(0.2);
         this.effects.onUnripeError(outcome.position.x, outcome.position.y);
         this.audio.error();
-
-        this.#toast('ERROR: PINTON RECOGIDO');
-
-        // Error grave: se pierde una vida (§21).
-        if (this.state.errors > 0 && this.state.errors % GAME_CONFIG.graveErrorThreshold === 0) {
-          const lives = this.state.loseLife();
-          this.effects.showBanner('VIDA PERDIDA', { duration: 1, color: '#e2453c' });
-          if (lives <= 0) {
-            this.#handleLevelEnd({
-              finished: true,
-              outcome: 'defeat',
-              reason: 'noLives',
-              message: 'Sin vidas.',
-            });
-          }
-        }
 
         this.#publishHud();
         break;
