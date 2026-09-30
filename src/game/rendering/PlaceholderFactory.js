@@ -51,6 +51,7 @@ function drawCharacter(ctx, opts) {
     step = 0,           // 0 | 1 fase de caminado
     showBackpack = false,
     showClipboard = false,
+    isSupervisor = false,
   } = opts;
 
   const cx = Math.round(size / 2);
@@ -94,21 +95,24 @@ function drawCharacter(ctx, opts) {
     px(ctx, cx + 6, armY, 4, 5, shirt);
   }
 
-  // Cabeza
-  px(ctx, cx - 5, size - 29, 10, 9, skin);
-  px(ctx, cx - 5, size - 29, 10, 2, PALETTE.skinDark);
+  // Cabeza y cabello castaño
+  px(ctx, cx - 6, size - 29, 12, 10, '#78350f'); // cabello
+  px(ctx, cx - 5, size - 28, 10, 9, skin); // rostro
+  px(ctx, cx - 5, size - 28, 10, 2, PALETTE.skinDark);
 
-  // Rasgos según orientación
+  // Rasgos según orientación (ojos grandes con brillo)
   if (facing !== 'up') {
     const eyeY = size - 25;
-    px(ctx, cx - 3, eyeY, 2, 2, '#2a2a2a');
-    px(ctx, cx + 1, eyeY, 2, 2, '#2a2a2a');
+    px(ctx, cx - 4, eyeY, 2, 3, '#451a03');
+    px(ctx, cx + 2, eyeY, 2, 3, '#451a03');
+    px(ctx, cx - 4, eyeY, 1, 1, '#ffffff');
+    px(ctx, cx + 2, eyeY, 1, 1, '#ffffff');
   }
 
-  // Sombrero
-  px(ctx, cx - 7, size - 32, 14, 4, hat);      // ala
-  px(ctx, cx - 5, size - 36, 10, 5, hat);      // copa
-  px(ctx, cx - 5, size - 36, 10, 2, hatDark);
+  // Sombrero rosa fucsia con cinta blanca
+  px(ctx, cx - 9, size - 32, 18, 4, isSupervisor ? hat : '#f43f5e'); // ala
+  px(ctx, cx - 6, size - 37, 12, 6, isSupervisor ? hat : '#e11d48'); // copa
+  px(ctx, cx - 6, size - 33, 12, 2, isSupervisor ? hatDark : '#fff1f2'); // cinta blanca
 
   // Portapapeles del supervisor (§18)
   if (showClipboard) {

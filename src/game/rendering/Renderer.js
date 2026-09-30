@@ -873,30 +873,548 @@ export class Renderer {
       return;
     }
 
-    const size = entity.width ?? 32;
-    const drawW = options.width ?? size;
-    const drawH = options.height ?? size;
+    // JUGADOR COSECHADOR/A (idéntico a los sprites subidos: sombrero rosa fucsia con cinta blanca, cabello castaño ondulado, ojos anime grandes, camisa azul con botones, cinturón con hebilla dorada, vaqueros y botas de trabajo marrones)
+    this.#drawPlayerChibi(entity, camera, options);
+  }
 
-    // Sombra bajo el personaje
-    this.sprites.drawShadow(
-      Math.round(entity.x),
-      Math.round(entity.y + drawH * 0.34),
-      drawW * 0.32,
-      drawH * 0.14,
-      0.28
-    );
-
+  /**
+   * Dibuja al personaje jugador con todas las poses y animaciones del diseño oficial:
+   * caminar abajo, arriba, izquierda, derecha, quieto (idle), cosechar der/izq y emociones.
+   */
+  #drawPlayerChibi(entity, camera, options = {}) {
+    const ctx = this.ctx;
+    const px = Math.round(entity.x);
+    const py = Math.round(entity.y);
+    const state = entity.state ?? 'idle';
+    const facing = entity.facing ?? 'down';
     const frame = options.frame ?? entity.frame ?? 0;
+    const isHarvest = entity.isHarvesting || state.includes('harvest');
+    const harvestProgress = entity.harvestProgress ?? 0;
+    const harvestSide = entity.harvestSide ?? (state.includes('Left') ? 'left' : 'right');
+    const tint = options.tint ?? (entity.errorFlash > 0 ? 'rgba(239, 68, 68, 0.4)' : null);
 
-    this.sprites.draw(entity.spriteKey, entity.renderX ?? entity.x, entity.renderY ?? entity.y, {
-      frame,
-      frameSize: options.frameSize ?? 32,
-      width: drawW,
-      height: drawH,
-      flipX: options.flipX ?? false,
-      alpha: options.alpha ?? 1,
-      tint: options.tint ?? null,
-    });
+    ctx.save();
+    ctx.translate(px, py);
+
+    // Sombra ovalada suave bajo los pies
+    this.sprites.drawShadow(0, 22, 22, 8, 0.32);
+
+    // Si hay tinte de error
+    if (tint) {
+      ctx.fillStyle = tint;
+      ctx.beginPath();
+      ctx.arc(0, 0, 24, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const isBack = facing === 'up' || state === 'walkUp';
+    const isProfile = facing === 'left' || facing === 'right' || state === 'walkLeft' || state === 'walkRight' || isHarvest;
+    const flip = facing === 'left' || state === 'walkLeft' || (isHarvest && harvestSide === 'left');
+
+    if (flip) {
+      ctx.scale(-1, 1);
+    }
+
+    // ---------- VISTA DE PERFIL (Caminar Izq/Der y Cosechar Izq/Der) ----------
+    if (isProfile) {
+      const step = isHarvest ? 0 : frame % 4;
+      const legOffset1 = step === 1 ? 7 : step === 3 ? -7 : 0;
+      const legOffset2 = step === 1 ? -7 : step === 3 ? 7 : 0;
+      const armSwing = isHarvest ? 0 : step === 1 ? 6 : step === 3 ? -6 : 0;
+      const bob = step === 1 || step === 3 ? -1.5 : 0;
+
+      const topY = -26 + bob;
+
+      // 1. Pierna trasera y bota
+      ctx.fillStyle = '#1e3a8a';
+      ctx.fillRect(-5 + legOffset2 * 0.7, topY + 34, 10, 14);
+      // Bota trasera
+      ctx.fillStyle = '#78350f';
+      ctx.beginPath();
+      ctx.roundRect(-7 + legOffset2 * 0.7, topY + 44, 15, 8, [2, 4, 3, 2]);
+      ctx.fill();
+      ctx.fillStyle = '#451a03';
+      ctx.fillRect(-7 + legOffset2 * 0.7, topY + 50, 15, 3);
+
+      // 2. Torso (camisa azul de perfil)
+      ctx.fillStyle = '#2563eb';
+      ctx.beginPath();
+      ctx.roundRect(-8, topY + 22, 16, 13, 3);
+      ctx.fill();
+      // Cuello y botones
+      ctx.fillStyle = '#60a5fa';
+      ctx.fillRect(0, topY + 23, 7, 3);
+      ctx.fillStyle = '#1d4ed8';
+      ctx.fillRect(-8, topY + 31, 16, 3);
+
+      // Cinturón marrón con hebilla dorada
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(-8, topY + 33, 16, 3.5);
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(1, topY + 33, 4, 3.5);
+
+      // 3. Pierna delantera y bota
+      ctx.fillStyle = '#2563eb';
+      ctx.fillRect(-5 + legOffset1 * 0.7, topY + 36, 10, 13);
+      // Bota delantera marrón con puntera redondeada
+      ctx.fillStyle = '#92400e';
+      ctx.beginPath();
+      ctx.roundRect(-7 + legOffset1 * 0.7, topY + 45, 16, 8, [2, 5, 4, 2]);
+      ctx.fill();
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(-7 + legOffset1 * 0.7, topY + 45, 12, 3);
+      ctx.fillStyle = '#451a03';
+      ctx.fillRect(-7 + legOffset1 * 0.7, topY + 51, 16, 3);
+
+      // 4. Brazo (cosechando o caminando)
+      if (isHarvest) {
+        // Brazo extendiéndose hacia el arbusto
+        const reach = Math.sin(harvestProgress * Math.PI) * 14 + 6;
+        ctx.fillStyle = '#2563eb';
+        ctx.fillRect(-2, topY + 24, 8 + reach * 0.5, 6);
+        ctx.fillStyle = '#60a5fa';
+        ctx.fillRect(4 + reach * 0.5, topY + 24, 4, 6);
+        // Mano y arándano cosechado en la mano
+        ctx.fillStyle = '#fed7aa';
+        ctx.beginPath();
+        ctx.arc(6 + reach, topY + 27, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (harvestProgress > 0.3) {
+          ctx.fillStyle = '#1e3a8a';
+          ctx.beginPath();
+          ctx.arc(8 + reach, topY + 26, 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#60a5fa';
+          ctx.beginPath();
+          ctx.arc(7 + reach, topY + 25, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else {
+        // Brazo balanceándose
+        ctx.fillStyle = '#2563eb';
+        ctx.beginPath();
+        ctx.roundRect(-3 + armSwing * 0.6, topY + 24, 8, 10, 3);
+        ctx.fill();
+        ctx.fillStyle = '#60a5fa';
+        ctx.fillRect(-3 + armSwing * 0.6, topY + 31, 8, 3);
+        // Mano
+        ctx.fillStyle = '#fed7aa';
+        ctx.beginPath();
+        ctx.arc(1 + armSwing * 0.7, topY + 37, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 5. Cabeza de perfil, cabello castaño y cara
+      ctx.fillStyle = '#78350f';
+      // Pelo trasero con volumen ondulado
+      ctx.beginPath();
+      ctx.arc(-8, topY + 14, 9, 0, Math.PI * 2);
+      ctx.arc(-13, topY + 16, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cara
+      ctx.fillStyle = '#fed7aa';
+      ctx.beginPath();
+      ctx.roundRect(-4, topY + 9, 14, 13, [4, 7, 7, 4]);
+      ctx.fill();
+      // Mejilla sonrosada
+      ctx.fillStyle = '#fca5a5';
+      ctx.beginPath();
+      ctx.arc(6, topY + 18, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Ojo anime grande de perfil
+      ctx.fillStyle = '#451a03';
+      ctx.beginPath();
+      ctx.ellipse(4, topY + 14, 2.8, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Brillo del ojo
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(3.5, topY + 12.5, 1.2, 0, Math.PI * 2);
+      ctx.arc(4.5, topY + 15, 0.7, 0, Math.PI * 2);
+      ctx.fill();
+      // Sonrisa
+      ctx.strokeStyle = '#78350f';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(6, topY + 19, 2.2, 0.2, Math.PI * 0.8);
+      ctx.stroke();
+
+      // Flequillo castaño frontal
+      ctx.fillStyle = '#92400e';
+      ctx.beginPath();
+      ctx.arc(1, topY + 8, 4, 0, Math.PI * 2);
+      ctx.arc(5, topY + 8, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 6. Sombrero Rosa Fucsia de Perfil con cinta blanca
+      // Ala curvada
+      ctx.fillStyle = '#e11d48';
+      ctx.beginPath();
+      ctx.ellipse(0, topY + 6, 20, 6, -0.05, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.ellipse(0, topY + 5, 19, 5, -0.05, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Copa del sombrero
+      ctx.fillStyle = '#e11d48';
+      ctx.beginPath();
+      ctx.roundRect(-10, topY - 7, 18, 12, [6, 6, 2, 2]);
+      ctx.fill();
+      ctx.fillStyle = '#fb7185';
+      ctx.beginPath();
+      ctx.roundRect(-8, topY - 6, 14, 8, [5, 5, 2, 2]);
+      ctx.fill();
+
+      // Cinta blanca/crema del sombrero
+      ctx.fillStyle = '#fff1f2';
+      ctx.fillRect(-10, topY + 1, 18, 3.5);
+      ctx.fillStyle = '#fda4af';
+      ctx.fillRect(-10, topY + 4, 18, 1);
+    }
+    // ---------- VISTA TRASERA (Caminar Arriba) ----------
+    else if (isBack) {
+      const step = frame % 4;
+      const legShift = step === 1 ? 4 : step === 3 ? -4 : 0;
+      const bob = step === 1 || step === 3 ? -1.5 : 0;
+      const topY = -26 + bob;
+
+      // 1. Pantalones y botas de espalda
+      ctx.fillStyle = '#1e3a8a';
+      ctx.fillRect(-9, topY + 33, 8, 14 + (legShift > 0 ? 2 : 0));
+      ctx.fillRect(1, topY + 33, 8, 14 + (legShift < 0 ? 2 : 0));
+      // Bolsillos traseros
+      ctx.fillStyle = '#172554';
+      ctx.fillRect(-7, topY + 34, 4, 4);
+      ctx.fillRect(3, topY + 34, 4, 4);
+
+      // Botas traseras
+      ctx.fillStyle = '#78350f';
+      ctx.beginPath();
+      ctx.roundRect(-9, topY + 45 + (legShift > 0 ? 2 : 0), 8, 7, [2, 2, 4, 4]);
+      ctx.roundRect(1, topY + 45 + (legShift < 0 ? 2 : 0), 8, 7, [2, 2, 4, 4]);
+      ctx.fill();
+      ctx.fillStyle = '#451a03';
+      ctx.fillRect(-9, topY + 50 + (legShift > 0 ? 2 : 0), 8, 3);
+      ctx.fillRect(1, topY + 50 + (legShift < 0 ? 2 : 0), 8, 3);
+
+      // 2. Torso (espalda camisa azul)
+      ctx.fillStyle = '#2563eb';
+      ctx.beginPath();
+      ctx.roundRect(-11, topY + 21, 22, 13, 3);
+      ctx.fill();
+      ctx.fillStyle = '#1d4ed8';
+      ctx.fillRect(-11, topY + 31, 22, 3);
+
+      // Cinturón
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(-11, topY + 32, 22, 3);
+
+      // Brazos a los lados
+      ctx.fillStyle = '#2563eb';
+      ctx.beginPath();
+      ctx.roundRect(-15, topY + 23 - legShift * 0.5, 5, 10, 2);
+      ctx.roundRect(10, topY + 23 + legShift * 0.5, 5, 10, 2);
+      ctx.fill();
+      ctx.fillStyle = '#fed7aa';
+      ctx.beginPath();
+      ctx.arc(-12.5, topY + 35 - legShift * 0.5, 3.5, 0, Math.PI * 2);
+      ctx.arc(12.5, topY + 35 + legShift * 0.5, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 3. Cabello castaño frondoso en la nuca
+      ctx.fillStyle = '#78350f';
+      ctx.beginPath();
+      ctx.arc(-7, topY + 16, 7, 0, Math.PI * 2);
+      ctx.arc(0, topY + 17, 8, 0, Math.PI * 2);
+      ctx.arc(7, topY + 16, 7, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 4. Sombrero Rosa Fucsia desde atrás
+      ctx.fillStyle = '#e11d48';
+      ctx.beginPath();
+      ctx.ellipse(0, topY + 6, 21, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.ellipse(0, topY + 5, 20, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Copa del sombrero
+      ctx.fillStyle = '#e11d48';
+      ctx.beginPath();
+      ctx.roundRect(-11, topY - 7, 22, 12, [6, 6, 2, 2]);
+      ctx.fill();
+      ctx.fillStyle = '#fb7185';
+      ctx.beginPath();
+      ctx.roundRect(-9, topY - 6, 18, 7, [5, 5, 2, 2]);
+      ctx.fill();
+
+      // Cinta blanca
+      ctx.fillStyle = '#fff1f2';
+      ctx.fillRect(-11, topY + 1, 22, 3.5);
+    }
+    // ---------- VISTA FRONTAL (Idle, Caminar Abajo y Emociones) ----------
+    else {
+      const isWalk = state === 'walkDown';
+      const isVictory = state === 'victory';
+      const isDefeat = state === 'defeat';
+      const isError = state === 'error';
+      const isTired = state === 'tired';
+      const isFull = state === 'full';
+
+      const step = isWalk ? frame % 4 : 0;
+      const legShift = isWalk ? (step === 1 ? 4 : step === 3 ? -4 : 0) : 0;
+      const idleBob = (!isWalk && !isVictory) ? Math.sin((frame / 4) * Math.PI * 2) * 1 : (isWalk && (step === 1 || step === 3)) ? -1.5 : 0;
+      const topY = -26 + idleBob;
+
+      // 1. Pantalones y botas
+      ctx.fillStyle = '#1e3a8a';
+      ctx.fillRect(-9, topY + 34, 8, 13 + (legShift > 0 ? 3 : 0));
+      ctx.fillRect(1, topY + 34, 8, 13 + (legShift < 0 ? 3 : 0));
+
+      // Botas marrones delanteras
+      ctx.fillStyle = '#92400e';
+      ctx.beginPath();
+      ctx.roundRect(-10, topY + 45 + (legShift > 0 ? 3 : 0), 9, 8, [3, 3, 4, 4]);
+      ctx.roundRect(1, topY + 45 + (legShift < 0 ? 3 : 0), 9, 8, [3, 3, 4, 4]);
+      ctx.fill();
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(-10, topY + 45 + (legShift > 0 ? 3 : 0), 9, 3);
+      ctx.fillRect(1, topY + 45 + (legShift < 0 ? 3 : 0), 9, 3);
+      ctx.fillStyle = '#451a03';
+      ctx.fillRect(-10, topY + 51 + (legShift > 0 ? 3 : 0), 9, 3);
+      ctx.fillRect(1, topY + 51 + (legShift < 0 ? 3 : 0), 9, 3);
+
+      // 2. Torso (camisa azul con botones)
+      ctx.fillStyle = '#2563eb';
+      ctx.beginPath();
+      ctx.roundRect(-11, topY + 21, 22, 14, 3);
+      ctx.fill();
+      // Cuello y botones
+      ctx.fillStyle = '#60a5fa';
+      ctx.beginPath();
+      ctx.moveTo(-4, topY + 21);
+      ctx.lineTo(0, topY + 25);
+      ctx.lineTo(4, topY + 21);
+      ctx.fill();
+      // Botón
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-0.8, topY + 27, 1.6, 2);
+      ctx.fillRect(-0.8, topY + 30, 1.6, 2);
+
+      // Cinturón marrón con hebilla dorada
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(-11, topY + 33, 22, 3.5);
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(-3, topY + 32.5, 6, 4.5);
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(-1.5, topY + 34, 3, 2);
+
+      // 3. Brazos y manos según estado
+      if (isVictory) {
+        // Brazos arriba celebrando \o/
+        ctx.fillStyle = '#2563eb';
+        ctx.beginPath();
+        ctx.roundRect(-16, topY + 12, 6, 12, 3);
+        ctx.roundRect(10, topY + 12, 6, 12, 3);
+        ctx.fill();
+        ctx.fillStyle = '#fed7aa';
+        ctx.beginPath();
+        ctx.arc(-13, topY + 11, 4, 0, Math.PI * 2);
+        ctx.arc(13, topY + 11, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Estrellas de victoria doradas flotantes ✨
+        ctx.fillStyle = '#facc15';
+        const starTime = (Date.now() / 250) % 10;
+        const stars = [
+          { sx: -19, sy: topY + 5 },
+          { sx: 18, sy: topY + 8 },
+          { sx: -17, sy: topY + 24 },
+          { sx: 19, sy: topY + 22 },
+        ];
+        stars.forEach(({ sx, sy }) => {
+          ctx.beginPath();
+          ctx.moveTo(sx, sy - 3.5);
+          ctx.lineTo(sx + 1.2, sy - 1.2);
+          ctx.lineTo(sx + 3.5, sy);
+          ctx.lineTo(sx + 1.2, sy + 1.2);
+          ctx.lineTo(sx, sy + 3.5);
+          ctx.lineTo(sx - 1.2, sy + 1.2);
+          ctx.lineTo(sx - 3.5, sy);
+          ctx.lineTo(sx - 1.2, sy - 1.2);
+          ctx.fill();
+        });
+      } else if (isFull) {
+        // Sosteniendo cajón de arándanos
+        ctx.fillStyle = '#2563eb';
+        ctx.fillRect(-13, topY + 24, 6, 8);
+        ctx.fillRect(7, topY + 24, 6, 8);
+        // Caja de madera
+        ctx.fillStyle = '#854d0e';
+        ctx.fillRect(-14, topY + 26, 28, 12);
+        ctx.fillStyle = '#ca8a04';
+        ctx.fillRect(-13, topY + 27, 26, 10);
+        // Arándanos dentro de la caja
+        for (let b = 0; b < 6; b += 1) {
+          ctx.fillStyle = '#1e3a8a';
+          ctx.beginPath();
+          ctx.arc(-10 + b * 4, topY + 29, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#60a5fa';
+          ctx.beginPath();
+          ctx.arc(-11 + b * 4, topY + 28, 0.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else {
+        // Brazos normales a los lados
+        ctx.fillStyle = '#2563eb';
+        ctx.beginPath();
+        ctx.roundRect(-15, topY + 23 - legShift * 0.5, 5, 10, 2);
+        ctx.roundRect(10, topY + 23 + legShift * 0.5, 5, 10, 2);
+        ctx.fill();
+        ctx.fillStyle = '#60a5fa';
+        ctx.fillRect(-15, topY + 29 - legShift * 0.5, 5, 2.5);
+        ctx.fillRect(10, topY + 29 + legShift * 0.5, 5, 2.5);
+        // Manos
+        ctx.fillStyle = '#fed7aa';
+        ctx.beginPath();
+        ctx.arc(-12.5, topY + 34 - legShift * 0.5, 3.8, 0, Math.PI * 2);
+        ctx.arc(12.5, topY + 34 + legShift * 0.5, 3.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 4. Cabeza, cabello castaño y cara
+      ctx.fillStyle = '#78350f';
+      // Mechones de pelo a los lados de las mejillas
+      ctx.beginPath();
+      ctx.arc(-10, topY + 16, 6, 0, Math.PI * 2);
+      ctx.arc(10, topY + 16, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cara
+      ctx.fillStyle = '#fed7aa';
+      ctx.beginPath();
+      ctx.roundRect(-9, topY + 9, 18, 14, [4, 4, 8, 8]);
+      ctx.fill();
+
+      // Mejillas rosadas
+      ctx.fillStyle = '#fca5a5';
+      ctx.beginPath();
+      ctx.arc(-6, topY + 19, 2.5, 0, Math.PI * 2);
+      ctx.arc(6, topY + 19, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Ojos anime y boca según expresión
+      if (isVictory) {
+        // Ojos felices curvados ^ ^
+        ctx.strokeStyle = '#451a03';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.arc(-5, topY + 15, 3, Math.PI * 1.1, Math.PI * 1.9);
+        ctx.arc(5, topY + 15, 3, Math.PI * 1.1, Math.PI * 1.9);
+        ctx.stroke();
+        // Boca sonriente abierta
+        ctx.fillStyle = '#f43f5e';
+        ctx.beginPath();
+        ctx.arc(0, topY + 18, 3.5, 0, Math.PI);
+        ctx.fill();
+      } else if (isDefeat || isTired) {
+        // Ojos tristes o cansados cerrados
+        ctx.strokeStyle = '#451a03';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.arc(-5, topY + 17, 3, Math.PI * 0.1, Math.PI * 0.9);
+        ctx.arc(5, topY + 17, 3, Math.PI * 0.1, Math.PI * 0.9);
+        ctx.stroke();
+        // Pequeña boca triste
+        ctx.beginPath();
+        ctx.arc(0, topY + 21, 2, Math.PI * 1.1, Math.PI * 1.9);
+        ctx.stroke();
+
+        // Gotas de sudor si está cansado
+        if (isTired) {
+          ctx.fillStyle = '#38bdf8';
+          ctx.beginPath();
+          ctx.arc(11, topY + 17, 2, 0, Math.PI * 2);
+          ctx.arc(-11, topY + 19, 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else {
+        // Ojos anime grandes estándar con doble brillo
+        ctx.fillStyle = '#451a03';
+        ctx.beginPath();
+        ctx.ellipse(-5, topY + 15, 3.2, 4.5, 0, 0, Math.PI * 2);
+        ctx.ellipse(5, topY + 15, 3.2, 4.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Brillo grande y pequeño
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(-5.8, topY + 13.5, 1.4, 0, Math.PI * 2);
+        ctx.arc(4.2, topY + 13.5, 1.4, 0, Math.PI * 2);
+        ctx.arc(-4.2, topY + 16.5, 0.8, 0, Math.PI * 2);
+        ctx.arc(5.8, topY + 16.5, 0.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Sonrisa alegre
+        ctx.strokeStyle = '#78350f';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(0, topY + 19.5, 2.5, 0.2, Math.PI * 0.8);
+        ctx.stroke();
+      }
+
+      // Flequillo castaño
+      ctx.fillStyle = '#92400e';
+      ctx.beginPath();
+      ctx.arc(-4, topY + 8, 4.5, 0, Math.PI * 2);
+      ctx.arc(0, topY + 7.5, 4.5, 0, Math.PI * 2);
+      ctx.arc(4, topY + 8, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Signo de exclamación rojo en error
+      if (isError) {
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath();
+        ctx.roundRect(8, topY - 18, 4, 10, 2);
+        ctx.arc(10, topY - 5, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 5. Sombrero Rosa Fucsia Frontal con cinta blanca
+      ctx.fillStyle = '#e11d48';
+      ctx.beginPath();
+      ctx.ellipse(0, topY + 6, 21, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.ellipse(0, topY + 5, 20, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Copa del sombrero
+      ctx.fillStyle = '#e11d48';
+      ctx.beginPath();
+      ctx.roundRect(-11, topY - 7, 22, 12, [6, 6, 2, 2]);
+      ctx.fill();
+      ctx.fillStyle = '#fb7185';
+      ctx.beginPath();
+      ctx.roundRect(-9, topY - 6, 18, 7, [5, 5, 2, 2]);
+      ctx.fill();
+
+      // Cinta blanca
+      ctx.fillStyle = '#fff1f2';
+      ctx.fillRect(-11, topY + 1, 22, 3.5);
+      ctx.fillStyle = '#fda4af';
+      ctx.fillRect(-11, topY + 4, 22, 0.8);
+    }
+
+    ctx.restore();
   }
 
   /**
