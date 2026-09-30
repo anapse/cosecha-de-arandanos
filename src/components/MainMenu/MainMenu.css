@@ -37,10 +37,17 @@
 }
 
 .main-menu__berry {
-  font-size: clamp(38px, 12vmin, 62px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
-  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
   animation: berry-float 2.6s ease-in-out infinite;
+}
+
+.main-menu__berry-icon {
+  width: clamp(48px, 12vmin, 68px);
+  height: clamp(48px, 12vmin, 68px);
 }
 
 @keyframes berry-float {

@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react';
 import { storage } from '../../utils/storage.js';
 import { TOTAL_LEVELS } from '../../data/levels.js';
 import { GAME_VERSION } from '../../config/version.js';
+import BlueberryIcon from '../common/BlueberryIcon.jsx';
 import './MainMenu.css';
 
 export default function MainMenu({ onPlay, onTutorial, onSelectLevel }) {
@@ -33,7 +34,7 @@ export default function MainMenu({ onPlay, onTutorial, onSelectLevel }) {
         {/* ---------- Título ---------- */}
         <header className="main-menu__header">
           <div className="main-menu__berry" aria-hidden="true">
-            🫐
+            <BlueberryIcon size={64} className="main-menu__berry-icon" />
           </div>
           <h1 className="main-menu__title">
             COSECHA DE

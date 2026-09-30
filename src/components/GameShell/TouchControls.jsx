@@ -17,6 +17,7 @@
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import BlueberryIcon from '../common/BlueberryIcon.jsx';
 import './TouchControls.css';
 
 export default function TouchControls({ engine, visible = true, onDeliver }) {
@@ -301,7 +302,7 @@ export default function TouchControls({ engine, visible = true, onDeliver }) {
           onContextMenu={(e) => e.preventDefault()}
           aria-label="Cosechar arándano"
         >
-          <span className="touch-pill__icon">🫐</span>
+          <span className="touch-pill__icon"><BlueberryIcon size={20} /></span>
           <span className="touch-pill__label">COSECHAR</span>
         </button>
 
